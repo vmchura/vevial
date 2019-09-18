@@ -38,6 +38,7 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
 }
 object MilestoneLayer {
+
   private val lengthAsta = 15d
   private val heightFlag = 20d
   private val widthFlag = 90d

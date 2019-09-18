@@ -24,12 +24,14 @@ trait TLayer[E] {
     map2Nodes.get(e).map{ s =>
       nodes.removeIf(n => s.contains(n))
     }
+    map2Nodes.remove(e)
   }
   def removeAll(listE: Iterable[E]): Unit = {
     val s: Seq[Node] = listE.flatMap(e => map2Nodes.getOrElse(e,Nil)).toList
     nodes.removeIf(n => s.contains(n))
+    listE.foreach(map2Nodes.remove)
   }
-
+  protected def elementsDrawn: Iterable[E] = map2Nodes.keys
 
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
