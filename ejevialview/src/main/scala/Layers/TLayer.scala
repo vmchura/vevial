@@ -31,7 +31,7 @@ trait TLayer[E] {
     nodes.removeIf(n => s.contains(n))
     listE.foreach(map2Nodes.remove)
   }
-  protected def elementsDrawn: Iterable[E] = map2Nodes.keys
+  protected def elementsDrawn(): scala.collection.Set[E] = map2Nodes.keySet
 
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner

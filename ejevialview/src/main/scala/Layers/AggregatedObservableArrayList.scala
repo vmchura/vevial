@@ -3,16 +3,28 @@ package Layers
 
 
 import scala.reflect.ClassTag
-import javafx.collections.{FXCollections, ListChangeListener}
+import javafx.collections.{FXCollections, ListChangeListener, ObservableList}
 import scalafx.Includes._
 import scalafx.collections.ObservableBuffer
 
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
-class AggregatedObservableArrayList[T : ClassTag](lists: IndexedSeq[ObservableBuffer[T]]) {
+class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableBuffer[T]]) {
   private val sizes: Array[Int] = lists.map(_.size()).toArray
   private val aggregatedList: ObservableBuffer[T] = new ObservableBuffer[T]()
+  private val addedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
+  private val deletedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
+  def getAddedAndDeleted(): (Seq[T],Seq[T]) = {
+    val a = addedElements.toSeq
+    val b = deletedElements.toSeq
+    addedElements.clear()
+    deletedElements.clear()
+    (a,b)
+  }
   lists.foreach(l => {
     aggregatedList.appendAll(l)
+    addedElements.appendAll(l)
     appendList(l)
     }
   )
@@ -57,6 +69,7 @@ class AggregatedObservableArrayList[T : ClassTag](lists: IndexedSeq[ObservableBu
           }
           aggregatedList.removeRange(startIndex+from,startIndex+to)
           aggregatedList.insertAll(startIndex+from,copy)
+
         }else{
           if(change.wasUpdated()){
 
@@ -65,10 +78,17 @@ class AggregatedObservableArrayList[T : ClassTag](lists: IndexedSeq[ObservableBu
 
 
               val removed = change.getRemoved
+
+              deletedElements.addAll(removed.asScala)
               aggregatedList.removeRange(startIndex+from,startIndex+from+removed.size())
+
+
+
               if(change.wasAdded()){
                 val added = change.getAddedSubList
                 aggregatedList.addAll(startIndex+from,added)
+
+                addedElements.appendAll(added.asScala)
               }
             }else{
               if(change.wasAdded()){
@@ -76,6 +96,7 @@ class AggregatedObservableArrayList[T : ClassTag](lists: IndexedSeq[ObservableBu
                 val added = change.getAddedSubList
 
                 aggregatedList.addAll(startIndex+from,added)
+                addedElements.appendAll(added.asScala)
 
               }else{
                 if(change.wasReplaced()){

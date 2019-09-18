@@ -31,11 +31,40 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
   val fromProg: Int = (eje.minProg.toInt/50)*50
   val toProg: Int = ((eje.maxProg.toInt+49)/50)*50
-  println(s"$fromProg => $toProg")
   val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point,prog)))
-  println(s"|hitos| ${hitosBy50.length}")
-  addAll(hitosBy50)
 
+
+  /**
+    *
+    * all changes are 1*log(2) to n = f
+    * @param f
+    */
+  private def applyFactor(f: Double): Unit = {
+    val n = Math.round(Math.log(f)/Math.log(Math.log(2)))
+    // m: module to use to filter
+    val m = n match {
+      case _ if n <= -7 =>100000
+      case _ if n <= -6 =>50000
+      case _ if n <= -5 =>20000
+      case _ if n <= -4 =>10000
+      case _ if n <= -3 => 5000
+      case _ if n <= -2 => 2000
+      case _ if n <= -1 => 1000
+      case _ if n <= 0 => 500
+      case _ if n <= 1 => 200
+      case _ if n <= 2 => 100
+      case _  => 50
+
+    }
+    val hitosShouldBeShow = hitosBy50.filter(_.progresiva % m == 0).toSet
+    val hitosShouldBeDeleted = elementsDrawn().diff(hitosShouldBeShow)
+    val hitosShouldBeAdded = hitosShouldBeShow.diff(elementsDrawn())
+    removeAll(hitosShouldBeDeleted)
+    addAll(hitosShouldBeAdded)
+  }
+  factor.onChange((_,_,nf) =>applyFactor(nf.doubleValue()))
+
+  applyFactor(factor.doubleValue())
 }
 object MilestoneLayer {
 

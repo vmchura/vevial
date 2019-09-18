@@ -12,7 +12,7 @@ import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
-import scalafx.scene.{Node, Scene}
+import scalafx.scene.{Group, Node, Scene}
 import scalafx.scene.effect.DropShadow
 import scalafx.scene.layout.{BorderPane, HBox, Pane, StackPane}
 import scalafx.scene.paint.Color._
@@ -21,7 +21,8 @@ import scalafx.scene.text.Text
 import UtilTransformers.PointTransformer._
 import scalafx.scene.control.Button
 import scalafx.scene.shape.Shape
-
+import scalafx.Includes._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 object HelloScalaFX extends JFXApp {
 
@@ -49,11 +50,12 @@ object HelloScalaFX extends JFXApp {
 
   val ejeLayer: EjeVialLayer = new EjeVialLayer(eprog)
   val milestonesLayer = new MilestoneLayer(eprog)
-
+  val panelMapa = new Pane()
   val layersMerged = new AggregatedObservableArrayList[Node](Array(ejeLayer,milestonesLayer).map(_.nodes))
-  val panelMapa = new Pane(){
-    children = layersMerged.getAggregatedList()
-  }
+
+
+
+
 
 
 
@@ -81,6 +83,12 @@ object HelloScalaFX extends JFXApp {
     lastPositionY() = None
   }
 
+  def updateItemsDrawn(): Unit = {
+    val (added,removed) = layersMerged.getAddedAndDeleted()
+    panelMapa.children.removeAll(removed.map(_.delegate).asJavaCollection)
+    panelMapa.children.appendAll(added.map(_.delegate))
+  }
+
   panelMapa.onScroll = ae => {
 
 
@@ -95,12 +103,14 @@ object HelloScalaFX extends JFXApp {
       val px = PointTransformer.convertXView2Real(ae.getX)
       val py = PointTransformer.convertYView2Real(ae.getY)
       PointTransformer.updateOffsetWithPivot(newFactor,px,py)
+      //panelMapa.children = layersMerged.getAggregatedList()
+      updateItemsDrawn()
     }
 
 
 
   }
-
+  updateItemsDrawn()
   stage = new PrimaryStage {
     title = "ScalaFX Hello World"
     width = 600
