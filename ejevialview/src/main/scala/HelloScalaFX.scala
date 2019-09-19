@@ -1,3 +1,4 @@
+import EjeVialBuilder.SimpleConvertibleToEje
 import Layers.{AggregatedObservableArrayList, EjeVialLayer, MilestoneLayer, TLayer}
 import PlanarGeometric.BasicEje.{EfficientSeqEjeElements, TEfficientSeqEjeElements, TSeqEjeElementsBase}
 import PlanarGeometric.BasicGeometry.Point
@@ -22,43 +23,18 @@ import UtilTransformers.PointTransformer._
 import scalafx.scene.control.Button
 import scalafx.scene.shape.Shape
 import scalafx.Includes._
+
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 object HelloScalaFX extends JFXApp {
 
-  val pointAlterTest = List(new ProgresivePoint(Point(150,0),50),
-    new ProgresivePoint(Point(200,0),100))
-
-  val r = RectSegment(Point(100,0),Point(200,0))
-
-  val c = CircleSegment(Point(200,0),Point(200,100),Point(200,200),antiClockWise = true)
-
-  val sequence = EfficientSeqEjeElements(TSeqEjeElementsBase().append(r).append(c))
-
-
-  val sequenceWithRestrictions: EjeEfficientWithRestrictions[TEfficientSeqEjeElements, TEfficientSeqEjeElements] = EjeEfficientWithRestrictions(sequence)
-
-  val pointsProgresive = pointAlterTest.foldLeft(sequenceWithRestrictions){case (sr, pp) => sr.addRestriction(pp) match {
-    case Right(value) => value
-    case Left(value) => value
-  }}
-
-
-
-
-  val eprog: EfficientEjeProgresiva = EfficientEjeProgresiva(pointsProgresive)
-
+  val eprog = new SimpleConvertibleToEje().toEje()
   val ejeLayer: EjeVialLayer = new EjeVialLayer(eprog)
   val milestonesLayer = new MilestoneLayer(eprog)
   val panelMapa = new Pane()
   val layersMerged = new AggregatedObservableArrayList[Node](Array(ejeLayer,milestonesLayer).map(_.nodes))
 
-
-
-
-
-
-
+  
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
   val lastPositionY = new ObjectProperty[Option[Double]](this,"lastPositionY",None)
   panelMapa.onMouseDragged = ae => {

@@ -27,8 +27,11 @@ lazy val commonSettings = Seq(
     "org.scalatest" %% "scalatest" % "3.0.8" % "test"),
 
     //cats
-  libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0"
+  libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0",
 
+  //logging
+  libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % "1.2.3",
+                               "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2")
 
 )
 
