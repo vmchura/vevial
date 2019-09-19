@@ -31,7 +31,10 @@ lazy val commonSettings = Seq(
 
   //logging
   libraryDependencies ++= List("ch.qos.logback" % "logback-classic" % "1.2.3",
-                               "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2")
+                               "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"),
+
+  //xml
+    libraryDependencies +="org.scala-lang.modules" %% "scala-xml" % "1.2.0"
 
 )
 
@@ -59,5 +62,5 @@ libraryDependencies ++= javaFXModules.map( m =>
 )
 
 
-onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejevialview" :: s}
+onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejevial" :: s}
 
