@@ -61,7 +61,7 @@ trait TCircleSegment extends TSimpleEjeElement{
     }else {
       val v = point - centerPoint
       val u = originPoint - centerPoint
-      val beta = u \/ v
+      val beta = if(antiClockWise)  u \/ v else v \/u
       beta * radius
     }
   }
