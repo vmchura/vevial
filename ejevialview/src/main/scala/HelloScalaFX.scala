@@ -1,38 +1,35 @@
 import EjeVialBuilder.SimpleConvertibleToEje
-import Layers.{AggregatedObservableArrayList, EjeVialLayer, MilestoneLayer, TLayer}
-import PlanarGeometric.BasicEje.{EfficientSeqEjeElements, TEfficientSeqEjeElements, TSeqEjeElementsBase}
-import PlanarGeometric.BasicGeometry.Point
-import PlanarGeometric.EjeElement.{CircleSegment, RectSegment}
-import PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
-import PlanarGeometric.RestrictiveEje.{EjeEfficientWithRestrictions, ProgresivePoint}
-import ShapeGenerator.{EjeConverter, SimpleEjeElementConverter}
+import Layers.{AggregatedObservableArrayList, EjeVialLayer, MilestoneLayer}
+
 import UtilTransformers.PointTransformer
-import javafx.collections.ObservableList
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
-import scalafx.geometry.Insets
-import scalafx.scene.{Group, Node, Scene}
-import scalafx.scene.effect.DropShadow
-import scalafx.scene.layout.{BorderPane, HBox, Pane, StackPane}
-import scalafx.scene.paint.Color._
-import scalafx.scene.paint.{LinearGradient, Stops}
-import scalafx.scene.text.Text
+import scalafx.scene.{Node, Scene}
+import scalafx.scene.layout.{BorderPane,Pane}
+
 import UtilTransformers.PointTransformer._
 import scalafx.scene.control.Button
-import scalafx.scene.shape.Shape
+
 import scalafx.Includes._
 
 import scala.jdk.CollectionConverters._
-import scala.collection.mutable.ListBuffer
 object HelloScalaFX extends JFXApp {
 
-  val eprog = new SimpleConvertibleToEje().toEje()
-  val ejeLayer: EjeVialLayer = new EjeVialLayer(eprog)
-  val milestonesLayer = new MilestoneLayer(eprog)
+
+  val arraySeqNodes: Array[ObservableBuffer[Node]] = {
+    new SimpleConvertibleToEje().toEje match {
+      case Right(value) =>
+        val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
+        val milestonesLayer = new MilestoneLayer(value)
+        Array(ejeLayer,milestonesLayer).map(_.nodes)
+      case _ => Array()
+    }
+  }
+
   val panelMapa = new Pane()
-  val layersMerged = new AggregatedObservableArrayList[Node](Array(ejeLayer,milestonesLayer).map(_.nodes))
+  val layersMerged = new AggregatedObservableArrayList[Node](arraySeqNodes)
 
   
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
@@ -45,15 +42,15 @@ object HelloScalaFX extends JFXApp {
       lx <- lastPositionX()
       ly <- lastPositionY()
     }yield{
-      offsetX() = offsetX() - ((ae.getX-lx))*factor()
-      offsetY() = offsetY() + ((ae.getY-ly))*factor()
+      offsetX() = offsetX() - (ae.getX-lx) *factor()
+      offsetY() = offsetY() + (ae.getY-ly) *factor()
     }
     lastPositionX() = Some(ae.getX)
     lastPositionY() = Some(ae.getY)
 
 
   }
-  panelMapa.onMouseReleased = ae => {
+  panelMapa.onMouseReleased = _ => {
 
     lastPositionX() = None
     lastPositionY() = None
