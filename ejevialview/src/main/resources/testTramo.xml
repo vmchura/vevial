@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.landxml.org/schema/LandXML-1.2 http://www.landxml.org/schema/LandXML-1.2/LandXML-1.2.xsd" date="2019-06-06" time="08:13:04" version="1.2" language="English" readOnly="false">
+	<Units>
+		<Metric areaUnit="squareMeter" linearUnit="meter" volumeUnit="cubicMeter" temperatureUnit="celsius" pressureUnit="milliBars" diameterUnit="millimeter" angularUnit="decimal degrees" directionUnit="decimal degrees"></Metric>
+	</Units>
+	<CoordinateSystem desc="UTM-WGS 1984 datum, Zone 18 South, Meter; Cent. Meridian 75d W" epsgCode="32718" ogcWktCode="PROJCS[&quot;UTM84-18S&quot;,GEOGCS[&quot;LL84&quot;,DATUM[&quot;WGS84&quot;,SPHEROID[&quot;WGS84&quot;,6378137.000,298.25722293]],PRIMEM[&quot;Greenwich&quot;,0],UNIT[&quot;Degree&quot;,0.017453292519943295]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;false_easting&quot;,500000.000],PARAMETER[&quot;false_northing&quot;,10000000.000],PARAMETER[&quot;central_meridian&quot;,-75.00000000000000],PARAMETER[&quot;scale_factor&quot;,0.9996],PARAMETER[&quot;latitude_of_origin&quot;,0.000],UNIT[&quot;Meter&quot;,1.00000000000000]]" horizontalDatum="WGS84" horizontalCoordinateSystemName="UTM84-18S" fileLocation="AutoCAD Map Zone Name"></CoordinateSystem>
+	<Project name="D:\1. TOPOGRAFIA  2019\9. TRAMO 9...MEJORAMIENTO\EJE PROGRESIVAS T9.dwg"></Project>
+	<Application name="AutoCAD Civil 3D" desc="Civil 3D" manufacturer="Autodesk, Inc." version="2018" manufacturerURL="www.autodesk.com/civil" timeStamp="2019-06-06T08:13:04"></Application>
+	<Alignments name="">
+		<Alignment name="EJE T6" length="35724.999997199309" staStart="66725.000000000175" desc="">
+			<CoordGeom>
+				<Curve rot="cw" chord="17.271979508891" crvType="arc" delta="2.979090720645" dirEnd="61.501582435878" dirStart="64.480673156522" external="0.112301217442" length="17.273925260109" midOrd="0.112263269152" radius="332.223186816691" tangent="8.638908973217">
+					<Start>8649091.159681821242 609213.679597295355</Start>
+					<Center>8648948.032773608342 609513.491094746627</Center>
+					<End>8649106.547913843766 609221.523294853047</End>
+					<PI>8649098.955778958276 609217.401373440749</PI>
+				</Curve>
+				<Line dir="61.50158244721" length="5.144089836715">
+					<Start>8649106.547913843766 609221.523294853047</Start>
+					<End>8649111.068695811555 609223.977717524045</End>
+				</Line>
+				<Curve rot="ccw" chord="29.474246759186" crvType="arc" delta="14.876178590617" dirEnd="76.37776103813" dirStart="61.501582447513" external="0.966055151773" length="29.557198128094" midOrd="0.957926108798" radius="113.83990160214" tangent="14.862183870359">
+					<Start>8649111.068695811555 609223.977717524045</Start>
+					<Center>8649165.385638987646 609123.931763678906</Center>
+					<End>8649138.574138749391 609234.569309981191</End>
+					<PI>8649124.130033185706 609231.068978016963</PI>
+				</Curve>
+				<Line dir="76.377761038095" length="85.7991898511">
+					<Start>8649138.574138749391 609234.569309981191</Start>
+					<End>8649221.959768095985 609254.77667986392</End>
+				</Line>
+				<Curve rot="cw" chord="44.867345956494" crvType="arc" delta="71.714386017237" dirEnd="4.663375021" dirStart="76.377761038236" external="8.955495694075" length="47.935707433028" midOrd="7.258245731188" radius="38.297946568576" tangent="27.679506756809">
+					<Start>8649221.959768095985 609254.77667986392</Start>
+					<Center>8649212.939860409126 609291.99729211966</Center>
+					<End>8649251.111023942009 609288.883614874678</End>
+					<PI>8649248.860640877858 609261.295739451773</PI>
+				</Curve>
+				<Line dir="4.66337502874" length="3.964328367838">
+					<Start>8649251.111023942009 609288.883614874678</Start>
+					<End>8649251.433329448104 609292.834819573094</End>
+				</Line>
+
+			</CoordGeom>
+		</Alignment>
+	</Alignments>
+</LandXML>
