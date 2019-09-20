@@ -1,8 +1,8 @@
 package PlanarGeometric.EjeElement
 
-import PlanarGeometric.BasicGeometry.{ Point, PointUnitaryVector, TDirection}
+import PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection}
 import PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
-import PlanarGeometric._
+
 trait TCircleSegment extends TSimpleEjeElement{
   def originPoint: Point
   def centerPoint: Point
@@ -40,17 +40,30 @@ trait TCircleSegment extends TSimpleEjeElement{
   }}
 
   override def pointIsInsideElement(point: Point): Boolean = {
-    val arc1 = CircleSegment(originPoint, centerPoint, point, antiClockWise)
-    val arc2 = CircleSegment(point, centerPoint, endPoint, antiClockWise)
+    if((point -? in.point).isEmpty || (point -? out.point).isEmpty){
+      true
+    }else {
+      val arc1 = CircleSegment(originPoint, centerPoint, point, antiClockWise)
+      val arc2 = CircleSegment(point, centerPoint, endPoint, antiClockWise)
 
-    areCloseInLinearReference(arc1.length + arc2.length, length)
+      areCloseInLinearReference(arc1.length + arc2.length, length)
+
+    }
   }
 
   override def lengthToPoint(point: ElementPoint): Double = {
-    val v = point - centerPoint
-    val u = originPoint- centerPoint
-    val beta = u \/ v
-    beta*radius
+    if((point -? in.point).isEmpty || (point -? out.point).isEmpty){
+      if((point -? in.point).isEmpty){
+        0.0
+      }else{
+        length
+      }
+    }else {
+      val v = point - centerPoint
+      val u = originPoint - centerPoint
+      val beta = u \/ v
+      beta * radius
+    }
   }
   override val in: PointUnitaryVector =  PointUnitaryVector(originPoint,(originPoint-centerPoint).direction <¬ (if (antiClockWise) 1 else 3 ))
   override val out: PointUnitaryVector = PointUnitaryVector(endPoint,(endPoint-centerPoint).direction <¬ (if (antiClockWise) 1 else 3 ))
