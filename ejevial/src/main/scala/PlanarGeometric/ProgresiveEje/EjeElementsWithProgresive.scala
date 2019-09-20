@@ -1,7 +1,7 @@
 package PlanarGeometric.ProgresiveEje
 
 import PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import PlanarGeometric.BasicGeometry.Point
 import PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 import PlanarGeometric.EjeElement._
 import PlanarGeometric.RestrictiveEje._
@@ -37,8 +37,11 @@ trait WithProgresive extends TEjeElement {
     }
   }
   def findPointByLength(lengthParam: Double): Option[ElementPoint]
-  lazy val minProg: Double = projectPoint(in.point).map{ep => calcProgresive(ep)}.getOrElse(throw  new IllegalArgumentException())
-  lazy val maxProg: Double = projectPoint(out.point).map{ep => calcProgresive(ep)}.getOrElse(throw  new IllegalArgumentException())
+  private def calculateKnowPointProjection(point: Point): Double = {
+    projectPoint(point).map{ep => calcProgresive(ep)}.getOrElse(throw new IllegalArgumentException())
+  }
+  lazy val minProg: Double = calculateKnowPointProjection(in.point)
+  lazy val maxProg: Double = calculateKnowPointProjection(out.point)
 }
 
 trait WithDistributionFormulaByRestrictions extends WithProgresive {
@@ -51,22 +54,29 @@ trait WithDistributionFormulaByRestrictions extends WithProgresive {
 
   override def calcProgresive(ep: ElementPoint): Double = {
     val dx = lengthToPoint(ep)
-    if(linearRestricctions == null){
-      println("is null in +"+this)
-    }
-    if(linearRestricctions.length<2)
-      println(s"length of linearRes ${linearRestricctions.length}")
-    val segmentResultOpt = linearRestricctions.zip(linearRestricctions.tail).find{
-      case (m,n) => m.distanceFromReference <= dx && dx <= n.distanceFromReference}
+
+    val closestRestrictionToDx = linearRestricctions.find(lr => areCloseInLinearReference(lr.distanceFromReference,dx))
+    if(closestRestrictionToDx.isDefined){
+      closestRestrictionToDx.get.progresive
+    }else{
+      val segmentResultOpt = linearRestricctions.zip(linearRestricctions.tail).find{
+        case (m,n) => m.distanceFromReference <= dx && dx <= n.distanceFromReference}
 
 
-    assert(segmentResultOpt.isDefined)
-    segmentResultOpt.get match {
-      case (LinearRestriction(di,pi), LinearRestriction(dj,pj)) =>
-        {
-          (dx-di)*(pj-pi)/(dj-di)+pi
-        }
+      assert(segmentResultOpt.isDefined)
+      segmentResultOpt.get match {
+        case (LinearRestriction(di,pi), LinearRestriction(dj,pj)) =>
+
+          if(areCloseInLinearReference(dj,di)){
+            pi
+          }else {
+            (dx - di) * (pj - pi) / (dj - di) + pi
+          }
+
+      }
     }
+
+
 
   }
 }
