@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
 
-  val file = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/main/resources/testTramo.xml")
+  val file = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo9.xml")
 
   val arraySeqNodes: Array[ObservableBuffer[Node]] = {
     new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje match {
@@ -24,8 +24,8 @@ object HelloScalaFX extends JFXApp {
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
-        val milestonesLayer = new MilestoneLayer(value)
-        Array(ejeLayer,milestonesLayer).map(_.nodes)
+        //val milestonesLayer = new MilestoneLayer(value)
+        Array(ejeLayer/*,milestonesLayer*/).map(_.nodes)
       case _ => Array()
     }
   }
