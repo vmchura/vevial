@@ -11,4 +11,6 @@ object UtilFunctions {
     s"$kmStr+$metrosStr"
 
   }
+  def str2Double(str: String): Option[Double] = try { Some(str.toDouble) } catch{ case _ : Throwable => None }
+
 }
