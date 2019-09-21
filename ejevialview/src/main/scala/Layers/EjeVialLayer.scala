@@ -59,7 +59,6 @@ object EjeVialLayer {
       strokeWidth = 4
       stroke = Color.Blue
       fill = Color.Transparent
-      //transforms ++= List(tra)
     })
   }
   private def arcCircConversor(circ: TCircleSegment): Seq[Node] = {
@@ -68,15 +67,14 @@ object EjeVialLayer {
       centerY <== circ.centerPoint.y.toView_Y()
       radiusX <== DoubleProperty(circ.radius)/factor
       radiusY <== DoubleProperty(circ.radius)/factor
-      startAngle = -circ.initialAngle * 180 / Math.PI
-      length = -circ.alpha * 180.0 / Math.PI
+      startAngle = circ.initialAngle * 180 / Math.PI
+      length = circ.alpha * 180.0 / Math.PI
 
 
       strokeWidth = 4
       stroke = Color.Blue
       fill = Color.Transparent
       `type` = ArcType.Open
-      //transforms ++= List(tra)
     })
   }
 
@@ -88,7 +86,6 @@ object EjeVialLayer {
       endY <== faintElement.end.y.toView_Y()
       strokeWidth = 5
       strokeDashArray = List(25d, 20d, 5d, 20d)
-      //transforms ++= List(tra)
     })
   }
 
