@@ -6,25 +6,21 @@ import scala.reflect.ClassTag
 import javafx.collections.{FXCollections, ListChangeListener, ObservableList}
 import scalafx.Includes._
 import scalafx.collections.ObservableBuffer
+import scalafx.delegate.SFXDelegate
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableBuffer[T]]) {
+class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](lists: IndexedSeq[ObservableBuffer[T]], observableList: ObservableList[B]) {
   private val sizes: Array[Int] = lists.map(_.size()).toArray
   private val aggregatedList: ObservableBuffer[T] = new ObservableBuffer[T]()
-  private val addedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
-  private val deletedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
-  def getAddedAndDeleted(): (Seq[T],Seq[T]) = {
-    val a = addedElements.toSeq
-    val b = deletedElements.toSeq
-    addedElements.clear()
-    deletedElements.clear()
-    (a,b)
-  }
+  //private val addedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
+  //private val deletedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
+
   lists.foreach(l => {
     aggregatedList.appendAll(l)
-    addedElements.appendAll(l)
+    //addedElements.appendAll(l)
+    observableList.appendAll(l.map(_.delegate))
     appendList(l)
     }
   )
@@ -61,6 +57,7 @@ class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableB
 
         val from = change.getFrom
         val to = change.getTo
+        println(change)
         if(change.wasPermutated()){
           val copy =  aggregatedList.slice(startIndex+from,startIndex+to).toArray
           (from until to).foreach{ oldIndex =>
@@ -79,7 +76,8 @@ class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableB
 
               val removed = change.getRemoved
 
-              deletedElements.addAll(removed.asScala)
+              //deletedElements.addAll(removed.asScala)
+              observableList.removeAll(removed.asScala.map(_.delegate).asJava)
               aggregatedList.removeRange(startIndex+from,startIndex+from+removed.size())
 
 
@@ -88,7 +86,8 @@ class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableB
                 val added = change.getAddedSubList
                 aggregatedList.addAll(startIndex+from,added)
 
-                addedElements.appendAll(added.asScala)
+                //addedElements.appendAll(added.asScala)
+                observableList.removeAll(added.asScala.map(_.delegate).asJava)
               }
             }else{
               if(change.wasAdded()){
@@ -96,7 +95,9 @@ class AggregatedObservableArrayList[T : ClassTag ](lists: IndexedSeq[ObservableB
                 val added = change.getAddedSubList
 
                 aggregatedList.addAll(startIndex+from,added)
-                addedElements.appendAll(added.asScala)
+                //addedElements.appendAll(added.asScala)
+
+                observableList.addAll(added.asScala.map(_.delegate).asJava)
 
               }else{
                 if(change.wasReplaced()){

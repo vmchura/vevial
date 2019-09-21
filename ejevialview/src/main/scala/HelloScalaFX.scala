@@ -1,5 +1,5 @@
 import EjeVialBuilder.LandXMLToEje
-import Layers.{AggregatedObservableArrayList, EjeVialLayer, MilestoneLayer}
+import Layers.{ EjeVialLayer, MilestoneLayer, ObservableListDelegate}
 import UtilTransformers.PointTransformer
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -9,10 +9,10 @@ import scalafx.scene.{Node, Scene}
 import scalafx.scene.layout.{BorderPane, Pane}
 import UtilTransformers.PointTransformer._
 import scalafx.scene.control.Button
-import scalafx.Includes._
+
 
 import scala.io.Codec
-import scala.jdk.CollectionConverters._
+
 import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
 
@@ -24,15 +24,15 @@ object HelloScalaFX extends JFXApp {
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
-        //val milestonesLayer = new MilestoneLayer(value)
-        Array(ejeLayer/*,milestonesLayer*/).map(_.nodes)
+        val milestonesLayer = new MilestoneLayer(value)
+        Array(ejeLayer,milestonesLayer).map(_.nodes)
       case _ => Array()
     }
   }
 
 
   val panelMapa = new Pane()
-  val layersMerged = new AggregatedObservableArrayList[Node](arraySeqNodes)
+  val layersMerged = new ObservableListDelegate(arraySeqNodes,panelMapa.children)
 
   
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
@@ -59,11 +59,7 @@ object HelloScalaFX extends JFXApp {
     lastPositionY() = None
   }
 
-  def updateItemsDrawn(): Unit = {
-    val (added,removed) = layersMerged.getAddedAndDeleted()
-    panelMapa.children.removeAll(removed.map(_.delegate).asJavaCollection)
-    panelMapa.children.appendAll(added.map(_.delegate))
-  }
+
 
   panelMapa.onScroll = ae => {
 
@@ -79,14 +75,12 @@ object HelloScalaFX extends JFXApp {
       val px = PointTransformer.convertXView2Real(ae.getX)
       val py = PointTransformer.convertYView2Real(ae.getY)
       PointTransformer.updateOffsetWithPivot(newFactor,px,py)
-      //panelMapa.children = layersMerged.getAggregatedList()
-      updateItemsDrawn()
     }
 
 
 
   }
-  updateItemsDrawn()
+
   stage = new PrimaryStage {
     title = "ScalaFX Hello World"
     width = 600
