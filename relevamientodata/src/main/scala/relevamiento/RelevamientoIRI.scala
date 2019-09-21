@@ -1,10 +1,15 @@
 package relevamiento
-import java.io.InputStream
+import java.io.File
+
 import elementdata.{CrudeIRIData, IRIElementData}
 
-class RelevamientoIRI(source: InputStream) extends TSimpleRelevamiento[IRIElementData] {
-  private val lines = scala.io.Source.fromInputStream(source).getLines()
-  private val registers = lines.zipWithIndex.dropWhile{case (_,indx) => indx <25}.map{case (line,_) => line}
+
+
+class RelevamientoIRI(source: File) extends TSimpleRelevamiento[IRIElementData] {
+  private val lines = scala.io.Source.fromFile(source,"UTF-8")
+  private val registers = lines.getLines().zipWithIndex.dropWhile{case (_,indx) => indx <25}.map{case (line,_) => line}
+
+
   private val dataElements = registers.map(line => IRIElementData(new CrudeIRIData(line))).toArray
   private val n = dataElements.length
   dataElements.zipWithIndex.foreach{
@@ -14,6 +19,6 @@ class RelevamientoIRI(source: InputStream) extends TSimpleRelevamiento[IRIElemen
       if(indx+1<n) dataElements.update(indx,iriElement.withNextElement(dataElements(indx+1)))
 
   }
-
+  lines.close()
   override def elements: Seq[IRIElementData] = dataElements
 }

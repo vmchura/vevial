@@ -1,7 +1,7 @@
 package elementdata
 
 import EjeVialUtil.Coordinates
-import PlanarGeometric.BasicGeometry.{PlanarVector, Point, TDirection}
+import PlanarGeometric.BasicGeometry.Point
 
 trait TCrudeIRIData{
   def sectionID: String
@@ -18,6 +18,7 @@ trait TCrudeIRIData{
 class CrudeIRIData(lineData: String) extends TCrudeIRIData{
   private val cols = lineData.split(",").map(_.trim)
   private val colsFilled = cols ++ Array.fill(9-cols.length)("")
+
   private val Array(secID, subDist, totalDist, iri, speed, latitudStr, longitudStr, altitudStr, eventsStr) = colsFilled
 
   override def sectionID: String = secID
@@ -43,8 +44,7 @@ class CrudeIRIData(lineData: String) extends TCrudeIRIData{
 case class IRIElementData(point: Option[UPoint],
                           speed: Option[UDouble],
                           vectorToNext: Option[UPlanarVector],
-                          vectorToPrev: Option[UPlanarVector],
-                          distanceToPrev: Option[UDouble]) extends TElementData[IRIElementData] {
+                          vectorToPrev: Option[UPlanarVector]) extends TElementData[IRIElementData] {
   override def withNextElement(a: IRIElementData): IRIElementData = copy(vectorToNext = a - this)
 
   override def withPrevElement(a: IRIElementData): IRIElementData = copy(vectorToPrev = this - a)
@@ -61,10 +61,8 @@ case class IRIElementData(point: Option[UPoint],
 }
 
 object IRIElementData{
-  def apply(point: Option[UPoint],
-            speed: Option[UDouble],
-            direction: UDirection,
-            distanceToNext: Option[UDouble], nextElement: Option[IRIElementData], prevElement: Option[IRIElementData]): IRIElementData = new IRIElementData(point, speed, direction, distanceToNext, nextElement, prevElement)
+
+  def apply(point: Option[UPoint], speed: Option[UDouble], vectorToNext: Option[UPlanarVector], vectorToPrev: Option[UPlanarVector]): IRIElementData = new IRIElementData(point, speed, vectorToNext, vectorToPrev)
   def apply(crudeIRIData: CrudeIRIData): IRIElementData = {
     import EjeVialUtil.UtilFunctions.str2Double
     import relevamiento.RelevamientoConfig.{sigma2DefaultGPSRoughmeterIII,sigma2DefaultSpeedRoughmeterIII}
@@ -76,11 +74,10 @@ object IRIElementData{
       UPoint(Point(coordinates.Easting,coordinates.Northing),sigma2DefaultGPSRoughmeterIII)
     }
     val speed = str2Double(crudeIRIData.speedSTR).map{d => UDouble(d,sigma2DefaultSpeedRoughmeterIII)}
-    val direction = UDirection(TDirection(),Double.PositiveInfinity)
-    val distanceToNext: Option[UDouble] = None
-    val nextElement: Option[IRIElementData] = None
-    val prevElement: Option[IRIElementData] = None
-    new IRIElementData(point, speed, direction, distanceToNext, nextElement, prevElement)
+
+    val vectorToNext: Option[UPlanarVector] = None
+    val vectorToPrev: Option[UPlanarVector] = None
+    new IRIElementData(point, speed,  vectorToNext, vectorToPrev)
   }
 
 
