@@ -6,7 +6,7 @@ import PlanarGeometric.ConfigParametersGeometric.{areCloseValuesForDirection, ar
 /**
   * Vector on z axis
   *
-  * @param z
+  * @param z: value on z axis
   */
 case class ZVector(z: Double)
 
@@ -74,7 +74,7 @@ trait TVector[A] {
 
   }
 
-trait TDirection extends TVector[TDirection]
+sealed trait TDirection extends TVector[TDirection]
 
 
 
@@ -114,8 +114,8 @@ object TDirection {
   }
   /**
     * Unitary Vector
-    * @param dx
-    * @param dy
+    * @param dx: x component
+    * @param dy: y component
     */
   private case class Direction(dx: Double, dy: Double) extends TDirection{
 
@@ -153,8 +153,8 @@ object TDirection {
 }
 /**
   *
-  * @param direction
-  * @param magnitude
+  * @param direction: direction maybe it is any direction
+  * @param magnitude: magnitude maybe it is 0
   */
 case class PlanarVector(direction: TDirection, magnitude: Double) extends TVector[PlanarVector]{
   //require(isValidMagnitude(magnitude))
