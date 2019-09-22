@@ -11,7 +11,7 @@ import scalafx.delegate.SFXDelegate
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](lists: IndexedSeq[ObservableBuffer[T]], observableList: ObservableList[B]) {
+class AggregatedObservableArrayList[T : ClassTag](lists: IndexedSeq[ObservableBuffer[T]]) {
   private val sizes: Array[Int] = lists.map(_.size()).toArray
   private val aggregatedList: ObservableBuffer[T] = new ObservableBuffer[T]()
   //private val addedElements: mutable.ListBuffer[T] = new mutable.ListBuffer[T]
@@ -20,7 +20,6 @@ class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](
   lists.foreach(l => {
     aggregatedList.appendAll(l)
     //addedElements.appendAll(l)
-    observableList.appendAll(l.map(_.delegate))
     appendList(l)
     }
   )
@@ -77,7 +76,6 @@ class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](
               val removed = change.getRemoved
 
               //deletedElements.addAll(removed.asScala)
-              observableList.removeAll(removed.asScala.map(_.delegate).asJava)
               aggregatedList.removeRange(startIndex+from,startIndex+from+removed.size())
 
 
@@ -87,7 +85,6 @@ class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](
                 aggregatedList.addAll(startIndex+from,added)
 
                 //addedElements.appendAll(added.asScala)
-                observableList.removeAll(added.asScala.map(_.delegate).asJava)
               }
             }else{
               if(change.wasAdded()){
@@ -97,7 +94,6 @@ class AggregatedObservableArrayList[B <: Object,T <: SFXDelegate[B] : ClassTag](
                 aggregatedList.addAll(startIndex+from,added)
                 //addedElements.appendAll(added.asScala)
 
-                observableList.addAll(added.asScala.map(_.delegate).asJava)
 
               }else{
                 if(change.wasReplaced()){

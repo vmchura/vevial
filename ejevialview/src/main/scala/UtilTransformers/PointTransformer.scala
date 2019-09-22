@@ -11,7 +11,10 @@ object PointTransformer {
 
   val offsetX: DoubleProperty= DoubleProperty(0d)
   val offsetY: DoubleProperty= DoubleProperty(0d)
-
+  val endX: DoubleProperty= new DoubleProperty()
+  val endY: DoubleProperty= new DoubleProperty()
+  endX <== offsetX+200
+  endY <== offsetY+200
   val factor: DoubleProperty = DoubleProperty(1d)
 
   implicit class DoubleXView(x: Double){

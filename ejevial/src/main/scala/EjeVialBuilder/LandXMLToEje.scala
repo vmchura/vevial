@@ -1,6 +1,8 @@
 package EjeVialBuilder
 import java.io.InputStreamReader
 
+import EjeVialUtil.UtilFunctions
+
 import scala.xml.{Node, XML}
 import PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, TSeqEjeElementsBase}
 import PlanarGeometric.BasicGeometry.Point
@@ -30,12 +32,12 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
       val iniStart = (staStart+"0").toDouble
       val coordGeom = aligment \ "CoordGeom"
       val elementsNode = coordGeom.headOption.map(_.child).getOrElse(Nil)
-      val elements = elementsNode.flatMap{
+      val elements = UtilFunctions.time(logger)("parsingXMLNodesToSimpleElements", elementsNode.flatMap{
         case line @ <Line>{_*}</Line> => parseNode2Line(line)
         case curve @ <Curve>{_*}</Curve> => parseNode2Arc(curve)
 
         case _ => None
-      }
+      })
       if(elements.isEmpty)
         Left(Seq(new IllegalArgumentException("0 elements to build eje")))
       else
