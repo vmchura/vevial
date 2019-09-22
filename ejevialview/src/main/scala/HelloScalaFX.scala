@@ -1,5 +1,5 @@
 import EjeVialBuilder.LandXMLToEje
-import Layers.{ EjeVialLayer, MilestoneLayer, ObservableListDelegate}
+import Layers.{EjeVialLayer, MilestoneLayer, ObservableListDelegate, SimpleRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -8,30 +8,32 @@ import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.layout.{BorderPane, Pane}
 import UtilTransformers.PointTransformer._
+import relevamiento.RelevamientoIRI
 import scalafx.scene.control.Button
 
-
 import scala.io.Codec
-
 import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
 
-  val file = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo9.xml")
+  val fileXML = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo123.xml")
+  val fileCSV = new java.io.File("/home/vmchura/Documents/001.Projects/Vevial/relevamientodata/src/test/resources/2019-03-05 14h36m22s Survey.csv")
 
   val arraySeqNodes: Array[ObservableBuffer[Node]] = {
-    new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje match {
+    new LandXMLToEje(fileXML.reader(Codec("UTF-8"))).toEje match {
       case Right(value) =>
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
+        val relevamientoIRI = new SimpleRelevamientoLayer(new RelevamientoIRI(fileCSV))
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
         val milestonesLayer = new MilestoneLayer(value)
-        Array(ejeLayer,milestonesLayer).map(_.nodes)
+        Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)
       case _ => Array()
     }
   }
 
 
   val panelMapa = new Pane()
+
   val layersMerged = new ObservableListDelegate(arraySeqNodes,panelMapa.children)
 
   

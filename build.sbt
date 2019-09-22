@@ -66,5 +66,5 @@ libraryDependencies ++= javaFXModules.map( m =>
 )
 
 
-onLoad in Global := (onLoad in Global).value andThen {s: State => "project relevamientodata" :: s}
+onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejevialview" :: s}
 
