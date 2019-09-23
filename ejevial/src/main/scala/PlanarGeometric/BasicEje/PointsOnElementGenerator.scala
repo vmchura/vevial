@@ -29,9 +29,9 @@ object PointsOnElementGenerator {
     }
 
     override def generatePoints(a: TEjeElement): List[ElementPoint] = {
-      val numPoints = a.length.toInt
+      val numPoints = a.length.toInt/5
 
-      (0 until numPoints).map(d => calcPointToDistance(a,d)).toList
+      (0 to numPoints by 5).map(d => calcPointToDistance(a,d)).toList
     }
   }
 

@@ -21,7 +21,6 @@ trait TConvertibleToEje {
               logger.info(s"$pp was not added as restriction")
               value
           }}
-
         EfficientEjeProgresiva(pointsProgresive)
       }
     }

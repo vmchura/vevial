@@ -9,7 +9,7 @@ case class Restriction(elementPoint: ElementPoint, progresive: Double)
 
 trait WithRestrictionsIncremental[+A<: TEjeElement,+B<: TEjeElement] extends TEjeElementByVariable[B] {
   type WTT = WithRestrictionsIncremental[TEjeElement,TEjeElement]
-  def restrictions: List[Restriction]
+  val restrictions: List[Restriction]
   val element: B
   def addRestriction(newRestriction : Restriction): Either[WTT,WTT]
   def addRestriction(progresivePoint: ProgresivePoint): Either[WTT,WTT] = {
@@ -23,7 +23,7 @@ trait WithRestrictionsIncremental[+A<: TEjeElement,+B<: TEjeElement] extends TEj
 
 }
 trait WithRestrictionIncrementalEje[+ A<: TEfficientSeqEjeElements, +B <: TEfficientSeqEjeElements] extends TEjeSequenceElementByVariable[B] with TEfficientSeqEjeElements { this: A =>
-  def restrictions: List[Restriction]
+  val restrictions: List[Restriction]
   val element: B
   def addRestriction(newRestriction : Restriction): Either[A,A]
   def addRestriction(progresivePoint: ProgresivePoint): Either[A,A] = {
@@ -35,6 +35,22 @@ trait WithRestrictionIncrementalEje[+ A<: TEfficientSeqEjeElements, +B <: TEffic
 }
 
 trait TEjeSequenceElementByVariable[+B <: TEfficientSeqEjeElements] extends TEfficientSeqEjeElements {
+  val element: B
+  override val elements: List[TEjeElement] = element.elements
+
+
+  override def ==?(o: TEjeElement): Boolean = element.==?(o)
+
+  override def lengthToPoint(point: ElementPoint): Double = element.lengthToPoint(point)
+
+
+  override def pointIsInsideElement(point: Point): Boolean = element.pointIsInsideElement(point)
+
+  override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
+
+
+}
+trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
   val element: B
 
   override val in: PointUnitaryVector = element.in
@@ -51,49 +67,24 @@ trait TEjeSequenceElementByVariable[+B <: TEfficientSeqEjeElements] extends TEff
 
   override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
 
-  override def elements: List[TEjeElement] = element.elements
-}
-trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
-  def element: B
 
-  override def in: PointUnitaryVector = element.in
 
-  override def length: Double = element.length
-
-  override def ==?(o: TEjeElement): Boolean = element.==?(o)
-
-  override def lengthToPoint(point: ElementPoint): Double = element.lengthToPoint(point)
-
-  override def out: PointUnitaryVector = element.out
-
-  override def pointIsInsideElement(point: Point): Boolean = element.pointIsInsideElement(point)
-
-  override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
-  def indexTag: Int
-
-  override def toString: String = s"TEjeElementByVariable[$indexTag]"
 }
 object TEjeElementByVariable{
-  private var providerTag = LazyList.from(1)
-  def getNextTag(): Int = {
 
-    val result = providerTag.head
-    providerTag = providerTag.tail
-    result
-  }
 }
 
 trait SimpleElementWithRestrictions[ +A<: TEjeElement  ,+B<: TSimpleEjeElement] extends WithRestrictionsIncremental[A,B]
 
 case class RectSegmentRestrictions(element: RectSegment,restrictions: List[Restriction])
     extends SimpleElementWithRestrictions[RectSegmentRestrictions,RectSegment]  {
-    override val indexTag = TEjeElementByVariable.getNextTag()
+
 
   override def equals(o: Any) = o match {
     case that: RectSegmentRestrictions => that.element == element
     case _ => false
   }
-  override def hashCode = element.hashCode()
+  override val hashCode = element.hashCode()
 
   override def addRestriction(newRestriction: Restriction): Either[WTT,WTT] =
     if(newRestriction.elementPoint.ejeElementOwner == element || newRestriction.elementPoint.ejeElementOwner == this)
@@ -107,12 +98,12 @@ case class RectSegmentRestrictions(element: RectSegment,restrictions: List[Restr
 case class CircleSegmentRestrictions(element: CircleSegment, restrictions: List[Restriction])
   extends SimpleElementWithRestrictions[CircleSegmentRestrictions,CircleSegment] {
 
-  override val indexTag = TEjeElementByVariable.getNextTag()
+
   override def equals(o: Any) = o match {
     case that: CircleSegmentRestrictions => that.element == element
     case _ => false
   }
-  override def hashCode = element.hashCode()
+  override val hashCode = element.hashCode()
   override def addRestriction(newRestriction: Restriction): Either[WTT,WTT] =
     if(newRestriction.elementPoint.ejeElementOwner == element || newRestriction.elementPoint.ejeElementOwner == this)
       Right(copy(restrictions = newRestriction :: restrictions))
@@ -129,7 +120,7 @@ override def equals(o: Any) = o match {
   case that: FaintSegmentRestrictions => that.element == element
   case _ => false
 }
-  override def hashCode = element.hashCode()
+  override val hashCode = element.hashCode()
   /*
   override def addRestriction(newRestriction: Restriction): Either[FaintSegmentRestrictions,FaintSegmentRestrictions] =
     if(newRestriction.elementPoint.ejeElementOwner == element)
@@ -139,7 +130,7 @@ override def equals(o: Any) = o match {
 
    */
 
-  override val indexTag = TEjeElementByVariable.getNextTag()
+
 
   override def addRestriction(newRestriction: Restriction): Either[WTT, WTT] = {
     if(newRestriction.elementPoint.ejeElementOwner == element || newRestriction.elementPoint.ejeElementOwner == this)

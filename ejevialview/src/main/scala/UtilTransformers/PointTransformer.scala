@@ -2,7 +2,7 @@ package UtilTransformers
 
 
 import scalafx.beans.binding.NumberBinding
-import scalafx.beans.property.DoubleProperty
+import scalafx.beans.property.{DoubleProperty, ReadOnlyDoubleProperty}
 import scalafx.Includes._
 
 object PointTransformer {
@@ -12,9 +12,8 @@ object PointTransformer {
   val offsetX: DoubleProperty= DoubleProperty(0d)
   val offsetY: DoubleProperty= DoubleProperty(0d)
   val endX: DoubleProperty= new DoubleProperty()
-  val endY: DoubleProperty= new DoubleProperty()
-  endX <== offsetX+200
-  endY <== offsetY+200
+  val iniY: DoubleProperty= new DoubleProperty()
+
   val factor: DoubleProperty = DoubleProperty(1d)
 
   implicit class DoubleXView(x: Double){
@@ -45,6 +44,14 @@ object PointTransformer {
   def convertYView2Real(yView: Double): Double = {
     -yView*factor()+offsetY()
   }
+  def convertXView2Real(xView: ReadOnlyDoubleProperty): NumberBinding = {
+    xView*factor()+offsetX()
+  }
+
+  def convertYView2Real(yView: ReadOnlyDoubleProperty): NumberBinding = {
+    -yView*factor()+offsetY()
+  }
+
 
   def updateOffsetWithPivot(newFactor: Double, pivotX: Double,pivotY: Double): Unit = {
     val oxPrime: Double = (offsetX()-pivotX)*newFactor/factor()+pivotX

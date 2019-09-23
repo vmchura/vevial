@@ -33,17 +33,17 @@ object SubsequenceFinder {
     * @param offsetMin lowerLimit = reference-offsetMin
     * @param offsetMax upperLimit = reference+offsetMax
     * @tparam A
-    * @tparam B
     * @return
     */
-  def find[A,B <: SimpleReference[B]](offsetMin: B, offsetMax: B)(a: IndexedSeq[A])(reference: B)(implicit f: A => B): Set[A] = {
+  def find[A](offsetMin: Double, offsetMax: Double)(a: Array[A])(reference: Double)(implicit f: A => Double): Option[(Int,Int)] = {
     require(a.nonEmpty)
-    (for{
+    for{
       from  <- findLowestIndex(a,reference-offsetMin)
       to    <- findTopIndex(a,reference+offsetMax)
     }yield{
-      a.slice(from,to+1).toSet
-    }).getOrElse(Set.empty[A])
+      (from,to)
+      //a.slice(from,to+1).toSet
+    }
 
   }
 
@@ -53,10 +53,9 @@ object SubsequenceFinder {
     * @param maxLevel
     * @param f
     * @tparam A
-    * @tparam B
     * @return
     */
-  private def findTopIndex[A,B <: SimpleReference[B]](a: IndexedSeq[A],maxLevel: B)(implicit f: A => B):Option[Int] = {
+  private def findTopIndex[A](a: Array[A],maxLevel: Double)(implicit f: A => Double):Option[Int] = {
     var left = 0
     var right = a.length-1
 
@@ -89,10 +88,9 @@ object SubsequenceFinder {
     * @param lowestLevel
     * @param f
     * @tparam A
-    * @tparam B
     * @return
     */
-  private def findLowestIndex[A,B <: SimpleReference[B]](a: IndexedSeq[A],lowestLevel: B)(implicit f: A => B):Option[Int] = {
+  private def findLowestIndex[A](a: Array[A],lowestLevel: Double)(implicit f: A => Double):Option[Int] = {
     var left = 0
     var right = a.length-1
 

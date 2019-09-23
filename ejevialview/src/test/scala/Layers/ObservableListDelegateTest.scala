@@ -10,8 +10,6 @@ import relevamiento.RelevamientoIRI
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 import UtilFunctions.time
-import javafx.beans.property.{ListProperty, SimpleListProperty}
-import javafx.collections.FXCollections
 
 import scala.io.Codec
 import scala.reflect.io.File

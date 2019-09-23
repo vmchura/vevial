@@ -2,12 +2,10 @@ package Layers
 
 import PlanarGeometric.EjeElement.{TCircleSegment, TFaintElement, TRectSegment}
 import PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
-import ShapeGenerator.EjeConverter
 import scalafx.beans.property.DoubleProperty
-import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
-import scalafx.scene.shape.{Arc, ArcType, Line, Shape}
+import scalafx.scene.shape.{Arc, ArcType, Line}
 
 class EjeVialLayer(eje: EfficientEjeProgresiva) extends TLayer[WithProgresive] {
 
@@ -16,16 +14,10 @@ class EjeVialLayer(eje: EfficientEjeProgresiva) extends TLayer[WithProgresive] {
 
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
-    *
-    * @param x
-    * @param y
-    * @param u
-    * @param v
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 
   override def conversor(e: WithProgresive): Seq[Node] = EjeVialLayer.elementConversor(e)
-
   addAll(eje.elements)
 }
 

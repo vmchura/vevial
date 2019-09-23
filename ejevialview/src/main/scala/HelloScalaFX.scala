@@ -33,6 +33,11 @@ object HelloScalaFX extends JFXApp {
 
 
   val panelMapa = new Pane()
+  endX.unbind()
+  iniY.unbind()
+
+  endX <== convertXView2Real(panelMapa.width)
+  iniY <== convertYView2Real(panelMapa.height)
 
   val layersMerged = new ObservableListDelegate(arraySeqNodes,panelMapa.children)
 

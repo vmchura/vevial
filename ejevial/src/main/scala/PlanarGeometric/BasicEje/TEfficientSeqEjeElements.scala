@@ -5,66 +5,101 @@ import PlanarGeometric.EjeElement.{ElementPoint, TEjeElement, TSimpleEjeElement}
 import PlanarGeometric.ConfigParametersGeometric
 
 
-trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
-  def elements: List[TEjeElement]
 
+trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
+  val elements: List[TEjeElement]
+  private lazy val elementsAsArray = elements.toArray
+  lazy val elements2Indx: Map[TEjeElement,Int] = elements.zipWithIndex.map{case (e,i) => e->i}.toMap
   import ConfigParametersGeometric.distanceToFindProjection
-  import SubsequenceFinder._
   import PointsOnElementGenerator._
 
   override def append(o: TSeqEjeElementsBase): TSeqEjeElementsBase= throw new NotImplementedError()
 
 
 
-  private val points = elements.flatMap(e => PointsOnElementGenerator.generatePoints(e))
+  private lazy val points: Seq[ElementPoint] = elements.flatMap(e => PointsOnElementGenerator.generatePoints(e))
 
-  private val pointsSortedByX = points.sortBy(_.x).toArray
-  private val pointsSortedByY = points.sortBy(_.y).toArray
-  implicit def extractorX: ElementPoint => DoubleSimpleReference = _.x
-  implicit def extractorY: ElementPoint => DoubleSimpleReference = _.y
 
-  private val acumLengths: Map[TEjeElement,Double] = {
+
+  private lazy val pointsSortedByX = points.sortBy(_.x).toArray
+  private lazy val pointsSortedByY = points.sortBy(_.y).toArray
+
+
+  implicit val extractorX: ElementPoint => Double = _.x
+  implicit val extractorY: ElementPoint => Double = _.y
+
+  private lazy val acumLengths: Map[TEjeElement,Double] = {
     elements.tail.scanLeft((elements.head,0.0: Double)){case ((prevElement,acum),currentElement) => (currentElement,acum+prevElement.length)}.map{
       case (element, acumToLeft) => element -> acumToLeft
     }.toMap
   }
 
-  private val (fX,fY) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
-    SubsequenceFinder.find[ElementPoint,DoubleSimpleReference](distanceToFindProjection,distanceToFindProjection)(orderedList) (d) (e)} match {
+  private lazy val (fX,fY) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
+    SubsequenceFinder.find[ElementPoint](distanceToFindProjection,distanceToFindProjection)(orderedList) (d) (e)} match {
     case first :: second :: Nil => (first,second)
     case _ => (null,null)
   }
 
 
-  override val length: Double = elements.map(_.length).sum
-  override val in: PointUnitaryVector = elements.head.in
-  override val out: PointUnitaryVector = elements.last.out
+  override lazy val length: Double = elements.map(_.length).sum
+  override lazy val in: PointUnitaryVector = elements.head.in
+  override lazy val out: PointUnitaryVector = elements.last.out
 
   override def projectPoint(point: Point): Option[ElementPoint] = {
-    val elementsAround = ((fX(point.x) intersect fY(point.y)) groupBy( _.ejeElementOwner) ).keySet.toList
+
+    (for{
+      (xIni,xEnd) <- fX(point.x)
+      (yIni,yEnd) <- fY(point.y)
+    }yield{
+
+      val closeByX = (xIni to xEnd).map(i => elements2Indx(pointsSortedByX(i).ejeElementOwner)).toSet
+      val closeByY = (yIni to yEnd).map(i => elements2Indx(pointsSortedByY(i).ejeElementOwner)).toSet
+
+      val elementsAround = (closeByX intersect closeByY).map(i => elementsAsArray(i)).toList
+
+      //val elementsAround = intersection.map(_.ejeElementOwner)
 
 
-    val projections = elementsAround.flatMap(_.projectPoint(point))
+      //val elementsAround = ((fX(point.x) intersect fY(point.y)) groupBy( _.ejeElementOwner) ).keySet.toList
 
-    val (exacts,inexacts) =  projections.partition(_.toSource.isEmpty)
+      if(elementsAround.nonEmpty) {
+        val projections = elementsAround.flatMap(_.projectPoint(point))
 
-    if(exacts.nonEmpty){
-      exacts.headOption
 
-    }else{
+        val (exacts, inexacts) = projections.partition(_.toSource.isEmpty)
 
-      inexacts.minByOption(_.toSource.get.magnitude)
-    }
+        val result = if (exacts.nonEmpty) {
+          exacts.headOption
+
+        } else {
+
+          inexacts.minByOption(_.toSource.get.magnitude)
+        }
+
+
+        result
+      }else{
+        None
+      }
+
+
+
+    }).flatten
 
   }
 
 
   override def pointIsInsideElement(point: Point): Boolean = projectPoint(point).exists(ep => ep.toSource.isEmpty)
 
-  override def lengthToPoint(point: ElementPoint): Double = {
-    acumLengths.get(point.ejeElementOwner).map{ ep =>
-    ep + point.ejeElementOwner.lengthToPoint(point)
-  }.getOrElse(throw new IllegalStateException())}
+  override def lengthToPoint(epoint: ElementPoint): Double = {
+    val ElementPoint(_,_,owner) = epoint
+    val result = acumLengths.get(owner).map{ baseLength =>
+      baseLength + owner.lengthToPoint(epoint)
+    }.getOrElse(throw new IllegalStateException())
+    result
+  }
+
+
 
 }
 
@@ -73,6 +108,7 @@ case class EfficientSeqEjeElements(elements: List[TSimpleEjeElement]) extends TE
 
 }
 object EfficientSeqEjeElements{
+
   def apply(elements: List[TSimpleEjeElement]): EfficientSeqEjeElements = new EfficientSeqEjeElements(elements)
   def apply(seqIneficient: TSeqEjeElementsBase): EfficientSeqEjeElements = seqIneficient match {
     case EmptySeqEjeElements() => throw new IllegalArgumentException()

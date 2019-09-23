@@ -1,9 +1,8 @@
 package Layers
 import EjeVialUtil.UtilFunctions
 import Layers.MilestoneLayer.Hito
-import PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import PlanarGeometric.BasicGeometry.Point
 import PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
-import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 import scalafx.scene.shape.{Line, Rectangle}
 import UtilTransformers.PointTransformer._
@@ -19,11 +18,7 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
-    *
-    * @param x
-    * @param y
-    * @param u
-    * @param v
+
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 
@@ -31,7 +26,7 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
   val fromProg: Int = (eje.minProg.toInt/50)*50
   val toProg: Int = ((eje.maxProg.toInt+49)/50)*50
-  val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point,prog)))
+  private val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point,prog)))
 
 
   /**
@@ -40,6 +35,7 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
     * @param f
     */
   private def applyFactor(f: Double,x0Real: Double, y0Real: Double, xnReal: Double, ynReal: Double): Unit = {
+    //println(s"$factor  ${xnReal-x0Real}, ${ynReal-y0Real}")
     val n = Math.round(Math.log(f)/Math.log(Math.log(2)))
     // m: module to use to filter
     val m = n match {
@@ -65,9 +61,10 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
     removeAll(hitosShouldBeDeleted)
     addAll(hitosShouldBeAdded)
   }
-  factor.onChange((_,_,nf) =>applyFactor(nf.doubleValue(),offsetX(),offsetY(),endX(),endY()))
+  //factor.onChange((_,_,nf) =>applyFactor(nf.doubleValue(),offsetX(),iniY(),endX(),offsetY()))
+  offsetX.onChange((_,_,noffset) =>applyFactor(factor(),noffset.doubleValue(),iniY(),endX(),offsetY()))
 
-  applyFactor(factor.doubleValue(),offsetX(),offsetY(),endX(),endY())
+  applyFactor(factor.doubleValue(),offsetX(),iniY(),endX(),offsetY())
 }
 object MilestoneLayer {
 
