@@ -1,5 +1,5 @@
 import EjeVialBuilder.LandXMLToEje
-import Layers.{EjeVialLayer, MilestoneLayer, ObservableListDelegate, SimpleRelevamientoLayer}
+import Layers.{EjeVialLayer, MilestoneLayer, ObservableListDelegate, ProjectionIRIRelevamientoLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -23,7 +23,7 @@ object HelloScalaFX extends JFXApp {
       case Right(value) =>
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
-        val relevamientoIRI = new SimpleRelevamientoLayer(new RelevamientoIRI(fileCSV))
+        val relevamientoIRI = new ProjectionIRIRelevamientoLayer(new RelevamientoIRI(fileCSV),value)
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
         val milestonesLayer = new MilestoneLayer(value)
         Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)

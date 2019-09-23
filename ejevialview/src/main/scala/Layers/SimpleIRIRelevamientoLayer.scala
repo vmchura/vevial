@@ -7,8 +7,8 @@ import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Circle
 
-class SimpleRelevamientoLayer(relevamientoIRI: RelevamientoIRI) extends TLayer[IRIElementData] {
-  override def conversor(e: IRIElementData): Seq[Node] = SimpleRelevamientoLayer.convert(e)
+class SimpleIRIRelevamientoLayer(relevamientoIRI: RelevamientoIRI) extends TLayer[IRIElementData] {
+  override def conversor(e: IRIElementData): Seq[Node] = SimpleIRIRelevamientoLayer.convert(e)
   addAll(relevamientoIRI.elements)
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
@@ -20,7 +20,7 @@ class SimpleRelevamientoLayer(relevamientoIRI: RelevamientoIRI) extends TLayer[I
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 }
-object SimpleRelevamientoLayer{
+object SimpleIRIRelevamientoLayer{
   import UtilTransformers.PointTransformer._
   def convert(e: IRIElementData): Seq[Node] = {
 

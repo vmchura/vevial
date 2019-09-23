@@ -48,9 +48,8 @@ object EjeVialLayer {
       startY <== rect.originPoint.y.toView_Y()
       endX <== rect.endPoint.x.toView_X()
       endY <== rect.endPoint.y.toView_Y()
-      strokeWidth = 4
-      stroke = Color.Blue
-      fill = Color.Transparent
+      strokeWidth = 1
+      stroke = Color.Black
     })
   }
   private def arcCircConversor(circ: TCircleSegment): Seq[Node] = {
@@ -63,10 +62,10 @@ object EjeVialLayer {
       length = circ.alpha * 180.0 / Math.PI
 
 
-      strokeWidth = 4
-      stroke = Color.Blue
-      fill = Color.Transparent
+      strokeWidth = 1
+      stroke = Color.Black
       `type` = ArcType.Open
+      fill = Color.Transparent
     })
   }
 
@@ -76,7 +75,7 @@ object EjeVialLayer {
       startY <== faintElement.from.y.toView_Y()
       endX <== faintElement.end.x.toView_X()
       endY <== faintElement.end.y.toView_Y()
-      strokeWidth = 5
+      strokeWidth = 1
       strokeDashArray = List(25d, 20d, 5d, 20d)
     })
   }

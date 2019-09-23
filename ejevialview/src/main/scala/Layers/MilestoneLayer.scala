@@ -9,7 +9,7 @@ import UtilTransformers.PointTransformer._
 import scalafx.beans.property.DoubleProperty
 import scalafx.geometry.VPos
 import scalafx.scene.paint.Color
-import scalafx.scene.text.{Font, Text, TextAlignment}
+import scalafx.scene.text.{Font, FontSmoothingType, Text, TextAlignment}
 
 class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
@@ -97,9 +97,10 @@ object MilestoneLayer {
       startY <== yb.toView_Y()
       endX <== startX
       endY <== startY-lengthAsta
-      strokeWidth = 5
+      strokeWidth = 2
 
     }
+    /*
     val rectangleTop = new Rectangle(){
       x <== xp
       y <== yb.toView_Y() - (+lengthAsta+heightFlag)
@@ -121,6 +122,8 @@ object MilestoneLayer {
       strokeWidth = 1
     }
 
+     */
+
     val rectangleFlag = new Rectangle(){
       x <== xp
       y <== yb.toView_Y() - (+lengthAsta+heightFlag)
@@ -129,7 +132,7 @@ object MilestoneLayer {
       width = widthFlag
       height = heightFlag
       fill = Color.Transparent
-      strokeWidth = 5
+      strokeWidth = 2
       stroke = Color.Black
     }
 
@@ -144,8 +147,11 @@ object MilestoneLayer {
       wrappingWidth = widthFlag
       textOrigin = VPos.Top
       font = new Font(12)
+      fontSmoothingType = FontSmoothingType.LCD
     }
 
-    List(asta,rectangleBottom,rectangleTop,rectangleFlag,mensaje)
+    List(asta,
+      //rectangleBottom,rectangleTop,
+      rectangleFlag,mensaje)
   }
 }
