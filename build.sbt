@@ -12,6 +12,10 @@ lazy val relevamientodata = (project in file("relevamientodata")).settings(commo
   name := "relevamientodata"
 ).dependsOn(ejevial)
 
+lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
+  name := "ejebuilder"
+).dependsOn(ejevial,relevamientodata)
+
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
   libraryDependencies ++= List()
@@ -66,5 +70,5 @@ libraryDependencies ++= javaFXModules.map( m =>
 )
 
 
-onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejevialview" :: s}
+onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejebuilder" :: s}
 
