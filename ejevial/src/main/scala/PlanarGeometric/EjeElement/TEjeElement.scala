@@ -16,7 +16,10 @@ trait TEjeElement{
   def projectPoint(point: Point): Option[ElementPoint]
   def pointIsInsideElement(point: Point): Boolean
   def lengthToPoint(point: ElementPoint): Double
-
+  def leftmostPoint: Point
+  def rightmostPoint: Point
+  def upperPoint: Point
+  def lowerPoint: Point
 
 }
 

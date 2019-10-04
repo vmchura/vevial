@@ -48,6 +48,13 @@ trait TEjeSequenceElementByVariable[+B <: TEfficientSeqEjeElements] extends TEff
 
   override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
 
+  override lazy val leftmostPoint: Point = element.leftmostPoint
+
+  override lazy val  rightmostPoint: Point = element.rightmostPoint
+
+  override lazy val  upperPoint: Point = element.upperPoint
+
+  override lazy val  lowerPoint: Point = element.lowerPoint
 
 }
 trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
@@ -67,7 +74,13 @@ trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
 
   override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
 
+  override lazy val leftmostPoint: Point = element.leftmostPoint
 
+  override lazy val  rightmostPoint: Point = element.rightmostPoint
+
+  override lazy val  upperPoint: Point = element.upperPoint
+
+  override lazy val  lowerPoint: Point = element.lowerPoint
 
 }
 object TEjeElementByVariable{

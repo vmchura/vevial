@@ -44,6 +44,13 @@ case class EfficientEjeProgresiva(elements: List[WithProgresive])
       e.findPointByProgresive(progresive)
     }
   }
+
+  override def slice(progIni: Int, progFin: Int): EfficientEjeProgresiva = {
+    val filterElements = elements.filter( e => progIni <= e.minProg && e.maxProg <= progFin)
+    if(filterElements.isEmpty)
+      throw new IllegalArgumentException()
+    EfficientEjeProgresiva(filterElements)
+  }
 }
 
 object EfficientEjeProgresiva{

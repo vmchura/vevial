@@ -68,10 +68,22 @@ trait TCircleSegment extends TSimpleEjeElement{
   override val in: PointUnitaryVector =  PointUnitaryVector(originPoint,(originPoint-centerPoint).direction <¬ (if (antiClockWise) 1 else 3 ))
   override val out: PointUnitaryVector = PointUnitaryVector(endPoint,(endPoint-centerPoint).direction <¬ (if (antiClockWise) 1 else 3 ))
 
+
+  override lazy val leftmostPoint: Point = centerPoint + (TDirection(-1,0)*radius)
+
+
+  override lazy val rightmostPoint: Point = centerPoint + (TDirection(1,0)*radius)
+
+  override lazy val upperPoint: Point = centerPoint + (TDirection(0,1)*radius)
+
+
+  override lazy val lowerPoint: Point = centerPoint + (TDirection(0,-1)*radius)
 }
 
 case class CircleSegment(originPoint: Point, centerPoint: Point, endPoint: Point, antiClockWise: Boolean) extends  TCircleSegment {
   require((originPoint-?centerPoint).isDefined)
   require((endPoint-?centerPoint).isDefined)
   require(areCloseInLinearReference(!(originPoint-centerPoint),!(endPoint-centerPoint)))
+
+
 }

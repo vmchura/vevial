@@ -25,10 +25,21 @@ trait TRectSegment extends TSimpleEjeElement {
 
   override def lengthToPoint(point: ElementPoint): Double = !(point-originPoint)
 
+  private val fe = Seq(originPoint,endPoint)
+
+  override val leftmostPoint: Point = fe.minBy(_.x)
+
+  override val rightmostPoint: Point = fe.maxBy(_.x)
+
+  override val upperPoint: Point = fe.maxBy(_.y)
+
+  override val lowerPoint: Point = fe.minBy(_.y)
 }
 
 case class RectSegment(originPoint: Point, endPoint: Point) extends TRectSegment{
+
   require((endPoint-?originPoint).isDefined)
+
 
 }
 

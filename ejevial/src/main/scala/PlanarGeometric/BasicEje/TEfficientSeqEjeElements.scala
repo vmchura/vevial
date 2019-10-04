@@ -98,13 +98,21 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
     }.getOrElse(throw new IllegalStateException())
     result
   }
+  override lazy val leftmostPoint: Point = elements.map(_.leftmostPoint).minBy(_.x)
 
+  override lazy val  rightmostPoint: Point = elements.map(_.rightmostPoint).maxBy(_.x)
+
+  override lazy val  upperPoint: Point = elements.map(_.upperPoint).maxBy(_.y)
+
+  override lazy val  lowerPoint: Point = elements.map(_.lowerPoint).minBy(_.y)
 
 
 }
 
 case class EfficientSeqEjeElements(elements: List[TSimpleEjeElement]) extends TEfficientSeqEjeElements {
   require(elements.nonEmpty)
+
+
 
 }
 object EfficientSeqEjeElements{

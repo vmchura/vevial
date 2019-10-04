@@ -27,7 +27,7 @@ class ObservableListDelegateTest extends FlatSpec {
       case Right(value) =>
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
-        val relevamientoIRI = tlogger("creating relevamiento iri",new SimpleIRIRelevamientoLayer(new RelevamientoIRI(fileCSV)))
+        val relevamientoIRI = tlogger("creating relevamiento iri",new SimpleIRIRelevamientoLayer(RelevamientoIRI(fileCSV)))
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
         val milestonesLayer = new MilestoneLayer(value)
         Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)

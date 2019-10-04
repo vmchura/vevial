@@ -42,6 +42,8 @@ trait WithProgresive extends TEjeElement {
   }
   lazy val minProg: Double = calculateKnowPointProjection(in.point)
   lazy val maxProg: Double = calculateKnowPointProjection(out.point)
+
+
 }
 
 trait WithDistributionFormulaByRestrictions extends WithProgresive {
@@ -117,6 +119,8 @@ trait TRectSegmentProgresiva extends TRectSegment with WithDistributionFormulaBy
       Some(ElementPoint(in.point+in.direction*lengthParam,None,this))
     }
   }
+
+
 }
 trait TCircleSegmentProgresiva extends TCircleSegment with WithDistributionFormulaByRestrictions {
   override def findPointByLength(lengthParam: Double): Option[ElementPoint] = {
@@ -131,7 +135,9 @@ trait TCircleSegmentProgresiva extends TCircleSegment with WithDistributionFormu
 trait TFaintSegmentProgresiva extends  TFaintElement with WithDistributionFormulaByRestrictions {
   override def findPointByLength(length: Double): Option[ElementPoint] = None
 }
-trait TEfficientSeqEjeElementsProgresiva extends TEfficientSeqEjeElements with WithProgresive
+trait TEfficientSeqEjeElementsProgresiva extends TEfficientSeqEjeElements with WithProgresive {
+  def slice(progIni: Int, progFin: Int): TEfficientSeqEjeElementsProgresiva
+}
 
 case class RectSegmentProgresiva(originPoint: Point, endPoint: Point, restrictions: List[Restriction])
   extends TRectSegmentProgresiva

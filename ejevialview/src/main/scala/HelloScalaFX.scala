@@ -16,17 +16,22 @@ import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
 
   val fileXML = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo123.xml")
-  val fileCSV = new java.io.File("/home/vmchura/Documents/001.Projects/Vevial/relevamientodata/src/test/resources/2019-03-05 14h36m22s Survey.csv")
+  val fileCSV1 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 10h02m32s Survey.csv")
+  val fileCSV2 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 13h24m33s Survey.csv")
 
   val arraySeqNodes: Array[ObservableBuffer[Node]] = {
     new LandXMLToEje(fileXML.reader(Codec("UTF-8"))).toEje match {
       case Right(value) =>
-        offsetX() = value.elements.head.in.point.x
-        offsetY() = value.elements.head.in.point.y
-        val relevamientoIRI = new ProjectionIRIRelevamientoLayer(new RelevamientoIRI(fileCSV),value)
-        val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
-        val milestonesLayer = new MilestoneLayer(value)
-        Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)
+        val eje = value.slice(95500,96750)
+        offsetX() = eje.elements.head.in.point.x
+        offsetY() = eje.elements.head.in.point.y
+        val relIRI1 = RelevamientoIRI(fileCSV1).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
+        val relIRI2 = RelevamientoIRI(fileCSV2).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
+        val relevamientoIRI1 = new ProjectionIRIRelevamientoLayer(relIRI1,eje)
+        val relevamientoIRI2 = new ProjectionIRIRelevamientoLayer(relIRI2,eje)
+        val ejeLayer: EjeVialLayer = new EjeVialLayer(eje)
+        val milestonesLayer = new MilestoneLayer(eje)
+        Array(ejeLayer,milestonesLayer,relevamientoIRI1,relevamientoIRI2).map(_.nodes)
       case _ => Array()
     }
   }

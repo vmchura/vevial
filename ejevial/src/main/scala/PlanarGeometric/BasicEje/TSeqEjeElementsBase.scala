@@ -26,6 +26,14 @@ case class EmptySeqEjeElements() extends TSeqEjeElementsBase {
   override def lengthToPoint(point: ElementPoint): Double = 0
 
   override def projectPoint(point: Point): Option[ElementPoint] = None
+
+  override val leftmostPoint: Point = Point(0,0)
+
+  override val rightmostPoint: Point = Point(0,0)
+
+  override val upperPoint: Point = Point(0,0)
+
+  override val lowerPoint: Point = Point(0,0)
 }
 
 /**
@@ -54,8 +62,13 @@ case class NonEmptySeqEjeElements(elements: List[TSimpleEjeElement]) extends  TS
 
   override def lengthToPoint(point: ElementPoint): Double = throw new NotImplementedError()
 
+  override val leftmostPoint: Point = elements.map(_.leftmostPoint).minBy(_.x)
 
+  override val  rightmostPoint: Point = elements.map(_.rightmostPoint).maxBy(_.x)
 
+  override val  upperPoint: Point = elements.map(_.upperPoint).maxBy(_.y)
+
+  override val  lowerPoint: Point = elements.map(_.lowerPoint).minBy(_.y)
 }
 
 
