@@ -22,7 +22,7 @@ object HelloScalaFX extends JFXApp {
   val arraySeqNodes: Array[ObservableBuffer[Node]] = {
     new LandXMLToEje(fileXML.reader(Codec("UTF-8"))).toEje match {
       case Right(value) =>
-        val eje = value.slice(95500,96750)
+        val eje = value//.slice(95500,96750)
         offsetX() = eje.elements.head.in.point.x
         offsetY() = eje.elements.head.in.point.y
         val relIRI1 = RelevamientoIRI(fileCSV1).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
