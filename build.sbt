@@ -16,6 +16,11 @@ lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).s
   name := "ejebuilder"
 ).dependsOn(ejevial,relevamientodata)
 
+lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
+  name := "tesisanalytics",
+  libraryDependencies += "org.ddahl" %% "rscala" % "3.2.16"
+).dependsOn(ejevial,relevamientodata)
+
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
   libraryDependencies ++= List()
