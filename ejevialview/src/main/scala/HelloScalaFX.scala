@@ -15,7 +15,7 @@ import scala.io.Codec
 import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
 
-  val fileXML = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo123.xml")
+  val fileXML = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/tramo123.xml")
   val fileCSV1 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 10h02m32s Survey.csv")
   val fileCSV2 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 13h24m33s Survey.csv")
 
