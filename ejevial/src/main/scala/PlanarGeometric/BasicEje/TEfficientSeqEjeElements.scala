@@ -72,8 +72,10 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
           exacts.headOption
 
         } else {
-
-          inexacts.minByOption(_.toSource.get.magnitude)
+          if(inexacts.isEmpty)
+            None
+          else
+            Some(inexacts.minBy(_.toSource.get.magnitude))
         }
 
 

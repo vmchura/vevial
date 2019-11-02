@@ -1,36 +1,49 @@
 ThisBuild / version := "0.1"
+lazy val scala212 = "2.13.0"
+lazy val scala213 = "2.12.10"
+
+lazy val supportedScalaVersions = List(scala212, scala213)
+
+
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
-  name := "ejevial"
+  name := "ejevial",
+  crossScalaVersions := supportedScalaVersions
 )
 
 lazy val ejevialview = (project in file("ejevialview")).settings(commonSettings ++ windowSettings).settings(
-  name := "ejevialview"
+  name := "ejevialview",
+  crossScalaVersions := List(scala213)
 ).dependsOn(ejevial,relevamientodata)
 
 lazy val relevamientodata = (project in file("relevamientodata")).settings(commonSettings).settings(
-  name := "relevamientodata"
+  name := "relevamientodata",
+  crossScalaVersions := supportedScalaVersions
 ).dependsOn(ejevial)
 
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
-  name := "ejebuilder"
+  name := "ejebuilder",
+  crossScalaVersions := supportedScalaVersions
 ).dependsOn(ejevial,relevamientodata)
 
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
   name := "tesisanalytics",
-  libraryDependencies += "org.ddahl" %% "rscala" % "3.2.16"
+  libraryDependencies += "org.ddahl" %% "rscala" % "3.2.16",
+  crossScalaVersions := List(scala213)
 ).dependsOn(ejevial,relevamientodata)
 
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
-  libraryDependencies ++= List()
-)
+  libraryDependencies ++= List(),
+  crossScalaVersions := Nil
+).dependsOn(ejevial,relevamientodata).aggregate(ejevial,relevamientodata)
+
+
 
 
 
 lazy val commonSettings = Seq(
 
-  scalaVersion := "2.13.0",
   organization := "com.vmchura",
 
   scalacOptions += "-feature",
@@ -52,8 +65,6 @@ lazy val commonSettings = Seq(
 )
 
 lazy val windowSettings = Seq (
-
-
 {
 /**
   * SCALAFX Temporal
