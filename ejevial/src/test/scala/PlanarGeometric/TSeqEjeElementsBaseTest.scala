@@ -57,12 +57,15 @@ class TSeqEjeElementsBaseTest extends FlatSpec {
     val x = Point(0.5,0.5)
     val projectionElement = sequence projectPoint x
     assert(projectionElement.isDefined)
-    assertResult(Point(0.5,0))(projectionElement.get.point)
+
+    assertResult(Point(0.5,0.0))(projectionElement.get.point)
 
     val y = Point(3,1)
     val projectionElementY = sequence projectPoint y
     assert(projectionElementY.isDefined)
-    assertResult(Point(2,1))(projectionElementY.get.point)
+
+
+    assertResult(Point(2d,1d))(projectionElementY.get.point)
 
   }
   "Test of projections on an incomplete series" should " find correctly points" in {

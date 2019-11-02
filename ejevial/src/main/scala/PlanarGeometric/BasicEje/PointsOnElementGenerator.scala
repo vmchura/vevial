@@ -1,7 +1,7 @@
 package PlanarGeometric.BasicEje
 
 import PlanarGeometric.BasicGeometry.Point
-import PlanarGeometric.EjeElement.{CircleSegment, ElementPoint, RectSegment, TCircleSegment, TEjeElement, TRectSegment}
+import PlanarGeometric.EjeElement.{CircleSegment, ElementPoint, RectSegment, TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
 
 trait EjeElement2PointsGenerator[A <: TEjeElement]{
   def generatePoints(a: A): List[ElementPoint]
@@ -29,10 +29,13 @@ object PointsOnElementGenerator {
     }
 
     override def generatePoints(a: TEjeElement): List[ElementPoint] = {
+      a match {
+        case f: TFaintElement => Nil
+        case _ => calcPointToDistance(a,0) ::
+          calcPointToDistance(a,a.length) ::
+          (1 to a.length.toInt by 5).map(d => calcPointToDistance(a,d)).toList
+      }
 
-      calcPointToDistance(a,0) ::
-        calcPointToDistance(a,a.length) ::
-        (1 to a.length.toInt by 5).map(d => calcPointToDistance(a,d)).toList
     }
   }
 

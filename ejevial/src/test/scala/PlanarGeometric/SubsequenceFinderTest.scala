@@ -14,12 +14,12 @@ class SubsequenceFinderTest extends FlatSpec {
     val offsetLeft = 15
     val offsetRight = 15
     val s = SubsequenceFinder.find[Int](offsetLeft,offsetRight)(a)(50)
-    assertResult(Set(40,50,60))(s)
+    assertResult(Some(a.indexOf(40),a.indexOf(60)))(s)
 
     val s2 = SubsequenceFinder.find[Int](offsetLeft,offsetRight)(a) _
-    assertResult(Some(49,51))(s2(50))
-    assertResult(Some(59,61))(s2(60))
-    assertResult(Some(39,41))(s2(40))
+    assertResult(Some(a.indexOf(40),a.indexOf(60)))(s2(50))
+    assertResult(Some(a.indexOf(50),a.indexOf(70)))(s2(60))
+    assertResult(Some(a.indexOf(30),a.indexOf(50)))(s2(40))
 
   }
   "Find on binary search on array of tuples " should " find correctly values" in {
@@ -38,11 +38,12 @@ class SubsequenceFinderTest extends FlatSpec {
     def finderByY(d: Double) = SubsequenceFinder.find[Tuple](offsetLeft,offsetRight)(aOrderByY) (d) (secondExtractor)
 
 
-    assertResult(Some((49,51)))(finderByX(50.0))
-    assertResult(Some((59,61)))(finderByX(60.0))
+    assertResult(Some((4,6)))(finderByX(50.0))
+    assertResult(Some((5,7)))(finderByX(60.0))
 
-    assertResult(Some(((100 - 50 - 1),(100-50+1))))(finderByY(-50.0))
-    assertResult(Some(((100 - 60 - 1),(100-60+1))))(finderByY(-60.0))
+    assertResult(Some((aOrderByY.indexOf(Tuple(60d,-60d)),(aOrderByY.indexOf(Tuple(40d,-40d))))))(finderByY(-50.0))
+    assertResult(Some((aOrderByY.indexOf(Tuple(70d,-70d)),(aOrderByY.indexOf(Tuple(50d,-50d))))))(finderByY(-60.0))
+
 
   }
 

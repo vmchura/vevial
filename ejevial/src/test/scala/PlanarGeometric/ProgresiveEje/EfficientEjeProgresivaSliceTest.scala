@@ -10,7 +10,7 @@ class EfficientEjeProgresivaSliceTest extends FlatSpec {
   behavior of "Slice eje"
 
   it should "work fine slicing data" in {
-    val fileXML = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo123.xml")
+    val fileXML = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/tramo123.xml")
     val ejeEither =  new LandXMLToEje(fileXML.reader(Codec("UTF-8"))).toEje
 
     assert(ejeEither.isRight)
@@ -20,9 +20,9 @@ class EfficientEjeProgresivaSliceTest extends FlatSpec {
       case _ => null
     }
 
-    println(s"${eje.minProg} => ${eje.maxProg}")
-    println("slicing [95500,96750]")
+
     val slicing = eje.slice(95500,96750)
-    println(s"${slicing.minProg} => ${slicing.maxProg}")
+    assert(slicing.minProg >= 95500)
+    assert(slicing.maxProg <= 96750)
   }
 }

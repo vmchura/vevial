@@ -12,7 +12,7 @@ class LandXMLToEjeTest extends FlatSpec with Matchers{
   behavior of "Creation and build of XMLToEje"
 
   it should "build correctly" in {
-    val file = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/testTramo.xml")
+    val file = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/testTramo.xml")
     val xmlBuiler = new LandXMLToEje(file.reader(Codec("UTF-8")))
     val result = xmlBuiler.toEje
     result match {
