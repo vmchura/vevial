@@ -1,7 +1,7 @@
 package Layers
 
-import elementdata.IRIElementData
-import relevamiento.RelevamientoIRI
+import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color

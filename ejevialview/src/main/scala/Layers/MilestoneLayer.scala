@@ -1,8 +1,8 @@
 package Layers
-import EjeVialUtil.UtilFunctions
+import io.vmchura.vevial.EjeVialUtil.UtilFunctions
 import Layers.MilestoneLayer.Hito
-import PlanarGeometric.BasicGeometry.Point
-import PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import scalafx.scene.Node
 import scalafx.scene.shape.{Line, Rectangle}
 import UtilTransformers.PointTransformer._

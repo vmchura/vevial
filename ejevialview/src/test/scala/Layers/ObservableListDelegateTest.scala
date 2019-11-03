@@ -1,12 +1,12 @@
 package Layers
 
 
-import EjeVialBuilder.LandXMLToEje
-import EjeVialUtil.UtilFunctions
+import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
+import io.vmchura.vevial.EjeVialUtil.UtilFunctions
 import UtilTransformers.PointTransformer._
 import com.typesafe.scalalogging.Logger
 import org.scalatest.FlatSpec
-import relevamiento.RelevamientoIRI
+import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 import UtilFunctions.time
@@ -27,7 +27,7 @@ class ObservableListDelegateTest extends FlatSpec {
       case Right(value) =>
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
-        val relevamientoIRI = tlogger("creating relevamiento iri",new SimpleIRIRelevamientoLayer(RelevamientoIRI(fileCSV)))
+        val relevamientoIRI = tlogger("creating io.vmchura.vevial.relevamiento iri",new SimpleIRIRelevamientoLayer(RelevamientoIRI(fileCSV)))
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
         val milestonesLayer = new MilestoneLayer(value)
         Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)

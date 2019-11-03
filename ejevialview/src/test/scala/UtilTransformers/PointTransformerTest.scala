@@ -1,10 +1,10 @@
 package UtilTransformers
 
 import Layers.EjeVialLayer
-import PlanarGeometric.BasicGeometry.Point
-import PlanarGeometric.EjeElement.RectSegment
-import PlanarGeometric.ProgresiveEje.WithDistributionFormula
-import PlanarGeometric.RestrictiveEje.{ProgresivePoint, RectSegmentRestrictions}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.EjeElement.RectSegment
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.WithDistributionFormula
+import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.{ProgresivePoint, RectSegmentRestrictions}
 
 import org.scalatest.{FlatSpec, Matchers}
 import scalafx.scene.shape.Line

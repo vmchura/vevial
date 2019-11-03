@@ -1,7 +1,7 @@
 package Layers
 
-import PlanarGeometric.EjeElement.{TCircleSegment, TFaintElement, TRectSegment}
-import PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TFaintElement, TRectSegment}
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color

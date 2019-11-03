@@ -1,7 +1,7 @@
 package ShapeGenerator
 
-import PlanarGeometric.EjeElement.TRectSegment
-import PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.PlanarGeometric.EjeElement.TRectSegment
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Shape}
 

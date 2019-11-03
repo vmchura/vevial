@@ -1,7 +1,7 @@
 package analizetramos
 
-import PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TRectSegment}
+import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TRectSegment}
 import RFunctionDefiner.PlotHistogram
 
 class CalculatorLengthElements(val elements: List[TEjeElement]){

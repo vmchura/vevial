@@ -1,4 +1,4 @@
-import EjeVialBuilder.LandXMLToEje
+import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import Layers.{EjeVialLayer, MilestoneLayer, ObservableListDelegate, ProjectionIRIRelevamientoLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import scalafx.application.JFXApp
@@ -8,7 +8,7 @@ import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.layout.{BorderPane, Pane}
 import UtilTransformers.PointTransformer._
-import relevamiento.RelevamientoIRI
+import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.scene.control.Button
 
 import scala.io.Codec

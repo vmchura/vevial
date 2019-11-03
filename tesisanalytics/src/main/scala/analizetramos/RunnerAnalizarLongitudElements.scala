@@ -1,6 +1,6 @@
 package analizetramos
 
-import EjeVialBuilder.LandXMLToEje
+import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import RFunctionDefiner.RInitializer
 
 import scala.io.Codec
