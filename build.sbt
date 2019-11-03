@@ -35,7 +35,7 @@ lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).se
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
   libraryDependencies ++= List(),
-  crossScalaVersions := Nil
+  crossScalaVersions := List(scala212)
 ).dependsOn(ejevial,relevamientodata).aggregate(ejevial,relevamientodata)
 
 
@@ -44,7 +44,7 @@ lazy val core = (project in file(".")).settings(commonSettings).settings(
 
 lazy val commonSettings = Seq(
 
-  organization := "com.vmchura",
+  organization := "io.vmchura",
 
   scalacOptions += "-feature",
   //scalatest
@@ -86,5 +86,5 @@ libraryDependencies ++= javaFXModules.map( m =>
 )
 
 
-onLoad in Global := (onLoad in Global).value andThen {s: State => "project ejebuilder" :: s}
+//onLoad in Global := (onLoad in Global).value andThen {s: State => "project core" :: s}
 
