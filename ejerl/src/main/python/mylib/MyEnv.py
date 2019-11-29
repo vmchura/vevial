@@ -39,7 +39,7 @@ class MyEnv(object):
 class LanEnv(object):
     def __init__(self):
         host = "192.168.0.6"
-        port = 8081
+        port = 8082
         print('# Creating socket')
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -80,7 +80,7 @@ class LanEnv(object):
         if isinstance(m,NewState):
             return m.state
         else:
-            raise AssertionError("Not a NewState "+msg)
+            raise AssertionError("Not a NewState "+str(m))
 
     def step(self,action):
         actionCommand = Action(self.newExperiment.experimentID,action)
@@ -90,4 +90,4 @@ class LanEnv(object):
         if isinstance(m,NewState):
             return m.state, m.regard.value, m.actionsForNewState.actions == 0
         else:
-            raise AssertionError("Not a NewState "+msg)
+            raise AssertionError("Not a NewState "+str(m))
