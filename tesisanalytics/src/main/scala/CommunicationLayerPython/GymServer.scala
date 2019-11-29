@@ -83,6 +83,7 @@ class GymServer(portNumber: Int) {
                           case "NewExperiment" => Some(read[NewExperiment](line))
                           case "Action" => Some(read[Action](line))
                           case "EndExperiment" => Some(read[EndExperiment](line))
+                          case "ResetExperiment" => Some(read[ResetExperiment](line))
                           case _ => None
                         }
                       } catch {
@@ -109,12 +110,21 @@ class GymServer(portNumber: Int) {
                           }else{
                             Some(InvalidRequest("Invalid action"))
                           }
-                        }.getOrElse(Some(InvalidRequest("Invalid ID")))
+                        }.getOrElse(Some(InvalidRequest("Invalid ID action")))
                       }
                       case Some(EndExperiment(experimentID)) => {
                         experimentsCreated -= experimentID
                         logger.info("Experiment ended")
                         None
+                      }
+                      case Some(ResetExperiment(experimentID)) => {
+                        experimentsCreated.get(experimentID).map { exp =>
+                          val newExp = exp.reset
+                          experimentsCreated(experimentID) = newExp
+                          Some(NewState(newExp.state(0),ActionsForState(newExp.actions),Regard(0)))
+
+
+                        }.getOrElse(Some(InvalidRequest("Invalid ID reset")))
                       }
                       case None => Some(InvalidRequest("Invalid action"))
                     }
