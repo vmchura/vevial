@@ -97,14 +97,14 @@ class GymServer(portNumber: Int) {
                         val id = UUID.randomUUID()
                         val exp = SimpleExperiment(id)
                         experimentsCreated += id -> exp
-                        Some(ExperimentResp(id,ActionsForState(exp.actions)))
+                        Some(ExperimentResp(id,exp.dimState))
                       }
                       case Some(Action(id,action)) => {
                         experimentsCreated.get(id).map{ exp =>
                           if(action <= exp.actions && action >= 1){
                             val expUpdated = exp.update(action)
                             experimentsCreated(id) = expUpdated
-                            Some(NewState(ActionsForState(expUpdated.actions),Regard(exp.regard(action))))
+                            Some(NewState(expUpdated.state(0),ActionsForState(expUpdated.actions),Regard(exp.regard(action))))
 
                           }else{
                             Some(InvalidRequest("Invalid action"))

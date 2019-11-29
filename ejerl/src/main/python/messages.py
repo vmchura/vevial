@@ -41,7 +41,7 @@ class Message(object):
             return InvalidRequest(j["error"])
 
         if typeClass == ExperimentResp.typeClass:
-            return ExperimentResp(j["experimentID"], j["actionsForState"])
+            return ExperimentResp(j["experimentID"], j["stateDim"])
 
         if typeClass == Farewell.typeClass:
             return Farewell(j["message"])
@@ -107,6 +107,8 @@ class NewExperiment(Request):
         return str(var)
 
 
+
+
 class Action(Request):
     typeClass = "CommunicationLayerPython.Action"
 
@@ -133,6 +135,18 @@ class EndExperiment(Request):
         return str(var)
 
 
+class ResetExperiment(Request):
+    typeClass = "CommunicationLayerPython.ResetExperiment"
+
+    def __init__(self, experimentID):
+        self.experimentID = experimentID
+
+    def __str__(self):
+        var = json.dumps({"$type": ResetExperiment.typeClass,
+                          "experimentID": self.experimentID})
+        return str(var)
+
+
 # Response
 
 
@@ -151,26 +165,28 @@ class InvalidRequest(Response):
 class ExperimentResp(Response):
     typeClass = "CommunicationLayerPython.ExperimentResp"
 
-    def __init__(self, experimentID, actionsForState):
+    def __init__(self, experimentID,state, actionsForState, stateDim):
         self.experimentID = experimentID
-        self.actionsForState = ActionsForState.readfromstr(actionsForState)
+        self.stateDim = stateDim
 
     def __str__(self):
         var = json.dumps({"$type": ExperimentResp.typeClass,
                           "experimentID": self.experimentID,
-                          "actionsForState": self.actionsForState.asJson()})
+                          "stateDim": self.stateDim})
         return str(var)
 
 
 class NewState(Response):
     typeClass = "CommunicationLayerPython.NewState"
 
-    def __init__(self, actionsForNewState, regard):
+    def __init__(self,state, actionsForNewState, regard):
+        self.state = state
         self.actionsForNewState = ActionsForState.readfromstr(actionsForNewState)
         self.regard = Regard.readfromstr(regard)
 
     def __str__(self):
         var = json.dumps({"$type": NewState.typeClass,
+                          "state": self.state,
                           "actionsForNewState": self.actionsForNewState.asJson(),
                           "regard": self.regard.asJson()})
         return str(var)

@@ -9,4 +9,6 @@ trait Experiment {
   def update(action: Int): Experiment
   def regard(action: Int): Double
   def finished: Boolean
+  def dimState: Int
+  def state: Array[Double]
 }

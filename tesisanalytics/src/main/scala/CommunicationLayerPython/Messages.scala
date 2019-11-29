@@ -47,6 +47,12 @@ case class Action(experimentID: UUID, action: Int) extends Request
   */
 case class EndExperiment(experimentID: UUID) extends Request
 
+/**
+  *
+  * @param experimentID
+  */
+case class ResetExperiment(experimentID: UUID) extends Request
+
 
 
 
@@ -54,20 +60,17 @@ case class EndExperiment(experimentID: UUID) extends Request
 
 case class InvalidRequest(error: String) extends Response
 
-/**
-  *
-  * @param experimentID
-  * @param actionsForState, the initial actions for the initia  state
-  */
+
 case class ExperimentResp(experimentID: UUID,
-                      actionsForState: ActionsForState) extends Response
+                          stateDim: Int) extends Response
 
 /**
   * the enviroment is updated, only these new actions can be done
   * @param actionsForNewState
   * @param regard: the regard for the previous action
   */
-case class NewState(actionsForNewState: ActionsForState,
+case class NewState( state: Double,
+                     actionsForNewState: ActionsForState,
                     regard: Regard) extends Response
 
 object NewExperiment{
@@ -99,4 +102,7 @@ object Farewell{
 }
 object EndExperiment{
   implicit val rw: RW[EndExperiment] = macroRW
+}
+object ResetExperiment{
+  implicit val rw: RW[ResetExperiment] = macroRW
 }

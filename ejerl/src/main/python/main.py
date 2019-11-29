@@ -1,5 +1,4 @@
-import socket
-import sys
+
 import time
 
 if "../" not in sys.path:
@@ -15,7 +14,8 @@ from messages import EndExperiment
 
 import os
 import random
-
+import socket
+import sys
 
 def main():
     host = "localhost"
