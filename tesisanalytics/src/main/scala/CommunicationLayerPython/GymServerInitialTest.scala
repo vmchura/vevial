@@ -32,29 +32,14 @@ class GymServerInitialTest(portNumber: Int) {
   val logger = Logger[GymServerInitialTest]
   def start(): Unit = {
 
-        logger.info("Examples of Welcom")
-
-
-        logger.info(write(Welcome(gymVersion)))
-
-
-        logger.info("Examples of Request")
-
-        logger.info(write(NewExperiment("experiment")))
-        logger.info(write(Action(UUID.randomUUID(), 1)))
-
-        logger.info("Examples of Response")
-        logger.info(write(InvalidRequest("newError")))
-        logger.info(write(ExperimentResp(UUID.randomUUID(), ActionsForState(5))))
-        logger.info(write(NewState(ActionsForState(5), Regard(1.2))))
 
 
         val messagesToSend = mutable.Queue (
           NewExperiment("experiment"),
           Action(UUID.randomUUID(), 1),
           InvalidRequest("newError"),
-          ExperimentResp(UUID.randomUUID(), ActionsForState(5)),
-          NewState(ActionsForState(5), Regard(1.2))
+          ExperimentResp(UUID.randomUUID(),1),
+          NewState(1,ActionsForState(5), Regard(1.2))
 
         )
 
