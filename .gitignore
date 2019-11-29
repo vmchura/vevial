@@ -30,3 +30,6 @@ shared/.jvm
 .cache
 .target
 bin/
+venv
+ejerl/src/main/python/__pycache__/
+
