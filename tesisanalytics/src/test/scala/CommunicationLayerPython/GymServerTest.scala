@@ -10,7 +10,7 @@ class GymServerTest extends FlatSpec {
   behavior of "Creation of GymServer"
 
   it should " build correctly " in {
-    val gym = new GymServer(8080)
+    val gym = new GymServer(8081)
     gym.start()
 
   }

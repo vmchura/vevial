@@ -39,7 +39,7 @@ class MyEnv(object):
 class LanEnv(object):
     def __init__(self):
         host = "192.168.0.6"
-        port = 8080
+        port = 8081
         print('# Creating socket')
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,7 +70,7 @@ class LanEnv(object):
         return self.newExperiment.stateDim
 
     def getActionCount(self):
-        return self.newExperiment.actionsForState.actions
+        return 3
 
     def reset(self):
         resetCmd = ResetExperiment(self.newExperiment.experimentID)
