@@ -1,4 +1,5 @@
 import gym
+import sys
 
 if "../" not in sys.path:
     sys.path.append("../")
@@ -15,7 +16,6 @@ from messages import ResetExperiment
 import os
 import random
 import socket
-import sys
 
 
 class MyEnv(object):
