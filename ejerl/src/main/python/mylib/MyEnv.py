@@ -80,7 +80,7 @@ class LanEnv(object):
         if isinstance(m,NewState):
             return m.state
         else:
-            raise AssertionError("Not a NewState")
+            raise AssertionError("Not a NewState "+msg)
 
     def step(self,action):
         actionCommand = Action(self.newExperiment.experimentID,action)
