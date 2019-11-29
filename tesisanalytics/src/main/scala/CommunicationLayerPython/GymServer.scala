@@ -84,7 +84,11 @@ class GymServer(portNumber: Int) {
                           case "Action" => Some(read[Action](line))
                           case "EndExperiment" => Some(read[EndExperiment](line))
                           case "ResetExperiment" => Some(read[ResetExperiment](line))
-                          case _ => None
+                          case _ => {
+                            logger.error("tag error "+tag)
+                            logger.error("on line "+line)
+                            None
+                          }
                         }
                       } catch {
                         case e: Throwable => {
@@ -98,17 +102,20 @@ class GymServer(portNumber: Int) {
                         val id = UUID.randomUUID()
                         val exp = SimpleExperiment(id)
                         experimentsCreated += id -> exp
+                        logger.info("Experiment created")
+                        logger.info(exp.toString)
                         Some(ExperimentResp(id,exp.dimState))
                       }
                       case Some(Action(id,action)) => {
                         experimentsCreated.get(id).map{ exp =>
-                          if(action <= exp.actions && action >= 1){
+                          if(action < exp.actions && action >= 0){
                             val expUpdated = exp.update(action)
                             experimentsCreated(id) = expUpdated
                             Some(NewState(expUpdated.state(0),ActionsForState(expUpdated.actions),Regard(exp.regard(action))))
 
                           }else{
-                            Some(InvalidRequest("Invalid action"))
+                            logger.error("Invalid action taken on experiment")
+                            Some(InvalidRequest("Invalid action taken on experiment"))
                           }
                         }.getOrElse(Some(InvalidRequest("Invalid ID action")))
                       }

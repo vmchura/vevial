@@ -88,6 +88,6 @@ class LanEnv(object):
         msg, _, _, _ = self.s.recvmsg(1024)
         m = Message.parseMessage(msg.decode("utf-8"))
         if isinstance(m,NewState):
-            return m.state, m.regard.value, m.actionsForNewState.actions == 0
+            return m.state, m.regard.value, m.actionsForNewState.actions == 0, "ErrorUnknowValue"
         else:
             raise AssertionError("Not a NewState "+str(m))
