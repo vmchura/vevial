@@ -90,4 +90,4 @@ class LanEnv(object):
         if isinstance(m,NewState):
             return m.state, m.regard.value, m.actionsForNewState.actions == 0
         else:
-            raise AssertionError("Not a NewState")
+            raise AssertionError("Not a NewState "+msg)
