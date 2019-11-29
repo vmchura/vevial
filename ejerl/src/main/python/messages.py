@@ -53,7 +53,7 @@ class Message(object):
             return Action(j["experimentID"], j["action"])
 
         if typeClass == NewState.typeClass:
-            return NewState(j["actionsForNewState"], j["regard"])
+            return NewState(j["state"],j["actionsForNewState"], j["regard"])
 
         raise NotImplementedError("can not parse " + str(j))
 
