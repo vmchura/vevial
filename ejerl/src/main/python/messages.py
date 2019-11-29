@@ -165,7 +165,7 @@ class InvalidRequest(Response):
 class ExperimentResp(Response):
     typeClass = "CommunicationLayerPython.ExperimentResp"
 
-    def __init__(self, experimentID,state, actionsForState, stateDim):
+    def __init__(self, experimentID, stateDim):
         self.experimentID = experimentID
         self.stateDim = stateDim
 
