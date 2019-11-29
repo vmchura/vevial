@@ -28,7 +28,12 @@ lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).s
 
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
   name := "tesisanalytics",
-  libraryDependencies += "org.ddahl" %% "rscala" % "3.2.16",
+  libraryDependencies ++= List(
+    //R
+    "org.ddahl" %% "rscala" % "3.2.16",
+    //json
+    "com.lihaoyi" %% "upickle" % "0.8.0"
+  ),
   crossScalaVersions := List(scala213)
 ).dependsOn(ejevial,relevamientodata)
 
