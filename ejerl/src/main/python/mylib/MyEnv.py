@@ -39,7 +39,7 @@ class MyEnv(object):
 class LanEnv(object):
     def __init__(self):
         host = "192.168.0.6"
-        port = 8083
+        port = 8084
         print('# Creating socket')
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
