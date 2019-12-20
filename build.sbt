@@ -43,7 +43,13 @@ lazy val core = (project in file(".")).settings(commonSettings).settings(
   crossScalaVersions := List(scala212)
 ).dependsOn(ejevial,relevamientodata).aggregate(ejevial,relevamientodata)
 
-
+lazy val viricalc = (project in file("viricalc")).settings(commonSettings).settings(
+  name := "viricalc",
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies ++= List(
+    "com.norbitltd" %% "spoiwo" % "1.6.1"
+  )
+).dependsOn(relevamientodata).aggregate(relevamientodata)
 
 
 
