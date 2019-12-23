@@ -1,9 +1,8 @@
-package calculator
+package io.vmchura.vevial.Calculator
 
-import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
+import io.vmchura.vevial.Calculator.models._
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import models.{ElementIri, ElementIriResult, ElementIriResultCarril, IRIElementDataProgresiva, IriCalculationResult, RelevamientoIRIProgresivas, SortedElementIriResult}
 
 import scala.collection.mutable.ListBuffer
 

@@ -1,4 +1,4 @@
-package models
+package io.vmchura.vevial.Calculator.models
 
 /**
   * Resultado de un segmento IRI, contiene ambos carriles

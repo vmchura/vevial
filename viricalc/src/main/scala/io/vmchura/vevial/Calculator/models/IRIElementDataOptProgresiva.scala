@@ -1,4 +1,4 @@
-package models
+package io.vmchura.vevial.Calculator.models
 
 import io.vmchura.vevial.elementdata.IRIElementData
 

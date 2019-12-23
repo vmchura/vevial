@@ -21,6 +21,22 @@ lazy val relevamientodata = (project in file("relevamientodata")).settings(commo
   crossScalaVersions := supportedScalaVersions
 ).dependsOn(ejevial)
 
+lazy val viricalc = (project in file("viricalc")).settings(commonSettings).settings(
+  name := "viricalc",
+  crossScalaVersions := supportedScalaVersions
+  /*,
+  libraryDependencies ++= List(
+    "com.norbitltd" %% "spoiwo" % "1.6.1"
+  )
+
+   */
+).dependsOn(ejevial,relevamientodata)
+lazy val iricalculator = (project in file("iricalculator")).settings(commonSettings).settings(
+  name := "relevamientodata",
+  crossScalaVersions := supportedScalaVersions
+).dependsOn(ejevial,relevamientodata)
+
+
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
   name := "ejebuilder",
   crossScalaVersions := supportedScalaVersions
@@ -42,14 +58,6 @@ lazy val core = (project in file(".")).settings(commonSettings).settings(
   libraryDependencies ++= List(),
   crossScalaVersions := List(scala212)
 ).dependsOn(ejevial,relevamientodata).aggregate(ejevial,relevamientodata)
-
-lazy val viricalc = (project in file("viricalc")).settings(commonSettings).settings(
-  name := "viricalc",
-  crossScalaVersions := supportedScalaVersions,
-  libraryDependencies ++= List(
-    "com.norbitltd" %% "spoiwo" % "1.6.1"
-  )
-).dependsOn(relevamientodata).aggregate(relevamientodata)
 
 
 

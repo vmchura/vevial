@@ -1,4 +1,4 @@
-package models
+package io.vmchura.vevial.Calculator.models
 
 /**
   * Evaluación de un conjunto de elements de IRI consecutivos
