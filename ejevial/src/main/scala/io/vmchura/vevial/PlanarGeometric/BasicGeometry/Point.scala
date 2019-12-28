@@ -32,7 +32,11 @@ trait TPoint{
     val newmagnitude = Math.sqrt(newdx*newdx+newdy*newdy)
     (newdx,newdy,newmagnitude)
   }
-  //calculates the middle point
+
+  /**
+    * calculates the middle point
+    */
+
   def -%-(p: TPoint): Point = {
     val nx = (x+p.x)/2.0
     val ny = (y+p.y)/2.0
