@@ -31,10 +31,6 @@ lazy val viricalc = (project in file("viricalc")).settings(commonSettings).setti
 
    */
 ).dependsOn(ejevial,relevamientodata)
-lazy val iricalculator = (project in file("iricalculator")).settings(commonSettings).settings(
-  name := "relevamientodata",
-  crossScalaVersions := supportedScalaVersions
-).dependsOn(ejevial,relevamientodata)
 
 
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
@@ -57,7 +53,7 @@ lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
   libraryDependencies ++= List(),
   crossScalaVersions := List(scala212)
-).dependsOn(ejevial,relevamientodata).aggregate(ejevial,relevamientodata)
+).dependsOn(ejevial,relevamientodata,viricalc).aggregate(ejevial,relevamientodata,viricalc)
 
 
 
