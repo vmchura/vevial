@@ -18,18 +18,22 @@ lazy val ejevialview = (project in file("ejevialview")).settings(commonSettings 
 
 lazy val relevamientodata = (project in file("relevamientodata")).settings(commonSettings).settings(
   name := "relevamientodata",
-  crossScalaVersions := supportedScalaVersions
+  crossScalaVersions := supportedScalaVersions,
+  libraryDependencies += "net.sf.supercsv" % "super-csv" % "2.4.0"
+
 ).dependsOn(ejevial)
 
 lazy val viricalc = (project in file("viricalc")).settings(commonSettings).settings(
   name := "viricalc",
-  crossScalaVersions := supportedScalaVersions
-  /*,
+  crossScalaVersions := supportedScalaVersions,
   libraryDependencies ++= List(
-    "com.norbitltd" %% "spoiwo" % "1.6.1"
+    "com.norbitltd" %% "spoiwo" % "1.6.2-SNAPSHOT",
+    // https://mvnrepository.com/artifact/net.sf.supercsv/super-csv
+    "net.sf.supercsv" % "super-csv" % "2.4.0"
+
   )
 
-   */
+
 ).dependsOn(ejevial,relevamientodata)
 
 

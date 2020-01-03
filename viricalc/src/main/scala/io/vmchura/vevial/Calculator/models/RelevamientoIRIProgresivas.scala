@@ -1,9 +1,11 @@
 package io.vmchura.vevial.Calculator.models
 
+import java.util.UUID
+
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
-class RelevamientoIRIProgresivas(relevamientoIRI: RelevamientoIRI, ejeVial: EfficientEjeProgresiva) {
+class RelevamientoIRIProgresivas(val fileID: String,val relevamientoIRI: RelevamientoIRI, ejeVial: EfficientEjeProgresiva) {
   /**
     * Basic algorithm to assign progreivas.
     *   - First project point, and assign certainty of the projection
@@ -108,7 +110,7 @@ class RelevamientoIRIProgresivas(relevamientoIRI: RelevamientoIRI, ejeVial: Effi
     }}
 
     if(elementsWithOnlyProjection.forall(_.progresiva.isDefined))
-      elementsWithOnlyProjection.map(e => IRIElementDataProgresiva(e.iriElementData,e.indx,e.progresiva.get))
+      elementsWithOnlyProjection.map(e => IRIElementDataProgresiva(e.iriElementData,e.indx,fileID,e.progresiva.get))
     else throw new IllegalStateException("Not all elements tiene progresiva")
   }
 
