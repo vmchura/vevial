@@ -51,7 +51,7 @@ lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).se
     "com.lihaoyi" %% "upickle" % "0.8.0"
   ),
   crossScalaVersions := List(scala213)
-).dependsOn(ejevial,relevamientodata)
+).settings(windowSettings).dependsOn(ejevial,relevamientodata)
 
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",

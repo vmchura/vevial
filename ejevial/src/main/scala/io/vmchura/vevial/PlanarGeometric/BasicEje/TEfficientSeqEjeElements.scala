@@ -62,28 +62,8 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
 
       //val elementsAround = ((fX(point.x) intersect fY(point.y)) groupBy( _.ejeElementOwner) ).keySet.toList
 
-      if(elementsAround.nonEmpty) {
-        val projections = elementsAround.flatMap(_.projectPoint(point))
 
-
-        val (exacts, inexacts) = projections.partition(_.toSource.isEmpty)
-
-        val result = if (exacts.nonEmpty) {
-          exacts.headOption
-
-        } else {
-          if(inexacts.isEmpty)
-            None
-          else
-            Some(inexacts.minBy(_.toSource.get.magnitude))
-        }
-
-
-        result
-      }else{
-        None
-      }
-
+      EfficientSeqEjeElements.bruteForceCalculation(elementsAround,point)
 
 
     }).flatten
@@ -123,5 +103,36 @@ object EfficientSeqEjeElements{
   def apply(seqIneficient: TSeqEjeElementsBase): EfficientSeqEjeElements = seqIneficient match {
     case EmptySeqEjeElements() => throw new IllegalArgumentException()
     case NonEmptySeqEjeElements(elements) => new EfficientSeqEjeElements(elements)
+  }
+
+  def bruteForceCalculation(elementsAround: Seq[TEjeElement], point: Point, debug: Boolean = false): Option[ElementPoint] = {
+    def printDebug(message: String,tag: String = "-"): Unit = if(debug) println(s"EfficientSeqEjeElements.bruteForceCalculation : [$tag] => $message")
+    if(elementsAround.nonEmpty) {
+      val points10m = elementsAround.filter(e => (e.in.point - point).magnitude <= 10).mkString(" --\n")
+      printDebug(points10m,"< 10")
+
+      val projections = elementsAround.flatMap(_.projectPoint(point))
+
+      printDebug(projections.length.toString,"|projections|")
+
+      val (exacts, inexacts) = projections.partition(_.toSource.isEmpty)
+
+      printDebug(exacts.length.toString,"|exacts|")
+      printDebug(inexacts.length.toString,"|inexacts|")
+      val result = if (exacts.nonEmpty) {
+        exacts.headOption
+
+      } else {
+        if(inexacts.isEmpty)
+          None
+        else
+          Some(inexacts.minBy(_.toSource.get.magnitude))
+      }
+
+
+      result
+    }else{
+      None
+    }
   }
 }
