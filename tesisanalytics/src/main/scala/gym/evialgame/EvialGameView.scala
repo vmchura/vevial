@@ -1,4 +1,5 @@
 package gym.evialgame
+import gym.SimpeEvialGameAI
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import scalafx.Includes._
 import scalafx.animation.{FadeTransition, KeyFrame, Timeline}
@@ -138,6 +139,11 @@ object EvialGameView extends JFXApp{
         case KeyCode.Down => Some(evialgame.backward())
         case KeyCode.Right => Some(evialgame.turn(-10))
         case KeyCode.Left => Some(evialgame.turn(10))
+        case KeyCode.Numpad0 => {
+          val simpleAI = new SimpeEvialGameAI(evialgame)
+          println("Solving")
+          Some(simpleAI.solve())
+        }
         case _ => None
       }
 

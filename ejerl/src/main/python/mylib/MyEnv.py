@@ -38,7 +38,7 @@ class MyEnv(object):
 
 class LanEnv(object):
     def __init__(self):
-        host = "192.168.0.6"
+        host = "192.168.0.7"
         port = 8084
         print('# Creating socket')
         try:

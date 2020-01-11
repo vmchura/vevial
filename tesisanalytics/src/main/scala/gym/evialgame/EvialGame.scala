@@ -18,19 +18,32 @@ case class EvialGame(parameters: Seq[Point], ropeEje: RopeEje, currentState: Int
           case None => 0d
         })
       case None => {
+        /*
         println(s"projection of $point is not defined")
         ropeEje.projectPoint(point,true)
+
+         */
         None
       }
 
     }
   }
   lazy val gameDone: Boolean = !distances.forall(_.isDefined)
+  /**
+    * less score is better
+    */
   lazy val currentScore: Double = {
 
 
     if(!gameDone){
-      distances.flatten.map(d => d*d).sum/parameters.length
+
+      val positionScore = sampleState(parameters.length).map{
+        case SampleVector(prog,distance,_) => Math.abs(distance*distance)*Math.sqrt(Math.abs(prog-currentState)) * (if(prog > currentState) 1 else 0)
+        case _ => 0d
+      }.sum/parameters.length
+
+
+      distances.flatten.map(d => d*d).sum/parameters.length + Math.sqrt(positionScore)
     }else{
       Double.PositiveInfinity
     }
@@ -38,14 +51,15 @@ case class EvialGame(parameters: Seq[Point], ropeEje: RopeEje, currentState: Int
   }
 
 
-  def sampleState(): Seq[TSample] = {
+  def sampleState(): Seq[TSample] = sampleState(EvialGame.SAMPLES_TO_DEFINE_STATE)
 
+  private def sampleState(n: Int): Seq[TSample] = {
     if(gameDone)
       throw new IllegalStateException("Game is done, it should not be sampled")
 
     val pointsToSample =
-      (0 until (EvialGame.SAMPLES_TO_DEFINE_STATE/parameters.length)).flatMap(_ => parameters) ++
-      Random.shuffle(parameters).take(EvialGame.SAMPLES_TO_DEFINE_STATE%parameters.length)
+      (0 until (n/parameters.length)).flatMap(_ => parameters) ++
+        Random.shuffle(parameters).take(n%parameters.length)
 
     pointsToSample.map{ p =>
       ropeEje.projectPoint(p) match {

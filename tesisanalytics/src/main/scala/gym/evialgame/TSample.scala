@@ -5,7 +5,7 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointPlanarVector
 
 sealed trait TSample extends Ordered[TSample]
 
-trait SampleWithProg extends TSample{
+sealed trait SampleWithProg extends TSample{
   def prog: Int
   override def compare(that: TSample): Int = that match {
     case SampleVector(thatProg,_,_) => prog.compareTo(thatProg)
