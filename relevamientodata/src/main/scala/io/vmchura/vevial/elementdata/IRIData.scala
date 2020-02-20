@@ -1,7 +1,9 @@
 package io.vmchura.vevial.elementdata
 
 import io.vmchura.vevial.EjeVialUtil.Coordinates
+import io.vmchura.vevial.EjeVialUtil.UtilFunctions.str2Double
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.relevamiento.RelevamientoConfig.sigma2DefaultGPSRoughmeterIII
 
 trait TCrudeIRIData{
   def sectionID: String
@@ -38,5 +40,6 @@ class CrudeIRIData(lineData: String) extends TCrudeIRIData{
   override def altituteSTR: String = altitudStr
 
   override def eventsSTR: String = eventsStr
+
 }
 

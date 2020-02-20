@@ -4,11 +4,11 @@ import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 
 
-case class IRIElementData(point: Option[UPoint],
+case class IRIElementData(override val point: Option[UPoint],
                           speed: Option[UDouble],
                           vectorToNext: Option[UPlanarVector],
                           vectorToPrev: Option[UPlanarVector],
-                          iriValue: Option[Double]) extends TElementData[IRIElementData] {
+                          iriValue: Option[Double]) extends TElementWithPoint[IRIElementData] {
   override def withNextElement(a: IRIElementData): IRIElementData = copy(vectorToNext = a - this)
 
   override def withPrevElement(a: IRIElementData): IRIElementData = copy(vectorToPrev = this - a)
@@ -42,6 +42,7 @@ object IRIElementData{
     val vectorToNext: Option[UPlanarVector] = None
     val vectorToPrev: Option[UPlanarVector] = None
     val iriValue: Option[Double] = str2Double(crudeIRIData.iriSTR)
+
     new IRIElementData(point, speed,  vectorToNext, vectorToPrev,iriValue)
   }
 

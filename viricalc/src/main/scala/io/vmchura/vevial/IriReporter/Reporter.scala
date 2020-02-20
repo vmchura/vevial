@@ -9,10 +9,11 @@ import io.vmchura.vevial.Calculator.models.RelevamientoIRIProgresivas
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions._
 import io.vmchura.vevial.IriReporter.Reporter.MorningColor._
+import io.vmchura.vevial.elementdata.IRIElementData
 
 import scala.collection.mutable.ListBuffer
 
-class Reporter(source: Seq[RelevamientoIRIProgresivas],
+class Reporter(source: Seq[RelevamientoIRIProgresivas[IRIElementData]],
                minProg: Int, maxProg: Int, interval: Int,
                calcD: Int => Double,
                pathHeader: String,tramoTag: String) {

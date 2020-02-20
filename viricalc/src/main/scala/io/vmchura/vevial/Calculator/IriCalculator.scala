@@ -5,13 +5,14 @@ import io.vmchura.vevial.Calculator.models._
 import io.vmchura.vevial.Calculator.models.singularitypoint.SingularityPoint
 import io.vmchura.vevial.IriReporter.{IriValueAfterProcess, Reporter}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 import scala.collection.mutable.ListBuffer
 
 class IriCalculator(ejeVial: EfficientEjeProgresiva) {
 
-  val relevamientosIRIBuffer: ListBuffer[RelevamientoIRIProgresivas] = ListBuffer.empty[RelevamientoIRIProgresivas]
+  val relevamientosIRIBuffer: ListBuffer[RelevamientoIRIProgresivas[IRIElementData]] = ListBuffer.empty[RelevamientoIRIProgresivas[IRIElementData]]
 
   /**
     *
@@ -21,7 +22,7 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva) {
     */
   def includeFile(file: java.io.File,fileTag: String): Boolean = {
     try{
-      val relevamientoIRI = RelevamientoIRI(file)
+      val relevamientoIRI = RelevamientoIRI(file, cf => IRIElementData(cf))
       if(relevamientoIRI.elements.isEmpty)
         false
       else{
@@ -53,13 +54,13 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva) {
     val maxProg = relevamientoIRI.map(_.maxProg).max
     val reporter = new Reporter(relevamientoIRI,minProg,maxProg, interval,factorCorreccion,pathHeader,tramoTag)
     val (derRel,izqRel) = relevamientoIRI.partition(_.isForward)
-    val singleDerRel: Seq[IRIElementDataProgresiva] = derRel.flatMap(_.elements)
-    val singleIzqRel: Seq[IRIElementDataProgresiva] = izqRel.flatMap(_.elements)
+    val singleDerRel: Seq[IRIElementDataProgresiva[IRIElementData]] = derRel.flatMap(_.elements)
+    val singleIzqRel: Seq[IRIElementDataProgresiva[IRIElementData]] = izqRel.flatMap(_.elements)
 
 
 
 
-    def processResultCarril(data: Seq[IRIElementDataProgresiva], isLeft: Boolean)(progInclusive: Int, progExclusive: Int): Option[ElementIriResultCarril] = {
+    def processResultCarril(data: Seq[IRIElementDataProgresiva[IRIElementData]], isLeft: Boolean)(progInclusive: Int, progExclusive: Int): Option[ElementIriResultCarril] = {
 
 
       val singularityPointsToCheck = singularityPoints.filter{ sp =>
@@ -112,6 +113,9 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva) {
 
     IriCalculationResult( new SortedElementIriResult(intervalResults),reporter)
   }
+
+
+
 }
 
 object IriCalculator{

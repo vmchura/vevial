@@ -1,7 +1,7 @@
 package io.vmchura.vevial.relevamiento
 import java.io.{File, FileReader}
 
-import io.vmchura.vevial.elementdata.{CrudeIRIData, IRIElementData, UPoint}
+import io.vmchura.vevial.elementdata.{CrudeIRIData, DataWithPoint, IRIElementData, TElementData, TElementWithPoint, UPoint}
 import org.supercsv.io.CsvListReader
 import org.supercsv.prefs.CsvPreference
 
@@ -13,10 +13,10 @@ import scala.collection.mutable.ListBuffer
   * no necesariamente del Roughmeter III
   * @param elements
   */
-class RelevamientoIRI(override val elements: Seq[IRIElementData],val header: List[Array[String]],val interval: Int) extends TSimpleRelevamiento[IRIElementData] {
+class RelevamientoIRI[T <: TElementWithPoint[T]](override val elements: Seq[T], val header: List[Array[String]], val interval: Int) extends TSimpleRelevamiento[T] {
 
 
-  override def sliceBy(minX: Double, maxX: Double, minY: Double, maxY: Double): RelevamientoIRI = {
+  override def sliceBy(minX: Double, maxX: Double, minY: Double, maxY: Double): RelevamientoIRI[T] = {
     new RelevamientoIRI(elements.filter{ e =>
       e.point.exists { case UPoint(value, _) =>
         minX <= value.x && value.x <= maxX &&
@@ -29,9 +29,9 @@ class RelevamientoIRI(override val elements: Seq[IRIElementData],val header: Lis
 }
 
 object RelevamientoIRI{
-  def apply(elements: Seq[IRIElementData],header: List[Array[String]], interval: Int): RelevamientoIRI = new RelevamientoIRI(elements,header,interval)
+  def apply(elements: Seq[IRIElementData],header: List[Array[String]], interval: Int): RelevamientoIRI[IRIElementData] = new RelevamientoIRI(elements,header,interval)
 
-  def apply(source: File): RelevamientoIRI = {
+  def apply[T <: TElementWithPoint[T]](source: File,builder: CrudeIRIData => T): RelevamientoIRI[T] = {
 
     import scala.collection.JavaConverters._
 
@@ -72,10 +72,12 @@ object RelevamientoIRI{
       case None =>
         throw new IllegalArgumentException("Incorrecto archivo, no es un .CSV válido/Not defined interval line")
     }
-    val dataElements = registers.map(line => IRIElementData(new CrudeIRIData(line)))
+    //val dataElements = registers.map(line => IRIElementData(new CrudeIRIData(line)))
+    val dataElements = registers.map(line => builder(new CrudeIRIData(line)))
     val n = dataElements.length
     dataElements.zipWithIndex.foreach {
       case (iriElement, indx) =>
+
 
         if (indx > 0) dataElements.update(indx, iriElement.withPrevElement(dataElements(indx - 1)))
         if (indx + 1 < n) dataElements.update(indx, iriElement.withNextElement(dataElements(indx + 1)))
