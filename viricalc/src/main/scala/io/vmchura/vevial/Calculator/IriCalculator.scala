@@ -3,6 +3,7 @@ package io.vmchura.vevial.Calculator
 
 import io.vmchura.vevial.Calculator.models._
 import io.vmchura.vevial.Calculator.models.singularitypoint.SingularityPoint
+import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.IriReporter.{IriValueAfterProcess, Reporter}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.elementdata.IRIElementData
@@ -10,7 +11,7 @@ import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 import scala.collection.mutable.ListBuffer
 
-class IriCalculator(ejeVial: EfficientEjeProgresiva) {
+class IriCalculator(ejeVial: EfficientEjeProgresiva, progFrom: Progresiva, progTo: Progresiva) {
 
   val relevamientosIRIBuffer: ListBuffer[RelevamientoIRIProgresivas[IRIElementData]] = ListBuffer.empty[RelevamientoIRIProgresivas[IRIElementData]]
 
@@ -26,7 +27,7 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva) {
       if(relevamientoIRI.elements.isEmpty)
         false
       else{
-        relevamientosIRIBuffer += new RelevamientoIRIProgresivas(fileTag,relevamientoIRI,ejeVial)
+        relevamientosIRIBuffer += new RelevamientoIRIProgresivas(fileTag,relevamientoIRI,ejeVial,progFrom,progTo)
         true
       }
     }catch{

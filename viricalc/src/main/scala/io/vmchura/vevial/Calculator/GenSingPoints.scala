@@ -13,7 +13,7 @@ import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 
-class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,String)]) {
+class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,String)], progFrom: Progresiva, progTo: Progresiva) {
 
   val relevamientosIRI =  files.map{ case (file,tag) =>
 
@@ -21,7 +21,7 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
         if(relevamientoIRI.elements.isEmpty)
           throw  new IllegalArgumentException("data is empty")
         else{
-          new RelevamientoIRIProgresivas(tag,relevamientoIRI,ejeVial)
+          new RelevamientoIRIProgresivas(tag,relevamientoIRI,ejeVial,progFrom,progTo)
 
 
         }
