@@ -4,7 +4,7 @@ package io.vmchura.vevial.Calculator
 import java.nio.file.{Files, Path}
 
 import com.norbitltd.spoiwo.model._
-import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions._
+import com.norbitltd.spoiwo.natures.csv.Model2CsvConversions._
 import com.norbitltd.spoiwo.model.{Cell, CellDataFormat, CellRange, CellStyle, Image, Row, Sheet, Workbook}
 import io.vmchura.vevial.Calculator.models.{IriProgWithEvents, RelevamientoIRIProgresivas}
 import io.vmchura.vevial.EjeVialUtil.Progresiva
@@ -81,8 +81,8 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
         Cell(e.reason),
         Cell("p"),
         Cell(e.delta),
-        Cell(e.from).withStyle(CellStyle(dataFormat = CellDataFormat("0+000"))),
-        Cell(e.to).withStyle(CellStyle(dataFormat = CellDataFormat("0+000"))))
+        Cell(e.from),
+        Cell(e.to))
 
       Row().withCells(seqCells)
 
@@ -94,9 +94,9 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
 
 
     try {
-      val path = Files.createTempFile("reportSingPoint", ".xlsx")
+      val path = Files.createTempFile("reportSingPoint", ".csv")
 
-      Workbook().withSheets(sh).saveAsXlsx(path.toAbsolutePath.toString)
+      Workbook().withSheets(sh).saveAsCsv(path.toAbsolutePath.toString)
       Some(path)
     }catch{
       case e: Exception => {
