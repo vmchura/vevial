@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.Success
-
+import scala.language.postfixOps
 class GymServerInitialTest(portNumber: Int) {
   object WatchDog{
     val alertTime = 5 seconds

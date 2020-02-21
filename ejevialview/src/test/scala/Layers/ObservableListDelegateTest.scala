@@ -10,6 +10,7 @@ import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 import UtilFunctions.time
+import io.vmchura.vevial.elementdata.IRIElementData
 
 import scala.io.Codec
 import scala.reflect.io.File
@@ -17,8 +18,8 @@ import scala.reflect.io.File
 class ObservableListDelegateTest extends FlatSpec {
 
 
-  val fileXML = File("/home/vmchura/Documents/001.Projects/Vevial/ejevialview/src/test/resources/tramo123.xml")
-  val fileCSV = new java.io.File("/home/vmchura/Documents/001.Projects/Vevial/relevamientodata/src/test/resources/2019-03-05 14h36m22s Survey.csv")
+  val fileXML = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/tramo123.xml")
+  val fileCSV = new java.io.File("/home/vmchura/Documents/001.Projects/vevial/relevamientodata/src/test/resources/2019-03-05 14h36m22s Survey.csv")
   val logger = Logger[ObservableListDelegateTest]
   def tlogger[R](prefix: String, block: => R): R = time(logger)(prefix,block)
   val arraySeqNodes: Array[ObservableBuffer[Node]] = {
@@ -27,7 +28,7 @@ class ObservableListDelegateTest extends FlatSpec {
       case Right(value) =>
         offsetX() = value.elements.head.in.point.x
         offsetY() = value.elements.head.in.point.y
-        val relevamientoIRI = tlogger("creating io.vmchura.vevial.relevamiento iri",new SimpleIRIRelevamientoLayer(RelevamientoIRI(fileCSV)))
+        val relevamientoIRI = tlogger("creating io.vmchura.vevial.relevamiento iri",new SimpleIRIRelevamientoLayer(RelevamientoIRI(fileCSV,cf => IRIElementData(cf))))
         val ejeLayer: EjeVialLayer = new EjeVialLayer(value)
         val milestonesLayer = new MilestoneLayer(value)
         Array(ejeLayer,milestonesLayer,relevamientoIRI).map(_.nodes)

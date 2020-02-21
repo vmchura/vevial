@@ -6,13 +6,14 @@ import java.util.UUID
 import io.vmchura.vevial.Calculator.IriCalculator
 import io.vmchura.vevial.Calculator.models.singularitypoint.{SingularityPointRaw, SingularityPointReader}
 import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
+import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.io.Codec
 import scala.reflect.io.File
 
-class ReporterTest extends FlatSpec {
+class ReporterTest extends AnyFlatSpec {
 
   behavior of "ReporterTest"
 
@@ -31,7 +32,7 @@ class ReporterTest extends FlatSpec {
     }
 
 
-    val iriCalculator = new IriCalculator(eje)
+    val iriCalculator = new IriCalculator(eje,Progresiva(0),Progresiva(1e7.toInt))
     iriCalculator.includeFile(fileCSV1,"F1")
     iriCalculator.includeFile(fileCSV2,"F2")
 

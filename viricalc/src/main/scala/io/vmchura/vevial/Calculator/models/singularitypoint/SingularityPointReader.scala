@@ -31,7 +31,7 @@ class SingularityPointReader(file: java.io.File) {
       }
 
     }
-    buffer
+    buffer.toList
   }
 
   def getSingularityPoints(eje: EfficientEjeProgresiva): Seq[SingularityPoint] = {

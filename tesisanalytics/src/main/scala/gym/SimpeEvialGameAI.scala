@@ -13,7 +13,7 @@ class SimpeEvialGameAI(evialGame: EvialGame) extends EvialGameAI {
       if(prevGame.finished)
         prevGame
       else {
-        val actionToTake = (0 until prevGame.actions).par.map { action =>
+        val actionToTake = (0 until prevGame.actions).map { action =>
           val regard = prevGame.regard(action)
           (regard, action)
         }.maxBy(_._1)._2
