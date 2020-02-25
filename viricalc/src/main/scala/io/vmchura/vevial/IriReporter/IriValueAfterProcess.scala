@@ -1,6 +1,6 @@
 package io.vmchura.vevial.IriReporter
 
-trait IriValueAfterProcess {
+sealed trait IriValueAfterProcess {
   def progresiva: Int
   def iriValue: Option[Double]
   def description: Option[String]

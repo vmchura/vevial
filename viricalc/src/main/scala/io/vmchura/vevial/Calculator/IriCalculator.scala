@@ -65,10 +65,13 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva, progFrom: Progresiva, progT
 
 
       val singularityPointsToCheck = singularityPoints.filter{ sp =>
-        val delta = sp.progFin-sp.progIni
-        val totalLongitude = Math.max(progExclusive,sp.progFin)-Math.min(progInclusive,sp.progIni)
-        (progExclusive-progInclusive) + delta > totalLongitude
+        val longitudSP = sp.progFin-sp.progIni
+        val longitudRange = progExclusive-progInclusive
+        val longitudTotal = Math.max(progExclusive,sp.progFin)-Math.min(progInclusive,sp.progIni)
+        longitudTotal <= longitudSP + longitudRange
       }
+
+
       val elementsToUse = data.
         filter(e => progInclusive <= e.progresiva && e.progresiva < progExclusive)
 

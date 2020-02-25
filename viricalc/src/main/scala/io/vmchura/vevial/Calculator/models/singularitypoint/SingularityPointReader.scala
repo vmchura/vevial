@@ -35,7 +35,6 @@ class SingularityPointReader(file: java.io.File) {
   }
 
   def getSingularityPoints(eje: EfficientEjeProgresiva): Seq[SingularityPoint] = {
-    elements.zipWithIndex.map{case (l,indx) =>
-      SingularityPointRaw(indx,l,eje)}.flatMap(_.toSingularityPoint(UUID.randomUUID()))
+    elements.zipWithIndex.map{case (l,indx) => SingularityPointRaw(indx,l,eje)}.flatMap(_.toSingularityPoint(UUID.randomUUID()))
   }
 }

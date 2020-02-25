@@ -30,13 +30,13 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
 
   def genSingularityPoints(): Option[Path] = {
     /**
-      *  si iri>= 10, evento por mala lectura +-30
+      *  si iri>= 8, evento por mala lectura +-30
       *  si dos eventos están juntos por 100m, to_do el rango +-20
       * caso contrario +-30
       */
 
 
-    val lecturas10 = relevamientosIRI.flatMap{ _.elements.filter(_.iriElementData.iriValue.exists(_ >= 10)).map{ r =>
+    val lecturas8 = relevamientosIRI.flatMap{ _.elements.filter(_.iriElementData.iriValue.exists(_ >= 8)).map{ r =>
         Evento(r.progresiva,r.progresiva,30,"Error en lectura del equipo")
       }
     }
@@ -70,7 +70,7 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
 
     }
 
-    val totalEventos = (lecturas10 ++ porEventos).sortBy(_.from)
+    val totalEventos = (lecturas8 ++ porEventos).sortBy(_.from)
 
 
 

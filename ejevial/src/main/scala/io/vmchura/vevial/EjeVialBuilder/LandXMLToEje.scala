@@ -1,9 +1,10 @@
 package io.vmchura.vevial.EjeVialBuilder
 import java.io.InputStreamReader
+
 import scala.xml.{Node, XML}
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
-import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment, TSimpleEjeElement}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, FaintElement, RectSegment, TSimpleEjeElement}
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.ProgresivePoint
 import com.typesafe.scalalogging.Logger
 
@@ -63,7 +64,11 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
     }yield{
       val pinicio = str2Point(start.text)
       val pfin = str2Point(end.text)
-      RectSegment(pinicio,pfin)
+      try{
+        RectSegment(pinicio,pfin)
+      }catch{
+        case _: Throwable => FaintElement(pinicio,pfin)
+      }
     }
 
   }
@@ -78,7 +83,11 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
       val pfin = str2Point(end.text)
       val pcenter= str2Point(center.text)
       val ccw = rot.text.trim.toLowerCase().equals("ccw")
-      CircleSegment(pinicio,pcenter,pfin,antiClockWise = ccw)
+      try {
+        CircleSegment(pinicio, pcenter, pfin, antiClockWise = ccw)
+      }catch{
+        case _: Throwable => FaintElement(pinicio,pfin)
+      }
     }
 
 
