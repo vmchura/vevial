@@ -4,15 +4,17 @@ package io.vmchura.vevial.Calculator
 import io.vmchura.vevial.Calculator.models.singularitypoint.SingularityPointReader
 import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import io.vmchura.vevial.EjeVialUtil.Progresiva
+import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.IriReporter.IriValueAfterProcess.ValueComplete
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.io.Codec
 import scala.reflect.io.File
 
-class IriCalculatorTest extends FlatSpec {
+class IriCalculatorTest extends AnyFlatSpec {
 
   behavior of "Iri Calculator"
 
@@ -28,6 +30,7 @@ class IriCalculatorTest extends FlatSpec {
       case _ => null
     }
 
+    val relevamientoIRI = RelevamientoIRI(fileCSV,cd => IRIElementData(cd))
     val relevamientoIRI = RelevamientoIRI(fileCSV,cf => IRIElementData(cf))
 
     val iriCalculator = new IriCalculator(eje,Progresiva(0), Progresiva(1e7.toInt))
@@ -55,6 +58,7 @@ class IriCalculatorTest extends FlatSpec {
     //
     val process = iriCalculator.process(1000,_ => 0.5, sp.getSingularityPoints(eje),"Tramo I","/home/vmchura/Pictures/HeaderCVSC.png")
 
+    val iriCalculator = new IriCalculator(eje,Progresiva(0),Progresiva(1e7.toInt))
 
     val r = process.reporter.carrilIzquierdoData.filter(a => a.progresiva >= 180 && a.progresiva <= 270).filter{
 

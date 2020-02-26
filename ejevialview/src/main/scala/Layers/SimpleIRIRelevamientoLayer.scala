@@ -1,14 +1,14 @@
 package Layers
 
-import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.elementdata.{DataWithPoint, IRIElementData, TElementWithPoint}
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Circle
 
-class SimpleIRIRelevamientoLayer(relevamientoIRI: RelevamientoIRI) extends TLayer[IRIElementData] {
-  override def conversor(e: IRIElementData): Seq[Node] = SimpleIRIRelevamientoLayer.convert(e)
+class SimpleIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: RelevamientoIRI[T]) extends TLayer[T] {
+  override def conversor(e: T): Seq[Node] = SimpleIRIRelevamientoLayer.convert(e)
   addAll(relevamientoIRI.elements)
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
@@ -22,7 +22,7 @@ class SimpleIRIRelevamientoLayer(relevamientoIRI: RelevamientoIRI) extends TLaye
 }
 object SimpleIRIRelevamientoLayer{
   import UtilTransformers.PointTransformer._
-  def convert(e: IRIElementData): Seq[Node] = {
+  def convert[T <: TElementWithPoint[T]](e: T): Seq[Node] = {
 
     (for{
       p <- e.point

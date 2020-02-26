@@ -1,7 +1,7 @@
 package Layers
 
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
-import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.elementdata.{DataWithPoint, IRIElementData, TElementWithPoint}
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
@@ -9,8 +9,9 @@ import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Circle, Line}
 import UtilTransformers.PointTransformer._
 
-class ProjectionIRIRelevamientoLayer(relevamientoIRI: RelevamientoIRI,eje: TEfficientSeqEjeElementsProgresiva) extends TLayer[IRIElementData] {
-  override def conversor(e: IRIElementData): Seq[Node] = {
+class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: RelevamientoIRI[T], eje: TEfficientSeqEjeElementsProgresiva) extends TLayer[T] {
+
+  override def conversor(e: T): Seq[Node] = {
     (for{
       p <- e.point
     }yield{
@@ -47,11 +48,15 @@ class ProjectionIRIRelevamientoLayer(relevamientoIRI: RelevamientoIRI,eje: TEffi
 
 
   }
+
+
   addAll(relevamientoIRI.elements)
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+
+
 }
 
 

@@ -8,6 +8,7 @@ import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.layout.{BorderPane, Pane}
 import UtilTransformers.PointTransformer._
+import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.scene.control.Button
 
@@ -26,8 +27,8 @@ object HelloScalaFX extends JFXApp {
 
         offsetX() = eje.elements.head.in.point.x
         offsetY() = eje.elements.head.in.point.y
-        val relIRI1 = RelevamientoIRI(fileCSV1).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
-        val relIRI2 = RelevamientoIRI(fileCSV2).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
+        val relIRI1 = RelevamientoIRI(fileCSV1,cd => IRIElementData(cd)).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
+        val relIRI2 = RelevamientoIRI(fileCSV2,cd => IRIElementData(cd)).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
         val relevamientoIRI1 = new ProjectionIRIRelevamientoLayer(relIRI1,eje)
         val relevamientoIRI2 = new ProjectionIRIRelevamientoLayer(relIRI2,eje)
         val ejeLayer: EjeVialLayer = new EjeVialLayer(eje)

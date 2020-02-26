@@ -6,6 +6,7 @@ import org.supercsv.io.CsvListReader
 import org.supercsv.prefs.CsvPreference
 
 import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
 
 
 /**
@@ -13,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   * no necesariamente del Roughmeter III
   * @param elements
   */
-class RelevamientoIRI[T <: TElementWithPoint[T]](override val elements: Seq[T], val header: List[Array[String]], val interval: Int) extends TSimpleRelevamiento[T] {
+class RelevamientoIRI[T <: TElementWithPoint[T] : ClassTag](override val elements: Seq[T], val header: List[Array[String]], val interval: Int) extends TSimpleRelevamiento[T] {
 
 
   override def sliceBy(minX: Double, maxX: Double, minY: Double, maxY: Double): RelevamientoIRI[T] = {
@@ -31,9 +32,9 @@ class RelevamientoIRI[T <: TElementWithPoint[T]](override val elements: Seq[T], 
 object RelevamientoIRI{
   def apply(elements: Seq[IRIElementData],header: List[Array[String]], interval: Int): RelevamientoIRI[IRIElementData] = new RelevamientoIRI(elements,header,interval)
 
-  def apply[T <: TElementWithPoint[T]](source: File,builder: CrudeIRIData => T): RelevamientoIRI[T] = {
+  def apply[T <: TElementWithPoint[T] : ClassTag](source: File,builder: CrudeIRIData => T): RelevamientoIRI[T] = {
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val reader = new CsvListReader(new FileReader(source),CsvPreference.STANDARD_PREFERENCE)
     val registersBuffer = ListBuffer.empty[String]

@@ -6,7 +6,7 @@ import java.util.UUID
 import upickle.default._
 import com.typesafe.scalalogging.Logger
 import gym.SimpleExperiment
-
+import scala.language.postfixOps
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
