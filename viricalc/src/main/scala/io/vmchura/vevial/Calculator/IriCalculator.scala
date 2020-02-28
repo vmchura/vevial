@@ -81,7 +81,9 @@ class IriCalculator(ejeVial: EfficientEjeProgresiva, progFrom: Progresiva, progT
 
 
       reporter.addData(pointsToDiscard.map{ e =>
-        val description = singularityPointsToCheck.filter(_.containsPoint(e.progresiva)).map(_.description).mkString("/")
+        val allDescriptions = singularityPointsToCheck.filter(_.containsPoint(e.progresiva)).map(_.description)
+        val noPorFallaEquipo = allDescriptions.find(s => !s.contains("quipo"))
+        val description = noPorFallaEquipo.getOrElse(allDescriptions.head)
         IriValueAfterProcess(e.indx,e.fileTag,e.progresiva,Some(description))
       },isLeft)
 
