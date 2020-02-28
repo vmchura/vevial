@@ -56,13 +56,13 @@ class GenSingPoints(ejeVial: EfficientEjeProgresiva, files: Seq[(java.io.File,St
 
         }.map {
           case (a, b) => Evento(a.progresiva, b.progresiva, 20,
-            s"Punto de singularidad desde " +
+            s"P.S. desde " +
               s"${Progresiva(a.progresiva).show(true, 4)} hasta " +
               s"${Progresiva(b.progresiva).show(true, 4)}")
         }
 
         val eventosSimples = elements.filterNot(r => eventos100.exists(e100 => e100.from <= r.progresiva && r.progresiva <= e100.to)).map { r =>
-          Evento(r.progresiva, r.progresiva, 30, s"Punto de singularidad en ${Progresiva(r.progresiva).show(true, 4)} +/- 30")
+          Evento(r.progresiva, r.progresiva, 30, s"P.S.:${Progresiva(r.progresiva).show(true, 4)} +/- 30")
         }
 
         eventos100 ++ eventosSimples

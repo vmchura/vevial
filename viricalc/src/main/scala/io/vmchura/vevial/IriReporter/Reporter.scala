@@ -274,7 +274,7 @@ class Reporter(source: Seq[RelevamientoIRIProgresivas[IRIElementData]],
         def buildDesc(desc: String): String = {
           val (buffer, current) = desc.split(" ").foldLeft((List.empty[List[String]],List.empty[String])){case ((buffer,current),item) =>
 
-            if((item :: current).mkString(" ").length >15){
+            if((item :: current).mkString(" ").length >45){
               (current :: buffer,List(item))
             }else{
               (buffer, (item :: current))
@@ -293,11 +293,11 @@ class Reporter(source: Seq[RelevamientoIRIProgresivas[IRIElementData]],
             (e.iriValue.map(iri => Cell(iri)).getOrElse(Cell.Empty)).withStyle(CellStyle(dataFormat = CellDataFormat("0.00;-0.00;—;@"),borders=Reporter.bordersItem)),
             Cell(s"${e.fileTag}[${e.itemOnFile}]",style = CellStyle(borders = Reporter.bordersItem,
               wrapText = true,
-              font = Font(height = new Height(8,HeightUnit.Point))
+              font = Font(height = new Height(7,HeightUnit.Point))
 
             )),
             (e.description.map(desc => Cell(buildDesc(desc))).getOrElse(Cell.Empty)).withStyle(CellStyle(borders=Reporter.bordersItem,wrapText = true,
-              font = Font(height = new Height(8,HeightUnit.Point)))))
+              font = Font(height = new Height(7,HeightUnit.Point)))))
 
 
         }.getOrElse(Seq(Cell.Empty,Cell.Empty,Cell.Empty,Cell.Empty,Cell.Empty))
@@ -395,8 +395,8 @@ class Reporter(source: Seq[RelevamientoIRIProgresivas[IRIElementData]],
           case 8 => Column(width = new Width(5,measureUnit = WidthUnit.Character))
           case 3 => Column(width = new Width(6,measureUnit = WidthUnit.Character))
           case 9 => Column(width = new Width(6,measureUnit = WidthUnit.Character))
-          case 4 => Column(width = new Width(10,measureUnit = WidthUnit.Character))
-          case 10 => Column(width = new Width(10,measureUnit = WidthUnit.Character))
+          case 4 => Column(width = new Width(25,measureUnit = WidthUnit.Character))
+          case 10 => Column(width = new Width(25,measureUnit = WidthUnit.Character))
           case 5 => Column(width = new Width(1,measureUnit = WidthUnit.Character))
           case _ => Column(autoSized = true)
         }).withMergedRegions(
