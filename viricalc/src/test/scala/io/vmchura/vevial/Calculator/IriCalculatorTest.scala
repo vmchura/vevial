@@ -31,7 +31,6 @@ class IriCalculatorTest extends AnyFlatSpec {
     }
 
     val relevamientoIRI = RelevamientoIRI(fileCSV,cd => IRIElementData(cd))
-    val relevamientoIRI = RelevamientoIRI(fileCSV,cf => IRIElementData(cf))
 
     val iriCalculator = new IriCalculator(eje,Progresiva(0), Progresiva(1e7.toInt))
 
@@ -39,7 +38,7 @@ class IriCalculatorTest extends AnyFlatSpec {
   it should "delete progresives" in {
     val fileCSV0 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h13m18s Survey T1 HDER.csv")
     val fileCSV1 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h50m20s Survey T1 HIZQ.csv")
-    val fileCSVSP = new java.io.File("/home/vmchura/Documents/002.DescargasFirefox/reportSingPoint9286148934393071799.csv")
+    val fileCSVSP = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/PST1.csv")
     val fileXML = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/tramo123.xml")
     val ejeEither =  new LandXMLToEje(fileXML.reader(Codec("UTF-8"))).toEje
 
@@ -58,7 +57,6 @@ class IriCalculatorTest extends AnyFlatSpec {
     //
     val process = iriCalculator.process(1000,_ => 0.5, sp.getSingularityPoints(eje),"Tramo I","/home/vmchura/Pictures/HeaderCVSC.png")
 
-    val iriCalculator = new IriCalculator(eje,Progresiva(0),Progresiva(1e7.toInt))
 
     val r = process.reporter.carrilIzquierdoData.filter(a => a.progresiva >= 180 && a.progresiva <= 270).filter{
 
