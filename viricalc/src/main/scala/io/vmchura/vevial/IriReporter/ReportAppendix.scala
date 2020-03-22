@@ -95,7 +95,7 @@ object ReportAppendix {
     }
     val marginWidth = 200
     val tagWidth = 4000
-    val dataWidth =  1200
+    val dataWidth =  1600
     def buildSheet(): Sheet = {Sheet(name = s"Hoja$hojaNum", images = (otherImages.append(ih)).toList).withRows(rowsIndexed.toList).
       withColumns(
         Column(width = new Width(marginWidth, WidthUnit.Unit)),

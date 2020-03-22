@@ -5,44 +5,54 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class ReportAppendixTest extends AnyFlatSpec {
 
-  case class Image(path: String) extends TImage {
+  case class Image(path: String,progInt: Int,caption: String) extends TImage {
 
-    override def lat: Double = 0.3
+    override def lat: Double = Double.NaN
 
-    override def lng: Double = 0.5
+    override def lng: Double = Double.NaN
 
-    override def prog(): Int = 5
+    override def prog(): Int = progInt
 
-    override def caption: String = path
 
     override def date: DateTime = DateTime.now()
   }
-  case class Respaldo(images: Seq[Image]) extends TRespaldoByImages {
-    override def progIni: Int = 15
-
-    override def progFin: Int = 34
-  }
+  case class Respaldo(images: Seq[Image],progIni: Int, progFin: Int) extends TRespaldoByImages
 
   behavior of "Creation of appendix"
   it should "Generate images fine" in {
-    val pathImages = Seq("/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439019.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439020.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439021.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439022.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439023.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439024.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439025.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439026.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439027.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439028.jpg",
-    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/frame_926439029.jpg")
+    val pathImages = Array("/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0001_TRAMO_III_017+717.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0001_TRAMO_III_017+783.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0001_TRAMO_III_017+910.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0001_TRAMO_III_018+168.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0003_TRAMO_III_018+758.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0003_TRAMO_III_018+792.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0007_TRAMO_III_018+928.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0007_TRAMO_III_018+977.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0009_TRAMO_III_018+684.jpg",
+    "/home/vmchura/Documents/001.Projects/vevial/viricalc/src/test/resources/0009_TRAMO_III_018+702.jpg")
 
 
-    val r0 = Respaldo(pathImages.take(5).map(Image))
-    val r1 = Respaldo(pathImages.drop(5).map(Image))
-    val r = Seq(r0,r1)
-    val report = "/home/vmchura/Pictures/HeaderCVSC.png"
-    println(ReportAppendix.buildAppendix(respaldo = r,report,"TRAMO ASD"))
+    val r0 = Respaldo(Seq(
+      Image(pathImages(0),17717, "Curvas y contra curvas"),
+      Image(pathImages(1),17783,"Curvas y contra curvas"),
+      Image(pathImages(2),17910,"Curvas y contra curvas"),
+      Image(pathImages(3),18168,"Curvas y contra curvas"),
+    ),17717,18168)
+    val r1 = Respaldo(Seq(
+      Image(pathImages(4),18758,"Desnivel en la superficie producto de fisuras en el borde"),
+      Image(pathImages(5),18792,"Desnivel en la superficie producto de fisuras en el borde")
+    ),18758,18792)
+    val r2 = Respaldo(Seq(
+      Image(pathImages(6),18928,"Curvas y contra curvas"),
+      Image(pathImages(7),18977,"Curvas y contra curvas")
+    ),18928,18977)
+    val r3 = Respaldo(Seq(
+      Image(pathImages(8),18684,"Curvas y contra curvas"),
+      Image(pathImages(9),18702,"Curvas y contra curvas")
+    ),18684,18702)
+    val r = Seq(r0,r1,r2,r3)
+    val report = "/home/vmchura/Pictures/HeaderRandom.png"
+    println(ReportAppendix.buildAppendix(respaldo = r,report,"TRAMO PRUEBA"))
 
 
   }
