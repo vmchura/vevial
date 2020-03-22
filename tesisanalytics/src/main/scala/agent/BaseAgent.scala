@@ -53,4 +53,10 @@ trait BaseAgent extends Serializable{
     */
   def agent_message(message: String): Double
 
+  /**
+    *
+    * @param observation  (Numpy array): the state observation
+    * @return
+    */
+  def real_value(observation: Array[Double]): Double
 }

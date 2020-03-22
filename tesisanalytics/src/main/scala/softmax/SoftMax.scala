@@ -100,7 +100,7 @@ object SoftMax {
 
       val agentInfo = AgentInfo(iht_size=agentInfoExperiment.iht_size,num_tilings = num_tilings,
         num_tiles = num_tiles,actor_step_size = actor_ss,critic_step_size = critic_ss,
-        avg_reward_step_size =avg_reward_ss,num_actions = agentInfoExperiment.num_actions,99
+        avg_reward_step_size =avg_reward_ss,num_actions = agentInfoExperiment.num_actions,99,0.9f
       )
 
       //val return_per_step = Array.fill(experimentParameter.num_runs,experimentParameter.max_steps)(0d)

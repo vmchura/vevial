@@ -1,10 +1,10 @@
 package agent
 
-import softmax.SoftMax
+import softmax.{SoftMax, SoftMaxBreeze}
 import tiles.{LinearTileCoder, PendulumTileCoder}
 
 import scala.util.Random
-
+import breeze.linalg._
 class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
 
   var num_tilings: Int = -1// agentInfo.num_tilings
@@ -17,23 +17,23 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
   var num_tiles: Int = -1
 
 
-  var avg_reward: Double = 0d
-  var actor_w: Array[Array[Double]] = null
-  var critic_w: Array[Double] = null
+  var γ: Double = 0d
+  var I: Double = 0d
+  var actor_w: DenseMatrix[Double] = null
+  var critic_w: DenseVector[Double] = null
 
-  var softmax_prob: Array[Double] = null
+  var softmax_prob: Vector[Double] = null
   var prev_tiles: Array[Int] = null
   var last_action: Int = -1
 
   override def toString: String = {
     s"""
-      | agent next_action: ${last_action}
-      | agent avg_reward: ${avg_reward}
-      | agent first 10 values of actor weights[0] [${actor_w(0).take(10).mkString(" ")}]
-      | agent first 10 values of actor weights[1] [${actor_w(1).take(10).mkString(" ")}]
-      | agent first 10 values of actor weights[2] [${actor_w(2).take(10).mkString(" ")}]
-      | agent first 10 values of critic weights [${critic_w.take(10).mkString(" ")}]
-      |""".stripMargin
+       | agent next_action: ${last_action}
+       | agent first 10 values of actor weights[0] [${actor_w(0,0 to 10)}]
+       | agent first 10 values of actor weights[1] [${actor_w(1,0 to 10)}]
+       | agent first 10 values of actor weights[2] [${actor_w(2,0 to 10)}]
+       | agent first 10 values of critic weights [${critic_w(0 to 10)}]
+       |""".stripMargin
   }
   /**
     * Setup for the agent called when the experiment first starts
@@ -54,6 +54,7 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
     actor_step_size = agentInfo.actor_step_size/num_tilings
     critic_step_size = agentInfo.critic_step_size/num_tilings
     avg_reward_step_size  = agentInfo.avg_reward_step_size
+    γ = agentInfo.gamma
     actions = (0 until agentInfo.num_actions).toList
 
 
@@ -63,10 +64,10 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
       * # Recall this is because we need to have one set of weights for each of the three actions.
       */
 
-    avg_reward = 0d
-    actor_w = Array.fill(actions.length)(Array.fill(iht_size)(0d))
-    critic_w = Array.fill(iht_size)(0d)
-
+    I = 1d
+    actor_w = DenseMatrix.zeros[Double](actions.length,iht_size)
+    critic_w = DenseVector.zeros[Double](iht_size)
+    println("AGENT_INIT")
     softmax_prob = null
     prev_tiles = null
     last_action = -1
@@ -79,15 +80,16 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
     */
   def agent_policy(active_tiles: Array[Int]): Int = {
 
+
     //compute softmax probability
-    softmax_prob = SoftMax.compute_softmax_prob(actor_w,active_tiles)
+    softmax_prob = SoftMaxBreeze.compute_softmax_prob(actor_w,active_tiles)
 
     /**
       * # Sample action from the softmax probability array
       * # self.rand_generator.choice() selects an element from the array with the specified probability
       */
 
-    SoftMax.sample(softmax_prob)
+    SoftMaxBreeze.sample(softmax_prob)
   }
 
   /**
@@ -98,6 +100,7 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
     * @return The first action the agent takes.
     */
   override def agent_start(observation: Array[Double]): Int = {
+
     val Array(position) = observation
 
     /**
@@ -131,7 +134,7 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
     /**
       *  Use self.tc to get active_tiles using angle and ang_vel (1 line)
       */
-    val active_tiles = tc.get_tiles(position.toFloat)
+    val active_tiles: Array[Int] = tc.get_tiles(position.toFloat)
 
     /**
       * Compute delta using Equation (1) (1 line)
@@ -139,8 +142,9 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
       *         self.critic_w[active_tiles].sum() - self.critic_w[self.prev_tiles].sum()
       */
 
-    val delta = reward - avg_reward +
-                active_tiles.map(critic_w).sum - prev_tiles.map(critic_w).sum
+
+    //val delta = reward - avg_reward + active_tiles.map(critic_w).sum - prev_tiles.map(critic_w).sum
+    val δ = reward + γ*{if(position>9.5) sum(critic_w(active_tiles.toSeq)) else 0d} - sum(critic_w(prev_tiles.toSeq))
 
     /**
       * update average reward using Equation (2) (1 line)
@@ -149,7 +153,6 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
       *         self.avg_reward += self.avg_reward_step_size * delta
       */
 
-    avg_reward += avg_reward_step_size*delta
 
 
     /**
@@ -158,10 +161,13 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
       * ### START CODE HERE ###
       *         self.critic_w[self.prev_tiles] += self.critic_step_size * delta
       */
+    /*
+        prev_tiles.foreach{ p =>
+          critic_w(p) += critic_step_size*delta
+        }
 
-    prev_tiles.foreach{ p =>
-      critic_w(p) += critic_step_size*delta
-    }
+     */
+    critic_w(prev_tiles.toSeq) += critic_step_size*δ
 
     /**
       * update actor weights using Equation (4) and (6)
@@ -178,12 +184,10 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
       */
 
     actions.foreach{ a =>
-      prev_tiles.foreach{ p =>
-        if(a == last_action){
-          actor_w(a)(p) += actor_step_size*delta*(1-softmax_prob(a))
-        }else{
-          actor_w(a)(p) += actor_step_size*delta*(0-softmax_prob(a))
-        }
+      if(a == last_action){
+        actor_w(a,prev_tiles.toSeq) += actor_step_size*I*δ*(1-softmax_prob(a))
+      }else{
+        actor_w(a,prev_tiles.toSeq) += actor_step_size*I*δ*(0-softmax_prob(a))
       }
 
     }
@@ -199,6 +203,7 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
 
     prev_tiles = active_tiles
     last_action = current_action
+    I = γ*I
     last_action
 
 
@@ -226,9 +231,20 @@ class ActorCriticSoftmaxAgentLinear() extends BaseAgent {
     */
   override def agent_message(message: String): Double = {
     if(message.equals("get avg reward")){
-      avg_reward
+      -1d
     }else{
       -1d
     }
+  }
+
+  /**
+    *
+    * @param observation (Numpy array): the state observation
+    * @return
+    */
+  override def real_value(observation: Array[Double]): Double = {
+    val Array(position) = observation
+    val active_tiles: Array[Int] = tc.get_tiles(position.toFloat)
+    sum(critic_w(active_tiles.toSeq))
   }
 }

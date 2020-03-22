@@ -40,7 +40,7 @@ class SoftMaxTest extends AnyFlatSpec {
   it should "work fine with glue and environment" in {
     val envInfo = EnvInfo(seed = 99)
     val agentInfo = AgentInfo(iht_size = 4096,num_tilings = 8, num_tiles = 8, actor_step_size = 1e-1f,
-      critic_step_size = 1e-0f,avg_reward_step_size = 1e-2f, num_actions = 3, seed = 99)
+      critic_step_size = 1e-0f,avg_reward_step_size = 1e-2f, num_actions = 3, seed = 99,0.9f)
 
     val test_env = () => new PendulumEnvironment
     val test_agent = () => new ActorCriticSoftmaxAgent

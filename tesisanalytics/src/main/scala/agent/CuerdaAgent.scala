@@ -1,14 +1,15 @@
 package agent
 
-import softmax.SoftMax
-import tiles.PendulumTileCoder
+import softmax.SoftMaxBreeze
+import breeze.linalg._
+import tiles.{CuerdaTileCoder, PendulumTileCoder}
 
 import scala.util.Random
 
-class ActorCriticSoftmaxAgent() extends BaseAgent {
+class CuerdaAgent() extends BaseAgent {
 
   var num_tilings: Int = -1// agentInfo.num_tilings
-  var tc: PendulumTileCoder =  null//new PendulumTileCoder(iht_size = agentInfo.iht_size,num_tilings = num_tilings,num_tiles = agentInfo.num_tiles)
+  var tc: CuerdaTileCoder =  null//new PendulumTileCoder(iht_size = agentInfo.iht_size,num_tilings = num_tilings,num_tiles = agentInfo.num_tiles)
   var actor_step_size: Float = -1f// = agentInfo.actor_step_size/num_tilings
   var critic_step_size: Float = -1f //agentInfo.critic_step_size/num_tilings
   var avg_reward_step_size: Float = -1f// = agentInfo.avg_reward_step_size
@@ -18,10 +19,10 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
 
 
   var avg_reward: Double = 0d
-  var actor_w: Array[Array[Double]] = null
-  var critic_w: Array[Double] = null
+  var actor_w: DenseMatrix[Double] = null
+  var critic_w: DenseVector[Double] = null
 
-  var softmax_prob: Array[Double] = null
+  var softmax_prob: Vector[Double] = null
   var prev_tiles: Array[Int] = null
   var last_action: Int = -1
 
@@ -29,10 +30,10 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
     s"""
       | agent next_action: ${last_action}
       | agent avg_reward: ${avg_reward}
-      | agent first 10 values of actor weights[0] [${actor_w(0).take(10).mkString(" ")}]
-      | agent first 10 values of actor weights[1] [${actor_w(1).take(10).mkString(" ")}]
-      | agent first 10 values of actor weights[2] [${actor_w(2).take(10).mkString(" ")}]
-      | agent first 10 values of critic weights [${critic_w.take(10).mkString(" ")}]
+      | agent first 10 values of actor weights[0] [${actor_w(0,0 to 10)}]
+      | agent first 10 values of actor weights[1] [${actor_w(1,0 to 10)}]
+      | agent first 10 values of actor weights[2] [${actor_w(2,0 to 10)}]
+      | agent first 10 values of critic weights [${critic_w(0 to 10)}]
       |""".stripMargin
   }
   /**
@@ -47,7 +48,7 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
     iht_size = agentInfo.iht_size
     num_tiles = agentInfo.num_tiles
     //initialize self.tc to the tile coder we created
-    tc =  new PendulumTileCoder(iht_size = agentInfo.iht_size,num_tilings = num_tilings,num_tiles = agentInfo.num_tiles)
+    tc =  new CuerdaTileCoder(iht_size = agentInfo.iht_size,num_tilings = num_tilings,num_tiles = agentInfo.num_tiles)
 
     //set step-size accordingly
     // (we normally divide actor and critic step-size by num. tilings (p.217-218 of textbook))
@@ -64,8 +65,8 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
       */
 
     avg_reward = 0d
-    actor_w = Array.fill(actions.length)(Array.fill(iht_size)(0d))
-    critic_w = Array.fill(iht_size)(0d)
+    actor_w = DenseMatrix.zeros[Double](actions.length,iht_size)
+    critic_w = DenseVector.zeros[Double](iht_size)
 
     softmax_prob = null
     prev_tiles = null
@@ -80,14 +81,14 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
   def agent_policy(active_tiles: Array[Int]): Int = {
 
     //compute softmax probability
-    softmax_prob = SoftMax.compute_softmax_prob(actor_w,active_tiles)
+    softmax_prob = SoftMaxBreeze.compute_softmax_prob(actor_w,active_tiles)
 
     /**
       * # Sample action from the softmax probability array
       * # self.rand_generator.choice() selects an element from the array with the specified probability
       */
 
-    SoftMax.sample(softmax_prob)
+    SoftMaxBreeze.sample(softmax_prob)
   }
 
   /**
@@ -98,7 +99,6 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
     * @return The first action the agent takes.
     */
   override def agent_start(observation: Array[Double]): Int = {
-    val Array(angle,ang_vel) = observation
 
     /**
       * ### Use self.tc to get active_tiles using angle and ang_vel (2 lines)
@@ -106,7 +106,7 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
       * # active_tiles = ?
       * # current_action = ?
       */
-    val active_tiles = tc.get_tiles(angle.toFloat,ang_vel.toFloat)
+    val active_tiles = tc.get_tiles(observation)
     val current_action = agent_policy(active_tiles)
 
     last_action = current_action
@@ -126,12 +126,11 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
     * @return The action the agent is taking.
     */
   override def agent_step(reward: Float, observation: Array[Double]): Int = {
-    val Array(angle,ang_vel) = observation
 
     /**
       *  Use self.tc to get active_tiles using angle and ang_vel (1 line)
       */
-    val active_tiles = tc.get_tiles(angle.toFloat,ang_vel.toFloat)
+    val active_tiles: Array[Int] = tc.get_tiles(observation)
 
     /**
       * Compute delta using Equation (1) (1 line)
@@ -139,8 +138,9 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
       *         self.critic_w[active_tiles].sum() - self.critic_w[self.prev_tiles].sum()
       */
 
-    val delta = reward - avg_reward +
-                active_tiles.map(critic_w).sum - prev_tiles.map(critic_w).sum
+
+    //val delta = reward - avg_reward + active_tiles.map(critic_w).sum - prev_tiles.map(critic_w).sum
+    val delta = reward - avg_reward + sum(critic_w(active_tiles.toSeq)) - sum(critic_w(prev_tiles.toSeq))
 
     /**
       * update average reward using Equation (2) (1 line)
@@ -158,10 +158,13 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
       * ### START CODE HERE ###
       *         self.critic_w[self.prev_tiles] += self.critic_step_size * delta
       */
-
+/*
     prev_tiles.foreach{ p =>
       critic_w(p) += critic_step_size*delta
     }
+
+ */
+    critic_w(prev_tiles.toSeq) += critic_step_size*delta
 
     /**
       * update actor weights using Equation (4) and (6)
@@ -178,12 +181,10 @@ class ActorCriticSoftmaxAgent() extends BaseAgent {
       */
 
     actions.foreach{ a =>
-      prev_tiles.foreach{ p =>
-        if(a == last_action){
-          actor_w(a)(p) += actor_step_size*delta*(1-softmax_prob(a))
-        }else{
-          actor_w(a)(p) += actor_step_size*delta*(0-softmax_prob(a))
-        }
+      if(a == last_action){
+        actor_w(a,prev_tiles.toSeq) += actor_step_size*delta*(1-softmax_prob(a))
+      }else{
+        actor_w(a,prev_tiles.toSeq) += actor_step_size*delta*(0-softmax_prob(a))
       }
 
     }

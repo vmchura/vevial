@@ -234,4 +234,11 @@ class ActorCriticSoftmaxAgentBreeze() extends BaseAgent {
       -1d
     }
   }
+
+  /**
+    *
+    * @param observation (Numpy array): the state observation
+    * @return
+    */
+  override def real_value(observation: Array[Double]): Double = 0d
 }
