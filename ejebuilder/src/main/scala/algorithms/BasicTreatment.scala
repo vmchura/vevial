@@ -1,6 +1,6 @@
 package algorithms
 
-import models.{Graph, TNode}
+import models.{Graph, TNode, TreeGraph}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -13,7 +13,7 @@ object BasicTreatment {
     * @tparam A
     * @return
     */
-  def buildTree[A <: TNode[A]](graph: Graph[A]): Seq[Graph[A]] = {
+  def buildTree[A <: TNode[A]](graph: Graph[A]): Seq[TreeGraph[A]] = {
     val graphMapLB: mutable.Map[A,ListBuffer[A]] = mutable.Map.empty[A,ListBuffer[A]]
     val dsu = new DSU(graph.nodes)
     def appendToGraph(x: A, y: A): Unit = if(graphMapLB.contains(x)) graphMapLB(x).append(y) else graphMapLB += x -> ListBuffer(y)
@@ -64,7 +64,7 @@ object BasicTreatment {
 
     graph.nodes.foreach(_.resetState())
 
-    val treesFound = ListBuffer.empty[Graph[A]]
+    val treesFound = ListBuffer.empty[TreeGraph[A]]
     graph.nodes.foreach{ a =>
       if(a.unvisited()){
         val nodesThisSet = ListBuffer.empty[A]
@@ -86,7 +86,7 @@ object BasicTreatment {
           }
         }
 
-        val g = Graph(treeNodes.map(dsu.find_set).distinct,(x : A,y: A) => edges.contains((x,y)))
+        val g = TreeGraph(treeNodes.map(dsu.find_set).distinct,(x : A,y: A) => edges.contains((x,y)))
         treesFound.append(g)
 
       }

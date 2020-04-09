@@ -1,18 +1,16 @@
 package algorithms
 
-import models.{Edge, Graph, TNode}
+import models.{Edge, Graph, IntNode, TNode}
 import org.scalatest.flatspec.AnyFlatSpec
 
 class BasicTreatmentTest extends AnyFlatSpec {
 
   behavior of "Run basic graph"
   it should "give correct results on int graph" in {
-    case class IntNode(v: Int) extends TNode[IntNode]{
-      override def toString: String = v.toString
-    }
+
 
     val nodes: Array[IntNode] =  (0 to 5).map(IntNode).toArray
-    val edges: Seq[Edge[IntNode]] = Seq(
+    val edges: Set[Edge[IntNode]] = Set(
       Edge(nodes(0),nodes(1)),
       Edge(nodes(1),nodes(2)),
       Edge(nodes(2),nodes(3)),
@@ -32,7 +30,7 @@ class BasicTreatmentTest extends AnyFlatSpec {
     }
 
     val nodes: Array[IntNode] =  (0 to 5).map(IntNode).toArray
-    val edges: Seq[Edge[IntNode]] = Seq(
+    val edges: Set[Edge[IntNode]] = Set(
       Edge(nodes(0),nodes(1)),
       Edge(nodes(1),nodes(2)),
       Edge(nodes(2),nodes(0)),
@@ -52,7 +50,7 @@ class BasicTreatmentTest extends AnyFlatSpec {
     }
 
     val nodes: Array[IntNode] =  (0 to 6).map(IntNode).toArray
-    val edges: Seq[Edge[IntNode]] = Seq(
+    val edges: Set[Edge[IntNode]] = Set(
       Edge(nodes(0),nodes(1)),
       Edge(nodes(1),nodes(2)),
       Edge(nodes(2),nodes(3)),
