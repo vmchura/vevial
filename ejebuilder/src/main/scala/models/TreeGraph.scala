@@ -1,66 +1,133 @@
 package models
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-case class TreeGraph[A <: TNode[A]](nodes: Seq[A],edges: Set[Edge[A]]) extends TGraph[A]{
-  def toLinearGraph(): Option[LinearGraph[A]] = {
-    val indx = nodes.zipWithIndex.map{case (nod,i) => nod -> i}.toMap
-    val count = Array.fill(n)(0)
-    edges.foreach{
-      case Edge(from,_) =>
-        count(indx(from)) += 1
-    }
+case class TreeGraph[A <: TNode[A]] private (nodes: Seq[A],edges: Set[Edge[A]]) extends TGraph[A]{
 
-    if((count.count(_ == 1) == 2) && (count.count(_ == 2) == (n-2))){
+  /**
+    * It returns the diameter
+    * @return
+    */
+  def toLinearGraph(): LinearGraph[A] = {
+    if(nodes.isEmpty){
+      LinearGraph[A](Nil)
+    }else {
+      val indx = nodes.zipWithIndex.map { case (nod, i) => nod -> i }.toMap
       val simpleEdges = Array.fill(n)(ListBuffer.empty[A])
-      edges.foreach{
-        case Edge(from,to) =>
+      edges.foreach {
+        case Edge(from, to) =>
           simpleEdges(indx(from)).append(to)
           simpleEdges(indx(to)).append(from)
       }
 
-      def dfs(a: A)(implicit atStart: A => Unit): Unit = {
-        a.markStartTraverse()
-        atStart(a)
+      def bfs(a: A)(implicit atStart: A => Unit): Unit = {
 
-        val adj = simpleEdges(indx(a))
+        val queue = mutable.Queue(a)
 
-        adj.foreach{ v =>
-          if(v.unvisited()){
-            dfs(v)
+        while (queue.nonEmpty) {
+          val x = queue.dequeue()
+          if (x.unvisited()) {
+            x.markStartTraverse()
+            atStart(x)
+            val adj = simpleEdges(indx(x))
+            adj.foreach { v =>
+              if (v.unvisited()) {
+                queue.enqueue(v)
+                v.setParent(x)
+              }
+            }
           }
-
-
-
+          x.markFinishTraverse()
         }
-        a.markFinishTraverse()
+
+
       }
 
-      val orderedNodes = ListBuffer.empty[A]
-      implicit val atStart: A => Unit = orderedNodes.append
+      var lastU = nodes.head
 
-      dfs(nodes(count.find(_ == 1).get))
+      nodes.foreach(_.resetState())
+      bfs(nodes.head)(x => lastU = x)
 
-      Some(LinearGraph(orderedNodes.toList))
-    }else{
-      None
+
+      var lastV = nodes.head
+      nodes.foreach(_.resetState())
+      bfs(lastU)(x => lastV = x)
+
+
+      val reversedNodes = ListBuffer.empty[A]
+      var x = lastV
+      while (x != lastU) {
+        reversedNodes.append(x)
+        x = x.parent
+      }
+      reversedNodes.append(x)
+
+      LinearGraph(reversedNodes.toList)
     }
 
   }
+
+
 }
 object TreeGraph{
 
-  def apply[A <: TNode[A]](nodesParam: Seq[A], haveDirectConecction: (A,A) => Boolean): TreeGraph[A] = {
-    val nodes: Seq[A] = nodesParam
-    val edges: Set[Edge[A]] = {
-      nodesParam.zip(nodesParam.tail).flatMap{ case (x,y) =>
-        if(haveDirectConecction(x,y))
-          Some(Set(Edge(x,y),Edge(y,x)))
-        else
-          None
-      }.flatten
-    }.toSet
-    new TreeGraph(nodes,edges)
+  /**
+    * Runs a DFS on any node, save the last visited node U, runs dfs on U, the tree genereted by this DFS is returned
+    * @param nodesParam
+    * @param edgesParam
+    * @tparam A
+    * @return
+    */
+  def apply[A <: TNode[A]](nodesParam: Seq[A], edgesParam: Set[Edge[A]]): TreeGraph[A] = {
+    if(nodesParam.isEmpty){
+      new TreeGraph[A](Nil,Set.empty)
+    }else {
+      val n = nodesParam.length
+      val indx = nodesParam.zipWithIndex.map { case (nod, i) => nod -> i }.toMap
+
+      val simpleEdges = Array.fill(n)(ListBuffer.empty[A])
+      edgesParam.foreach {
+        case Edge(from, to) =>
+          simpleEdges(indx(from)).append(to)
+          simpleEdges(indx(to)).append(from)
+      }
+
+      def dfs(a: A)(atStart: A => Unit, atEnd: A => Unit): Unit = {
+        a.markStartTraverse()
+        atStart(a)
+
+
+        val adj = simpleEdges(indx(a))
+        adj.foreach { v =>
+          if (v.unvisited()) {
+            dfs(v)(atStart, atEnd)
+          }
+        }
+        a.markFinishTraverse()
+        atEnd(a)
+      }
+
+      var lastVisitedNode: A = nodesParam.head
+      val atStart1: A => Unit = _ => ()
+      val atEnd1: A => Unit = x => lastVisitedNode = x
+
+      nodesParam.foreach(_.resetState())
+      dfs(nodesParam.head)(atStart1, atEnd1)
+
+      val treeNodes = ListBuffer.empty[A]
+
+      val atStart2: A => Unit = treeNodes.append
+      val atEnd2: A => Unit = _ => ()
+
+      nodesParam.foreach(_.resetState())
+      dfs(lastVisitedNode)(atStart2, atEnd2)
+
+
+      val edges = nodesParam.flatMap(a => simpleEdges(indx(a)).map(b => Edge(a, b)))
+
+      new TreeGraph(nodesParam, edges.toSet)
+    }
   }
 
 

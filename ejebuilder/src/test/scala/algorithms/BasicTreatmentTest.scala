@@ -63,7 +63,6 @@ class BasicTreatmentTest extends AnyFlatSpec {
     )
 
     val r = BasicTreatment.buildTree(Graph(nodes,edges))
-    println(r.mkString("\n"))
     assertResult(1)(r.length)
     assertResult(3)(r.head.nodes.length)
 

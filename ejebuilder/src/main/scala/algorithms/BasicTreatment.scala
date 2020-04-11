@@ -1,6 +1,6 @@
 package algorithms
 
-import models.{Graph, TNode, TreeGraph}
+import models.{Edge, Graph, TNode, TreeGraph}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -26,7 +26,6 @@ object BasicTreatment {
     def dfs(a: A)(implicit atStart: A => Unit): Unit = {
       a.markStartTraverse()
       atStart(a)
-
       if(graphMap.contains(a)){
         val adj = graphMap(a)
         adj.foreach{ v =>
@@ -66,27 +65,26 @@ object BasicTreatment {
 
     val treesFound = ListBuffer.empty[TreeGraph[A]]
     graph.nodes.foreach{ a =>
+
       if(a.unvisited()){
         val nodesThisSet = ListBuffer.empty[A]
         implicit val atStart: A => Unit =  (x: A) => nodesThisSet.append(x)
+
         dfs(a)
         val treeNodes: List[A] = nodesThisSet.toList
-        val edges = treeNodes.zip(treeNodes.tail).flatMap{
-          case (x,y) => {
-            if((graphMap.contains(x) && graphMap(x).contains(y)) ||
-              (graphMap.contains(y) && graphMap(y).contains(x))){
-              val a = dsu.find_set(x)
-              val b = dsu.find_set(y)
-              Seq((a,b),(b,a))
-            }else{
-              Nil
-            }
 
-
+        val edges = treeNodes.flatMap{ n =>
+          val adj = graphMap(n)
+          adj.map{ v =>
+            Edge(dsu.find_set(n),dsu.find_set(v))
           }
-        }
 
-        val g = TreeGraph(treeNodes.map(dsu.find_set).distinct,(x : A,y: A) => edges.contains((x,y)))
+        }.distinct.toSet
+
+
+
+
+        val g = TreeGraph(treeNodes.map(dsu.find_set).distinct,edges)
         treesFound.append(g)
 
       }
