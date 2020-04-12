@@ -1,13 +1,14 @@
 package Layers
 
-import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TFaintElement, TRectSegment}
+import io.vmchura.vevial.PlanarGeometric.BasicEje.{TEfficientSeqEjeElements, TSeqEjeElementsBase}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Line}
 
-class EjeVialLayer(eje: EfficientEjeProgresiva) extends TLayer[WithProgresive] {
+class EjeVialLayer(eje: TEfficientSeqEjeElements) extends TLayer[TEjeElement] {
 
 
 
@@ -17,7 +18,7 @@ class EjeVialLayer(eje: EfficientEjeProgresiva) extends TLayer[WithProgresive] {
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 
-  override def conversor(e: WithProgresive): Seq[Node] = EjeVialLayer.elementConversor(e)
+  override def conversor(e: TEjeElement): Seq[Node] = EjeVialLayer.elementConversor(e)
   addAll(eje.elements)
 }
 
@@ -29,7 +30,7 @@ object EjeVialLayer {
 
 
 
-  private val drawableConvert2Nodes:  WithProgresive =>  Seq[Node] = {
+  private val drawableConvert2Nodes:  TEjeElement =>  Seq[Node] = {
     case r: TRectSegment => rectConversor(r)
     case c: TCircleSegment => arcCircConversor(c)
     case f: TFaintElement => faintElementConversor(f)
@@ -39,7 +40,7 @@ object EjeVialLayer {
 
 
 
-  def elementConversor(w: WithProgresive): Seq[Node] = drawableConvert2Nodes(w)
+  def elementConversor(w: TEjeElement): Seq[Node] = drawableConvert2Nodes(w)
 
   import UtilTransformers.PointTransformer._
   private def rectConversor(rect: TRectSegment): Seq[Node] = {
@@ -48,7 +49,7 @@ object EjeVialLayer {
       startY <== rect.originPoint.y.toView_Y()
       endX <== rect.endPoint.x.toView_X()
       endY <== rect.endPoint.y.toView_Y()
-      strokeWidth = 1
+      strokeWidth = 3
       stroke = Color.Black
     })
   }
@@ -62,7 +63,7 @@ object EjeVialLayer {
       length = circ.alpha * 180.0 / Math.PI
 
 
-      strokeWidth = 1
+      strokeWidth = 3
       stroke = Color.Black
       `type` = ArcType.Open
       fill = Color.Transparent
@@ -75,7 +76,8 @@ object EjeVialLayer {
       startY <== faintElement.from.y.toView_Y()
       endX <== faintElement.end.x.toView_X()
       endY <== faintElement.end.y.toView_Y()
-      strokeWidth = 1
+      strokeWidth = 2
+      stroke = Color.Red
       strokeDashArray = List(25d, 20d, 5d, 20d)
     })
   }

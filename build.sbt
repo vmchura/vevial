@@ -32,6 +32,12 @@ lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).s
   name := "ejebuilder",
 ).dependsOn(ejevial,relevamientodata)
 
+lazy val ejebuilderview = (project in file("ejebuilderview")).settings(commonSettings ++ windowSettings).settings(
+  name := "ejebuilderview"
+).dependsOn(ejebuilder, ejevialview)
+
+
+
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
   name := "tesisanalytics",
   libraryDependencies ++= List(

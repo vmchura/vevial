@@ -73,19 +73,24 @@ object BasicTreatment {
         dfs(a)
         val treeNodes: List[A] = nodesThisSet.toList
 
-        val edges = treeNodes.flatMap{ n =>
-          val adj = graphMap(n)
-          adj.map{ v =>
-            Edge(dsu.find_set(n),dsu.find_set(v))
+
+
+        val edges = treeNodes.flatMap { n =>
+          if(graphMap.contains(n)) {
+            val adj = graphMap(n)
+            adj.map { v =>
+              Edge(dsu.find_set(n), dsu.find_set(v))
+            }
+          }else{
+            Nil
           }
 
         }.distinct.toSet
 
 
-
-
-        val g = TreeGraph(treeNodes.map(dsu.find_set).distinct,edges)
+        val g = TreeGraph(treeNodes.map(dsu.find_set).distinct, edges)
         treesFound.append(g)
+
 
       }
     }

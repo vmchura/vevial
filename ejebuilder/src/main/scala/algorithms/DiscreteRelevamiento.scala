@@ -24,7 +24,7 @@ object DiscreteRelevamiento {
 
     implicit val extractorX: PointWithUsing => Double = _.x
     implicit val extractorY: PointWithUsing => Double = _.y
-    val RADIUS: Double = 5d
+    val RADIUS: Double = 15d
     val (fX,fY) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
       SubsequenceFinder.find[PointWithUsing](RADIUS,RADIUS)(orderedList) (d) (e)} match {
       case first :: second :: Nil => (first,second)

@@ -51,6 +51,10 @@ trait WithDistributionFormulaByRestrictions extends WithProgresive {
   assert(restrictions.length>=2)
   case class LinearRestriction(distanceFromReference: Double, progresive: Double)
   val linearRestricctions: List[LinearRestriction] = restrictions.map(r => LinearRestriction(lengthToPoint(r.elementPoint),r.progresive)).sortBy(_.progresive)
+  if(!areCloseInLinearReference(linearRestricctions.head.distanceFromReference,0)){
+    println(restrictions)
+    println(linearRestricctions)
+  }
   assert(areCloseInLinearReference(linearRestricctions.head.distanceFromReference,0))
   assert(areCloseInLinearReference(linearRestricctions.last.distanceFromReference,length))
 
