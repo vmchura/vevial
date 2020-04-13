@@ -72,15 +72,16 @@ class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](overrid
   }
   override def buildEje(): TEfficientSeqEjeElementsProgresiva = {
     val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[A,B,GeoNode](relevamientos)
-    val ejes: Seq[TSeqEjeElementsBase] = nodeEje.map(buildEjeBase)
 
-    ejes.headOption match {
-      case Some(x) =>
-        val y = EfficientSeqEjeElements(x)
-        val z = RestrictiveEje.EjeEfficientWithRestrictions(y)
-        EfficientEjeProgresiva(z)
-      case _ => throw new IllegalArgumentException("No se puede crear el eje")
-    }
+    val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+
+    val eje: TSeqEjeElementsBase = buildEjeBase(singleLinearEje)
+
+
+    val y = EfficientSeqEjeElements(eje)
+    val z = RestrictiveEje.EjeEfficientWithRestrictions(y)
+    EfficientEjeProgresiva(z)
+
 
 
   }

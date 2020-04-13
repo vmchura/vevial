@@ -27,6 +27,6 @@ class DiscreteRelevamientoTest extends AnyFlatSpec {
     val bosquejoEje = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](List(simpleRelevamiento))
 
     assertResult(1)(bosquejoEje.length)
-    assertResult(9)(bosquejoEje.head.nodes.length)
+    assertResult(3)(bosquejoEje.head.nodes.length)
   }
 }
