@@ -6,8 +6,8 @@ import scalafx.scene.Node
 
 import scala.collection.mutable
 
-trait TLayer[E] {
-  val nodes: ObservableBuffer[Node] = new ObservableBuffer[Node]()
+trait TLayer[E] extends ObservableNodes{
+
   def conversor(e: E): Seq[Node]
   private val map2Nodes: mutable.Map[E,Seq[Node]] = mutable.Map[E,Seq[Node]]()
   def add(e: E): Unit = {
@@ -33,6 +33,9 @@ trait TLayer[E] {
   }
   protected def elementsDrawn(): scala.collection.Set[E] = map2Nodes.keySet
 
+  def clear(): Unit = {
+    removeAll(elementsDrawn())
+  }
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
     * @param x

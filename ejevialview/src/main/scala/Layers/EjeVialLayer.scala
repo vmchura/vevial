@@ -2,13 +2,13 @@ package Layers
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{TEfficientSeqEjeElements, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
-import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, WithProgresive}
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva, WithProgresive}
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Line}
 
-class EjeVialLayer(eje: TEfficientSeqEjeElements) extends TLayer[TEjeElement] {
+class EjeVialLayer() extends TLayer[TEjeElement] {
 
 
 
@@ -19,7 +19,15 @@ class EjeVialLayer(eje: TEfficientSeqEjeElements) extends TLayer[TEjeElement] {
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 
   override def conversor(e: TEjeElement): Seq[Node] = EjeVialLayer.elementConversor(e)
-  addAll(eje.elements)
+
+
+
+  def setEje(eje: TEfficientSeqEjeElementsProgresiva): Unit ={
+    clear()
+    addAll(eje.elements)
+  }
+
+
 }
 
 

@@ -1,4 +1,5 @@
-import Layers.{EjeVialLayer, InitialDraftLayer, ObservableListDelegate, SimpleIRIRelevamientoLayer}
+import scalafx.Includes._
+import Layers.{EjeVialLayer, GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
@@ -6,51 +7,127 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
-import scalafx.scene.control.Button
-import scalafx.scene.layout.{BorderPane, Pane}
+import scalafx.scene.control.{Alert, Button}
+import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
 import UtilTransformers.PointTransformer._
 import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
-import models.GeoNode
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
+import javafx.scene.input
+import models.{GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
 import scalafx.beans.property.ObjectProperty
+import scalafx.geometry.Insets
+import scalafx.scene.control.Alert.AlertType
+import scalafx.scene.input.TransferMode
+import scalafx.scene.paint.Color
+
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable.ListBuffer
 
 object EjeBuilder extends JFXApp{
 
-  val relevamientoFile = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h50m20s Survey T1 HIZQ.csv")
-  val relevamientoFile2 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h13m18s Survey T1 HDER.csv")
+  val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
+  val linkLayer = new LinkLayer()
+  val geoNodeLayer = new GeoNodeLayer()
 
-  val arraySeqNodes: Array[ObservableBuffer[Node]] = {
-    val relevamientoIRI = RelevamientoIRI(relevamientoFile,cd => IRIElementData(cd))
-    val relevamientoIRI2 = RelevamientoIRI(relevamientoFile2,cd => IRIElementData(cd))
+  offsetX() = 0d
+  offsetY() = 0d
 
-    val ejeBuilder = new EjeBuilderDraft[RelevamientoIRI[IRIElementData],IRIElementData](
-      List(relevamientoIRI,relevamientoIRI2))
-    val eje = ejeBuilder.buildEje()
-    val ejeLayer: EjeVialLayer = new EjeVialLayer(eje)
+  var linearGraphEditable = Option.empty[LinearGraphEditable]
 
-    val bosquejoEje = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](
-      List(relevamientoIRI,relevamientoIRI2))
-
-    val initialDraftLayer: Seq[InitialDraftLayer] = bosquejoEje.map(x => new InitialDraftLayer(x) )
-
-    println(s"nodes: ${initialDraftLayer.length}")
-    val simpleRelevamientoLayer = new SimpleIRIRelevamientoLayer(relevamientoIRI)
-    val simpleRelevamientoLaye2r = new SimpleIRIRelevamientoLayer(relevamientoIRI2)
-    val somePoint: Point = relevamientoIRI.elements.find(_.point.isDefined).map(_.point.map(_.value).get).get
-
-    offsetX() = somePoint.x
-    offsetY() = somePoint.y
-    (Array(simpleRelevamientoLayer,simpleRelevamientoLaye2r,ejeLayer) ++ initialDraftLayer.toArray).map(_.nodes)
+  def buildEje(): MutableEje = {
+    val ejeBuilder = new EjeBuilderDraft[RelevamientoIRI[IRIElementData],IRIElementData](relevamientosAdded.toList)
+    ejeBuilder.buildEje()
   }
 
-  val panelMapa = new Pane()
+
+
+
+  def loadNewFile(relevamientos: Seq[RelevamientoIRI[IRIElementData]]): Unit = {
+    relevamientos.foreach{ relevamiento =>
+      relevamientosAdded.append(relevamiento)
+    }
+    val relevamientosSimples = relevamientos.map(x => new SimpleIRIRelevamientoLayer(x))
+
+    linearGraphEditable.foreach{_.clear()}
+    linearGraphEditable = None
+
+    try{
+      val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
+      val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+
+      linearGraphEditable = Some(LinearGraphEditable(singleLinearEje.nodes,linkLayer,geoNodeLayer))
+
+      offsetX() = singleLinearEje.nodes.head.center.x
+      offsetY() = singleLinearEje.nodes.head.center.y
+    }catch{
+      case error: Throwable =>  {
+        println(error.toString)
+        new Alert(AlertType.Information, "No se pudo crear el primer bosquejo").showAndWait()
+      }
+    }
+
+    new ObservableListDelegate(relevamientosSimples.toArray.map(_.nodes),panelMapa.children)
+
+  }
+
+  //val relevamientoFile = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h50m20s Survey T1 HIZQ.csv")
+  //val relevamientoFile2 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h13m18s Survey T1 HDER.csv")
+
+
+    //val relevamientoIRI = RelevamientoIRI(relevamientoFile,cd => IRIElementData(cd))
+
+  val panelMapa = new Pane(){
+
+    background = new Background(Array(new BackgroundFill(Color.LightGrey,CornerRadii.Empty, Insets.Empty)))
+
+    onDragOver = e => {
+
+      if( e.getDragboard.hasFiles){
+        val de = new scalafx.scene.input.DragEvent(e)
+        val t: Array[input.TransferMode] = TransferMode.CopyOrMove
+        de.acceptTransferModes(t: _*)
+
+
+      }
+    }
+
+    onDragDropped = e => {
+
+      val db = e.getDragboard
+      if(db.hasFiles){
+        val relevamientos = db.getFiles.asScala.flatMap{ file =>
+          try{
+            Some(RelevamientoIRI(file,cd => IRIElementData(cd)))
+          }catch{
+            case _: Throwable => None
+          }
+        }
+        println("Adding files")
+        loadNewFile(relevamientos.toList)
+        e.setDropCompleted(true)
+        e.consume()
+
+      }else{
+        println("No files")
+      }
+    }
+    minWidth = 600
+    minHeight = 450
+  }
+
+
+  new ObservableListDelegate(Array(linkLayer,geoNodeLayer).map(_.nodes),panelMapa.children)
+
+
+
   endX.unbind()
   iniY.unbind()
 
   endX <== convertXView2Real(panelMapa.width)
   iniY <== convertYView2Real(panelMapa.height)
 
-  val layersMerged = new ObservableListDelegate(arraySeqNodes,panelMapa.children)
+
 
 
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)

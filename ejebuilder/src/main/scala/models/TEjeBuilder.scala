@@ -6,5 +6,5 @@ import io.vmchura.vevial.relevamiento.TSimpleRelevamiento
 
 trait TEjeBuilder[+A <: TSimpleRelevamiento[B],B <: TElementData[B]] {
   def relevamientos: Seq[A]
-  def buildEje(): TEfficientSeqEjeElementsProgresiva
+  def buildEje(): MutableEje
 }

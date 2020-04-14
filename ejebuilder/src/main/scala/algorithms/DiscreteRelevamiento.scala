@@ -93,7 +93,7 @@ object DiscreteRelevamiento {
         }else{
           val (mp,pointsFound) = mediaPoint(p)
           pointsFound.foreach(_.used = true)
-          Some(GeoNode(mp))
+          Some(new GeoNode(mp))
         }
       }
 
@@ -118,7 +118,7 @@ object DiscreteRelevamiento {
       }
       pOpt.map{ point =>
         val (mp,pointsFound) = mediaPoint(point)
-        val newNode = GeoNode(mp)
+        val newNode = new GeoNode(mp)
         pointsFound.foreach(_.used = true)
         nodes.append(newNode)
         dfs(newNode)

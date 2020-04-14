@@ -31,7 +31,8 @@ object HelloScalaFX extends JFXApp {
         val relIRI2 = RelevamientoIRI(fileCSV2,cd => IRIElementData(cd)).sliceBy(eje.leftmostPoint.x,eje.rightmostPoint.x,eje.lowerPoint.y,eje.upperPoint.y)
         val relevamientoIRI1 = new ProjectionIRIRelevamientoLayer(relIRI1,eje)
         val relevamientoIRI2 = new ProjectionIRIRelevamientoLayer(relIRI2,eje)
-        val ejeLayer: EjeVialLayer = new EjeVialLayer(eje)
+        val ejeLayer: EjeVialLayer = new EjeVialLayer()
+        ejeLayer.setEje(eje)
         val milestonesLayer = new MilestoneLayer(eje)
         Array(
           ejeLayer,

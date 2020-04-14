@@ -8,7 +8,7 @@ import io.vmchura.vevial.PlanarGeometric.RestrictiveEje
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.EjeEfficientWithRestrictions
 import io.vmchura.vevial.elementdata.TElementData
 import io.vmchura.vevial.relevamiento.TSimpleRelevamiento
-import models.{GeoNode, LinearGraph, TEjeBuilder}
+import models.{GeoNode, LinearGraph, MutableEje, TEjeBuilder}
 
 class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](override val relevamientos: Seq[A]) extends TEjeBuilder[A,B]{
 
@@ -70,18 +70,24 @@ class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](overrid
 
     buildEje(graph.nodes.map(_.center).toList,None)
   }
-  override def buildEje(): TEfficientSeqEjeElementsProgresiva = {
+  override def buildEje(): MutableEje = {
     val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[A,B,GeoNode](relevamientos)
 
     val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
 
     val eje: TSeqEjeElementsBase = buildEjeBase(singleLinearEje)
 
+    eje match {
+      case NonEmptySeqEjeElements(elements) => new MutableEje(elements)
+      case _ => throw new IllegalArgumentException("Cant build a eje")
+    }
 
+
+/*
     val y = EfficientSeqEjeElements(eje)
     val z = RestrictiveEje.EjeEfficientWithRestrictions(y)
     EfficientEjeProgresiva(z)
-
+*/
 
 
   }
