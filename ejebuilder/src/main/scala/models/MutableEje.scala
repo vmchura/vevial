@@ -7,7 +7,7 @@ import PointsOnElementGenerator._
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.distanceToFindProjection
 
-class MutableEje(elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
+class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
   require(elements.nonEmpty)
 
 

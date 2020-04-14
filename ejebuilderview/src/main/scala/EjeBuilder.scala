@@ -1,5 +1,5 @@
 import scalafx.Includes._
-import Layers.{EjeVialLayer, GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleIRIRelevamientoLayer}
+import Layers.{SimpleEjeVialLayer, GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
@@ -29,15 +29,21 @@ object EjeBuilder extends JFXApp{
   val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
   val linkLayer = new LinkLayer()
   val geoNodeLayer = new GeoNodeLayer()
-
+  val ejeLayer = new SimpleEjeVialLayer()
   offsetX() = 0d
   offsetY() = 0d
 
   var linearGraphEditable = Option.empty[LinearGraphEditable]
 
   def buildEje(): MutableEje = {
+    val t0 = System.currentTimeMillis()
     val ejeBuilder = new EjeBuilderDraft[RelevamientoIRI[IRIElementData],IRIElementData](relevamientosAdded.toList)
-    ejeBuilder.buildEje()
+    val t1 = System.currentTimeMillis()
+    val ans = ejeBuilder.buildEje()
+    val t2 = System.currentTimeMillis()
+    println(s"EjebuilderDrat: ${t1-t0}")
+    println(s"buildEje: ${t2-t1}")
+    ans
   }
 
 
@@ -53,11 +59,19 @@ object EjeBuilder extends JFXApp{
     linearGraphEditable = None
 
     try{
+      val t0 = System.currentTimeMillis()
       val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
+      val t1 = System.currentTimeMillis()
+
       val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+      val t2 = System.currentTimeMillis()
 
-      linearGraphEditable = Some(LinearGraphEditable(singleLinearEje.nodes,linkLayer,geoNodeLayer))
+      linearGraphEditable = Some(LinearGraphEditable(singleLinearEje.nodes,linkLayer,geoNodeLayer,ejeLayer))
+      val t3 = System.currentTimeMillis()
 
+      println(s"intoDiscrete: ${t1-t0}")
+      println(s"mergeLinearGraph: ${t2-t1}")
+      println(s"LinearGraphEditable(): ${t3-t2}")
       offsetX() = singleLinearEje.nodes.head.center.x
       offsetY() = singleLinearEje.nodes.head.center.y
     }catch{
@@ -117,7 +131,7 @@ object EjeBuilder extends JFXApp{
   }
 
 
-  new ObservableListDelegate(Array(linkLayer,geoNodeLayer).map(_.nodes),panelMapa.children)
+  new ObservableListDelegate(Array(linkLayer,geoNodeLayer,ejeLayer).map(_.nodes),panelMapa.children)
 
 
 
@@ -170,6 +184,7 @@ object EjeBuilder extends JFXApp{
         val py = PointTransformer.convertYView2Real(ae.getY)
         val point = Point(px,py)
         lg.moveGeoNodeTo(node,point)
+        lg.geoNodesUpdated()
       }
     }
 

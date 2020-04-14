@@ -14,7 +14,28 @@ class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](overrid
 
 
 
-  private def buildEjeBase(graph: LinearGraph[GeoNode]): TSeqEjeElementsBase = {
+
+  override def buildEje(): MutableEje = {
+
+    val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[A,B,GeoNode](relevamientos)
+
+    val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+
+    val eje: TSeqEjeElementsBase = EjeBuilderDraft.buildEjeBase(singleLinearEje.nodes.toList)
+    val ans = eje match {
+      case NonEmptySeqEjeElements(elements) => new MutableEje(elements)
+      case _ => throw new IllegalArgumentException("Cant build a eje")
+    }
+
+    ans
+
+
+  }
+
+
+}
+object EjeBuilderDraft {
+  def buildEjeBase(nodes: List[GeoNode]): TSeqEjeElementsBase = {
     import LinearEquationsSolver.{buildCircleSegment,buildCircleTangent}
     var numTimes = Int.MaxValue
     def buildEje(nodes: List[Point], prevElement: Option[TEjeElement]): TSeqEjeElementsBase = {
@@ -68,30 +89,7 @@ class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](overrid
       }
     }
 
-    buildEje(graph.nodes.map(_.center).toList,None)
+    buildEje(nodes.map(_.center),None)
   }
-  override def buildEje(): MutableEje = {
-    val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[A,B,GeoNode](relevamientos)
-
-    val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
-
-    val eje: TSeqEjeElementsBase = buildEjeBase(singleLinearEje)
-
-    eje match {
-      case NonEmptySeqEjeElements(elements) => new MutableEje(elements)
-      case _ => throw new IllegalArgumentException("Cant build a eje")
-    }
-
-
-/*
-    val y = EfficientSeqEjeElements(eje)
-    val z = RestrictiveEje.EjeEfficientWithRestrictions(y)
-    EfficientEjeProgresiva(z)
-*/
-
-
-  }
-
-
 }
 

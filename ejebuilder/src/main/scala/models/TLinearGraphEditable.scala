@@ -8,13 +8,18 @@ import scala.collection.mutable.ListBuffer
 trait TLinearGraphEditable{
 
   def intialElements: Seq[GeoNode]
+  def geoNodesUpdated(): Unit
+
+
   def geoNodeAdded(geoNode: GeoNode): Unit
   def geoNodeRemoved(geoNode: GeoNode): Unit
   def linkAdded(linkGeo: LinkGeo): Unit
   def linkRemoved(linkGeo: LinkGeo): Unit
 
+
   val nodes = ListBuffer(intialElements: _*)
   intialElements.foreach(geoNodeAdded)
+  println(s"#geoNodes: ${intialElements.length}")
   val links = ListBuffer(intialElements.zip(intialElements.tail).map{case (a,b) => {
     val link = LinkGeo(a,b)
     link
