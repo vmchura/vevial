@@ -6,7 +6,7 @@ import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.collections.ObservableBuffer
-import scalafx.scene.{Node, Scene}
+import scalafx.scene.{Cursor, Node, Scene}
 import scalafx.scene.control.{Alert, Button}
 import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
 import UtilTransformers.PointTransformer._
@@ -126,32 +126,100 @@ object EjeBuilder extends JFXApp{
 
   endX <== convertXView2Real(panelMapa.width)
   iniY <== convertYView2Real(panelMapa.height)
+  object MovingState extends Enumeration {
+    type MovingState = Value
+    val DragginMap, DragginNode, NotMoving = Value
+  }
+  import MovingState._
 
-
-
-
+  var movingState = NotMoving
+  var nodeMoving = Option.empty[GeoNode]
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
   val lastPositionY = new ObjectProperty[Option[Double]](this,"lastPositionY",None)
   panelMapa.onMouseDragged = ae => {
 
+    if(movingState == DragginMap) {
 
 
-    for{
-      lx <- lastPositionX()
-      ly <- lastPositionY()
-    }yield{
-      offsetX() = offsetX() - (ae.getX-lx) *factor()
-      offsetY() = offsetY() + (ae.getY-ly) *factor()
+      for {
+        lx <- lastPositionX()
+        ly <- lastPositionY()
+      } yield {
+        offsetX() = offsetX() - (ae.getX - lx) * factor()
+        offsetY() = offsetY() + (ae.getY - ly) * factor()
+      }
+      lastPositionX() = Some(ae.getX)
+      lastPositionY() = Some(ae.getY)
+
+    }else{
+      if(movingState == DragginNode){
+
+      }
     }
-    lastPositionX() = Some(ae.getX)
-    lastPositionY() = Some(ae.getY)
-
 
   }
-  panelMapa.onMouseReleased = _ => {
 
+  panelMapa.onMouseReleased = ae => {
+
+    if(movingState == DragginNode){
+      for{
+        node <- nodeMoving
+        lg <- linearGraphEditable
+      }yield{
+        val px = PointTransformer.convertXView2Real(ae.getX)
+        val py = PointTransformer.convertYView2Real(ae.getY)
+        val point = Point(px,py)
+        lg.moveGeoNodeTo(node,point)
+      }
+    }
+
+    stage.scene().cursor = Cursor.Move
+    movingState = NotMoving
     lastPositionX() = None
     lastPositionY() = None
+  }
+
+  panelMapa.onMousePressed = ae => {
+    val px = PointTransformer.convertXView2Real(ae.getX)
+    val py = PointTransformer.convertYView2Real(ae.getY)
+    val point = Point(px,py)
+    val newMovingState = for{
+      lg <- linearGraphEditable
+      res <- lg.elementByPosition(point)
+    }yield{
+      res match {
+        case Right(ep) =>{
+          val node = lg.createInnerNode(ep)
+          stage.scene().cursor = Cursor.ClosedHand
+          nodeMoving = Some(node)
+          DragginNode
+        }
+        case Left(node) => {
+          stage.scene().cursor = Cursor.ClosedHand
+          nodeMoving = Some(node)
+          DragginNode
+        }
+      }
+    }
+    newMovingState match {
+      case Some(ms) => movingState = ms
+      case None => movingState = DragginMap
+    }
+
+  }
+
+  panelMapa.onMouseMoved = ae => {
+    val px = PointTransformer.convertXView2Real(ae.getX)
+    val py = PointTransformer.convertYView2Real(ae.getY)
+    val point = Point(px,py)
+    linearGraphEditable.foreach(lp => {
+      lp.elementByPosition(point) match {
+
+        case Some(Right(ejeElement)) => stage.scene.value.cursor = Cursor.Crosshair
+        case Some(Left(node)) =>  stage.scene.value.cursor = Cursor.OpenHand
+        case None => stage.scene.value.cursor = Cursor.Move
+      }
+    })
   }
 
 
@@ -187,6 +255,7 @@ object EjeBuilder extends JFXApp{
         top = new Button("top")
         center =  panelMapa
       }
+      cursor = Cursor.Move
     }
   }
 }
