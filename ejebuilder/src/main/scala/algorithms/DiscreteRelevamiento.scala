@@ -1,7 +1,7 @@
 package algorithms
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.SubsequenceFinder
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.elementdata.{TElementData, UPoint}
 import io.vmchura.vevial.relevamiento.TSimpleRelevamiento
 import models.{Edge, GeoNode, Graph, LinearGraph, TGeoNode}
@@ -12,10 +12,10 @@ import scala.collection.mutable.ListBuffer
 object DiscreteRelevamiento {
   def convertIntoDiscreteRelevamiento[A <: TSimpleRelevamiento[B],B <: TElementData[B], N <: TGeoNode[N]](relevamientos: Seq[A]): Seq[LinearGraph[GeoNode]] = {
 
-    class PointWithUsing(point: Point){
+    class PointWithUsing(point: Point) extends TPoint {
       var used: Boolean = false
-      val x = point.x
-      val y = point.y
+      override val x: Double = point.x
+      override val y: Double = point.y
     }
     val points: Array[PointWithUsing] = relevamientos.flatMap(_.elements.flatMap(_.point).map(p => new PointWithUsing(p.value))).toArray
 
@@ -57,7 +57,7 @@ object DiscreteRelevamiento {
 
     }
 
-    def pointsFreeAround(point: PointWithUsing): Seq[PointWithUsing] = {
+    def pointsFreeAround(point: TPoint): Seq[PointWithUsing] = {
       (for{
         (xIni,xEnd) <- fXAround(point.x)
         (yIni,yEnd) <- fYAround(point.y)
@@ -85,8 +85,9 @@ object DiscreteRelevamiento {
 
     val nodes = ListBuffer.empty[GeoNode]
     val edges = ListBuffer.empty[Edge[GeoNode]]
-    def dfs(geoNode: GeoNode): Unit = {
-      val pAround = pointsFreeAround(new PointWithUsing(geoNode.center))
+
+    val dfsAlgo = new DFS[GeoNode](_ => (),geoNode => {
+      val pAround = pointsFreeAround(geoNode)
       val neigbours = pAround.flatMap{ p =>
         if(p.used){
           None
@@ -103,10 +104,11 @@ object DiscreteRelevamiento {
 
       nodes.appendAll(neigbours)
 
-      neigbours.foreach(dfs)
+      neigbours
+
+    })
 
 
-    }
     while(pointsFree.nonEmpty){
 
       val pOpt = {
@@ -121,7 +123,7 @@ object DiscreteRelevamiento {
         val newNode = new GeoNode(mp)
         pointsFound.foreach(_.used = true)
         nodes.append(newNode)
-        dfs(newNode)
+        dfsAlgo.run(newNode)
       }
     }
 

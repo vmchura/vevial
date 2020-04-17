@@ -1,5 +1,7 @@
 package models
 
+import algorithms.DFS
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -74,7 +76,8 @@ case class TreeGraph[A <: TNode[A]] private (nodes: Seq[A],edges: Set[Edge[A]]) 
 object TreeGraph{
 
   /**
-    * Runs a DFS on any node, save the last visited node U, runs dfs on U, the tree genereted by this DFS is returned
+    * Runs a DFS on any node, save the last visited node U, runs dfs on U,
+    * the tree genereted by this DFS is returned
     * @param nodesParam
     * @param edgesParam
     * @tparam A
@@ -94,40 +97,25 @@ object TreeGraph{
           simpleEdges(indx(to)).append(from)
       }
 
-      def dfs(a: A)(atStart: A => Unit, atEnd: A => Unit): Unit = {
-        a.markStartTraverse()
-        atStart(a)
 
 
-        val adj = simpleEdges(indx(a))
-        adj.foreach { v =>
-          if (v.unvisited()) {
-            dfs(v)(atStart, atEnd)
-          }
-        }
-        a.markFinishTraverse()
-        atEnd(a)
-      }
 
       var lastVisitedNode: A = nodesParam.head
-      val atStart1: A => Unit = _ => ()
-      val atEnd1: A => Unit = x => lastVisitedNode = x
+
+      val dfsAlgoAnyNode = new DFS[A](a => lastVisitedNode = a,a => simpleEdges(indx(a)).toList)
 
       nodesParam.foreach(_.resetState())
-      dfs(nodesParam.head)(atStart1, atEnd1)
+      dfsAlgoAnyNode.run(lastVisitedNode)
 
       val treeNodes = ListBuffer.empty[A]
-
-      val atStart2: A => Unit = treeNodes.append
-      val atEnd2: A => Unit = _ => ()
-
+      val dfsAlgoALeaf= new DFS[A](treeNodes.append,a => simpleEdges(indx(a)).toList)
       nodesParam.foreach(_.resetState())
-      dfs(lastVisitedNode)(atStart2, atEnd2)
+      dfsAlgoALeaf.run(lastVisitedNode)
 
 
-      val edges = nodesParam.flatMap(a => simpleEdges(indx(a)).map(b => Edge(a, b)))
+      val edges = treeNodes.flatMap(a => simpleEdges(indx(a)).map(b => Edge(a, b)))
 
-      new TreeGraph(nodesParam, edges.toSet)
+      new TreeGraph(treeNodes.toList, edges.toSet)
     }
   }
 

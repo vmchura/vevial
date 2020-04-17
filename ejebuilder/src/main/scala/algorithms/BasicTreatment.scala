@@ -23,7 +23,9 @@ object BasicTreatment {
     }
     val graphMap: Map[A,Set[A]] = graphMapLB.map{case (a,b) => a -> b.toSet}.toMap
 
+
     def dfs(a: A)(implicit atStart: A => Unit): Unit = {
+
       a.markStartTraverse()
       atStart(a)
       if(graphMap.contains(a)){
@@ -68,9 +70,13 @@ object BasicTreatment {
 
       if(a.unvisited()){
         val nodesThisSet = ListBuffer.empty[A]
-        implicit val atStart: A => Unit =  (x: A) => nodesThisSet.append(x)
+        val dfsAlgorithm = new DFS[A]((x: A) => nodesThisSet.append(x),
+          a => graphMap.getOrElse(a,ListBuffer.empty[A]).toList,
+          cycle => cycle.zip(cycle.tail).foreach{ case (x,y) =>
+            dsu.union_sets(x,y)
+          })
 
-        dfs(a)
+        dfsAlgorithm.run(a)
         val treeNodes: List[A] = nodesThisSet.toList
 
 

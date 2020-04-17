@@ -58,28 +58,16 @@ object EjeBuilder extends JFXApp{
     linearGraphEditable.foreach{_.clear()}
     linearGraphEditable = None
 
-    try{
-      val t0 = System.currentTimeMillis()
+
       val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
-      val t1 = System.currentTimeMillis()
 
       val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
-      val t2 = System.currentTimeMillis()
 
       linearGraphEditable = Some(LinearGraphEditable(singleLinearEje.nodes,linkLayer,geoNodeLayer,ejeLayer))
-      val t3 = System.currentTimeMillis()
 
-      println(s"intoDiscrete: ${t1-t0}")
-      println(s"mergeLinearGraph: ${t2-t1}")
-      println(s"LinearGraphEditable(): ${t3-t2}")
       offsetX() = singleLinearEje.nodes.head.center.x
       offsetY() = singleLinearEje.nodes.head.center.y
-    }catch{
-      case error: Throwable =>  {
-        println(error.toString)
-        new Alert(AlertType.Information, "No se pudo crear el primer bosquejo").showAndWait()
-      }
-    }
+
 
     new ObservableListDelegate(relevamientosSimples.toArray.map(_.nodes),panelMapa.children)
 
