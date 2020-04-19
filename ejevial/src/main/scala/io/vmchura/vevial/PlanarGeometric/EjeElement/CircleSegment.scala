@@ -1,12 +1,12 @@
 package io.vmchura.vevial.PlanarGeometric.EjeElement
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection, TPoint}
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 
 trait TCircleSegment extends TSimpleEjeElement{
-  def originPoint: Point
-  def centerPoint: Point
-  def endPoint: Point
+  def originPoint: TPoint
+  def centerPoint: TPoint
+  def endPoint: TPoint
   def antiClockWise: Boolean
   def radius: Double = !(originPoint - centerPoint)
 
@@ -29,7 +29,7 @@ trait TCircleSegment extends TSimpleEjeElement{
   def initialAngle: Double = TDirection(1,0) \/ (originPoint-centerPoint)
   override def length: Double = Math.abs(alpha*radius)
 
-  override def projectPoint(point: Point): Option[ElementPoint] = {(point -? centerPoint).flatMap { v =>
+  override def projectPoint(point: TPoint): Option[ElementPoint] = {(point -? centerPoint).flatMap { v =>
     val pc = centerPoint + (v.direction * radius)
     if (pointIsInsideElement(pc)) {
       Some(ElementPoint(pc,point-?pc,this))
@@ -39,7 +39,7 @@ trait TCircleSegment extends TSimpleEjeElement{
     }
   }}
 
-  override def pointIsInsideElement(point: Point): Boolean = {
+  override def pointIsInsideElement(point: TPoint): Boolean = {
     if((point -? in.point).isEmpty || (point -? out.point).isEmpty){
       true
     }else {
@@ -69,18 +69,18 @@ trait TCircleSegment extends TSimpleEjeElement{
   override val out: PointUnitaryVector = PointUnitaryVector(endPoint,(endPoint-centerPoint).direction <¬ (if (antiClockWise) 1 else 3 ))
 
 
-  override lazy val leftmostPoint: Point = centerPoint + (TDirection(-1,0)*radius)
+  override lazy val leftmostPoint: TPoint = centerPoint + (TDirection(-1,0)*radius)
 
 
-  override lazy val rightmostPoint: Point = centerPoint + (TDirection(1,0)*radius)
+  override lazy val rightmostPoint: TPoint = centerPoint + (TDirection(1,0)*radius)
 
-  override lazy val upperPoint: Point = centerPoint + (TDirection(0,1)*radius)
+  override lazy val upperPoint: TPoint = centerPoint + (TDirection(0,1)*radius)
 
 
-  override lazy val lowerPoint: Point = centerPoint + (TDirection(0,-1)*radius)
+  override lazy val lowerPoint: TPoint = centerPoint + (TDirection(0,-1)*radius)
 }
 
-case class CircleSegment(originPoint: Point, centerPoint: Point, endPoint: Point, antiClockWise: Boolean) extends  TCircleSegment {
+case class CircleSegment(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean) extends  TCircleSegment {
   require((originPoint-?centerPoint).isDefined)
   require((endPoint-?centerPoint).isDefined)
   require(areCloseInLinearReference(!(originPoint-centerPoint),!(endPoint-centerPoint)))

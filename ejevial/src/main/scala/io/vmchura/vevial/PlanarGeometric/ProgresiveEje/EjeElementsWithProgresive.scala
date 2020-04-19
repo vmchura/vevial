@@ -1,14 +1,14 @@
 package io.vmchura.vevial.PlanarGeometric.ProgresiveEje
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 import io.vmchura.vevial.PlanarGeometric.EjeElement._
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje._
 
 trait WithProgresive extends TEjeElement {
   def calcProgresive(ep: ElementPoint): Double
-  def findPointByProgresive(progresive: Int): Option[Point] = {
+  def findPointByProgresive(progresive: Int): Option[TPoint] = {
 
 
     val isPossible = minProg <= progresive && progresive <= maxProg
@@ -37,7 +37,7 @@ trait WithProgresive extends TEjeElement {
     }
   }
   def findPointByLength(lengthParam: Double): Option[ElementPoint]
-  private def calculateKnowPointProjection(point: Point): Double = {
+  private def calculateKnowPointProjection(point: TPoint): Double = {
     projectPoint(point).map{ep => calcProgresive(ep)}.getOrElse(throw new IllegalArgumentException())
   }
   lazy val minProg: Double = calculateKnowPointProjection(in.point)
@@ -143,13 +143,13 @@ trait TEfficientSeqEjeElementsProgresiva extends TEfficientSeqEjeElements with W
   def slice(progIni: Int, progFin: Int): TEfficientSeqEjeElementsProgresiva
 }
 
-case class RectSegmentProgresiva(originPoint: Point, endPoint: Point, restrictions: List[Restriction])
+case class RectSegmentProgresiva(originPoint: TPoint, endPoint: TPoint, restrictions: List[Restriction])
   extends TRectSegmentProgresiva
 
-case class CircleSegmentProgresiva(originPoint: Point, centerPoint: Point, endPoint: Point, antiClockWise: Boolean, restrictions: List[Restriction])
+case class CircleSegmentProgresiva(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, restrictions: List[Restriction])
   extends TCircleSegmentProgresiva
 
-case class FaintSegmentProgresiva(from: Point, end: Point,restrictions: List[Restriction])
+case class FaintSegmentProgresiva(from: TPoint, end: TPoint,restrictions: List[Restriction])
   extends TFaintSegmentProgresiva
 
 

@@ -1,7 +1,7 @@
 package io.vmchura.vevial.PlanarGeometric.RestrictiveEje
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, TEfficientSeqEjeElements}
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement._
 
 
@@ -44,17 +44,17 @@ trait TEjeSequenceElementByVariable[+B <: TEfficientSeqEjeElements] extends TEff
   override def lengthToPoint(point: ElementPoint): Double = element.lengthToPoint(point)
 
 
-  override def pointIsInsideElement(point: Point): Boolean = element.pointIsInsideElement(point)
+  override def pointIsInsideElement(point: TPoint): Boolean = element.pointIsInsideElement(point)
 
-  override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
+  override def projectPoint(point: TPoint): Option[ElementPoint] = element.projectPoint(point)
 
-  override lazy val leftmostPoint: Point = element.leftmostPoint
+  override lazy val leftmostPoint: TPoint = element.leftmostPoint
 
-  override lazy val  rightmostPoint: Point = element.rightmostPoint
+  override lazy val  rightmostPoint: TPoint = element.rightmostPoint
 
-  override lazy val  upperPoint: Point = element.upperPoint
+  override lazy val  upperPoint: TPoint = element.upperPoint
 
-  override lazy val  lowerPoint: Point = element.lowerPoint
+  override lazy val  lowerPoint: TPoint = element.lowerPoint
 
 }
 trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
@@ -70,17 +70,17 @@ trait TEjeElementByVariable[+B <: TEjeElement] extends TEjeElement {
 
   override val out: PointUnitaryVector = element.out
 
-  override def pointIsInsideElement(point: Point): Boolean = element.pointIsInsideElement(point)
+  override def pointIsInsideElement(point: TPoint): Boolean = element.pointIsInsideElement(point)
 
-  override def projectPoint(point: Point): Option[ElementPoint] = element.projectPoint(point)
+  override def projectPoint(point: TPoint): Option[ElementPoint] = element.projectPoint(point)
 
-  override lazy val leftmostPoint: Point = element.leftmostPoint
+  override lazy val leftmostPoint: TPoint = element.leftmostPoint
 
-  override lazy val  rightmostPoint: Point = element.rightmostPoint
+  override lazy val  rightmostPoint: TPoint = element.rightmostPoint
 
-  override lazy val  upperPoint: Point = element.upperPoint
+  override lazy val  upperPoint: TPoint = element.upperPoint
 
-  override lazy val  lowerPoint: Point = element.lowerPoint
+  override lazy val  lowerPoint: TPoint = element.lowerPoint
 
 }
 object TEjeElementByVariable{

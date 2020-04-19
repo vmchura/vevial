@@ -1,6 +1,6 @@
 package models
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 
 import scala.collection.mutable.ListBuffer
 
@@ -13,14 +13,14 @@ case class LinearGraph[A <: TNode[A]](nodes: Seq[A]) extends TGraph[A]{
 object LinearGraph {
   def mergeLinearGraphs(lines: Seq[LinearGraph[GeoNode]]): LinearGraph[GeoNode] = {
     require(lines.nonEmpty)
-    def closest(getterTarget: LinearGraph[GeoNode] => Point)(getterTest: LinearGraph[GeoNode] => Point)(x: LinearGraph[GeoNode], a: Seq[LinearGraph[GeoNode]]):
+    def closest(getterTarget: LinearGraph[GeoNode] => TPoint)(getterTest: LinearGraph[GeoNode] => TPoint)(x: LinearGraph[GeoNode], a: Seq[LinearGraph[GeoNode]]):
     (LinearGraph[GeoNode],Int) = {
       val res = a.minBy(y => !(getterTest(y)-getterTarget(x)))
       (res, (!(getterTest(res) - getterTarget(x))).toInt)
     }
 
-    val ini: LinearGraph[GeoNode] => Point = _.nodes.head.center
-    val end: LinearGraph[GeoNode] => Point = _.nodes.last.center
+    val ini: LinearGraph[GeoNode] => TPoint = _.nodes.head.center
+    val end: LinearGraph[GeoNode] => TPoint = _.nodes.last.center
 
 
     val closestFromIniToIni = closest(ini)(ini) _

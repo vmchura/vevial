@@ -14,6 +14,7 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
 
   override def elementAdded(e: TEjeElement): Unit = ejeLayer.add(e)
 
+
   override def elementRemoved(e: TEjeElement): Unit = ejeLayer.remove(e)
 
   override def clear(): Unit = {
@@ -21,4 +22,9 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
     ejeLayer.clear()
 
   }
+
+  println("HERE 2")
+  addElements(mutableEje.elements)
+  initialGraph.nodes.foreach(geoNodeAdded)
+  println("HERE 3")
 }

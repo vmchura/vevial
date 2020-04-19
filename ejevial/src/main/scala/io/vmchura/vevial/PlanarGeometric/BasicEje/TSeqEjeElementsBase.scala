@@ -1,6 +1,6 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, FaintElement, TEjeElement, TSimpleEjeElement}
 
 
@@ -19,13 +19,13 @@ case class EmptySeqEjeElements() extends TSeqEjeElementsBase {
   override def append(o: TSeqEjeElementsBase): TSeqEjeElementsBase= o
 
 
-  override def pointIsInsideElement(point: Point): Boolean = false
+  override def pointIsInsideElement(point: TPoint): Boolean = false
 
 
 
   override def lengthToPoint(point: ElementPoint): Double = 0
 
-  override def projectPoint(point: Point): Option[ElementPoint] = None
+  override def projectPoint(point: TPoint): Option[ElementPoint] = None
 
   override val leftmostPoint: Point = Point(0,0)
 
@@ -56,19 +56,19 @@ case class NonEmptySeqEjeElements(elements: List[TSimpleEjeElement]) extends  TS
     case _ => throw new IllegalStateException()
   }
 
-  override def projectPoint(point: Point): Option[ElementPoint] = throw new NotImplementedError()
+  override def projectPoint(point: TPoint): Option[ElementPoint] = throw new NotImplementedError()
 
-  override def pointIsInsideElement(point: Point): Boolean = throw new NotImplementedError()
+  override def pointIsInsideElement(point: TPoint): Boolean = throw new NotImplementedError()
 
   override def lengthToPoint(point: ElementPoint): Double = throw new NotImplementedError()
 
-  override val leftmostPoint: Point = elements.map(_.leftmostPoint).minBy(_.x)
+  override val leftmostPoint: TPoint = elements.map(_.leftmostPoint).minBy(_.x)
 
-  override val  rightmostPoint: Point = elements.map(_.rightmostPoint).maxBy(_.x)
+  override val  rightmostPoint: TPoint = elements.map(_.rightmostPoint).maxBy(_.x)
 
-  override val  upperPoint: Point = elements.map(_.upperPoint).maxBy(_.y)
+  override val  upperPoint: TPoint = elements.map(_.upperPoint).maxBy(_.y)
 
-  override val  lowerPoint: Point = elements.map(_.lowerPoint).minBy(_.y)
+  override val  lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 }
 
 

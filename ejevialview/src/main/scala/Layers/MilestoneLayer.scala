@@ -1,7 +1,7 @@
 package Layers
 import io.vmchura.vevial.EjeVialUtil.UtilFunctions
 import Layers.MilestoneLayer.Hito
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import scalafx.scene.Node
 import scalafx.scene.shape.{Line, Rectangle}
@@ -53,6 +53,7 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
     }
     val hitosShouldBeShow = hitosBy50.filter(hito => hito.progresiva % m == 0 && {
+
       val Point(x,y) = hito.pointVector
       x0Real <= x && x <= xnReal && y0Real <= y && y <= ynReal
     }).toSet
@@ -72,7 +73,7 @@ object MilestoneLayer {
   private val heightFlag = 20d
   private val widthFlag = 90d
   private val heightBar = 2d
-  case class Hito(pointVector: Point, progresiva: Int)
+  case class Hito(pointVector: TPoint, progresiva: Int)
   import UtilTransformers.PointTransformer._
   def convertHitoToSeq(hito: Hito): Seq[Node] = {
     val Hito(Point(xb,yb), prog) = hito

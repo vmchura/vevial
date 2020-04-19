@@ -168,6 +168,8 @@ object EjeBuilder extends JFXApp{
     movingState = NotMoving
     lastPositionX() = None
     lastPositionY() = None
+
+    println("Mouse released")
   }
 
   panelMapa.onMousePressed = ae => {

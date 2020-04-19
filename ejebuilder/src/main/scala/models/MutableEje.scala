@@ -1,7 +1,7 @@
 package models
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{ELementBlocksContainer, EfficientSeqEjeElements, PointsOnElementGenerator, TSeqEjeElementsBase}
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement, TSimpleEjeElement}
 import PointsOnElementGenerator._
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
@@ -9,7 +9,7 @@ import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.distanceToFin
 
 class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
   require(elements.nonEmpty)
-
+  println(s"Num elements: ${elements.length}")
 
   override val length: Double = elements.map(_.length).sum
   override val in: PointUnitaryVector = elements.head.in
@@ -19,31 +19,29 @@ class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
 
 
 
-  override def pointIsInsideElement(point: Point): Boolean = throw new NotImplementedError()
+  override def pointIsInsideElement(point: TPoint): Boolean = throw new NotImplementedError()
 
   override def lengthToPoint(point: ElementPoint): Double = throw new NotImplementedError()
 
-  override val leftmostPoint: Point = elements.map(_.leftmostPoint).minBy(_.x)
+  override val leftmostPoint: TPoint = elements.map(_.leftmostPoint).minBy(_.x)
 
-  override val  rightmostPoint: Point = elements.map(_.rightmostPoint).maxBy(_.x)
+  override val  rightmostPoint: TPoint = elements.map(_.rightmostPoint).maxBy(_.x)
 
-  override val  upperPoint: Point = elements.map(_.upperPoint).maxBy(_.y)
+  override val  upperPoint: TPoint = elements.map(_.upperPoint).maxBy(_.y)
 
-  override val  lowerPoint: Point = elements.map(_.lowerPoint).minBy(_.y)
+  override val  lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 
 
   private val (blockX,blockY) = {
-    val groupPoints = elements.map(e => PointsOnElementGenerator.generatePoints(e))
     val bx = new ELementBlocksContainer(leftmostPoint.x,rightmostPoint.x,distanceToFindProjection,_.x)
     val by = new ELementBlocksContainer(lowerPoint.y,upperPoint.y,distanceToFindProjection,_.y)
 
-    groupPoints.foreach(bx.addSameElementPoint)
-    groupPoints.foreach(by.addSameElementPoint)
+
 
     (bx,by)
   }
 
-  override def projectPoint(point: Point): Option[ElementPoint] = {
+  override def projectPoint(point: TPoint): Option[ElementPoint] = {
 
     val elementsX = blockX.getElementsAround(point.x)
     val elementsY = blockY.getElementsAround(point.y)
@@ -65,15 +63,25 @@ class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
     blockY.removeSameElementPoint(element)
   }
 
-  def endPointsClosest(point: Point): Option[ElementPoint] = {
+  def endPointsClosest(point: TPoint): Option[ElementPoint] = {
     val elementsX = blockX.getElementsAround(point.x)
     val elementsY = blockY.getElementsAround(point.y)
 
     val intersection = elementsX intersect elementsY
     intersection.toList.flatMap(x => {
+
       val inEP = ElementPoint(x.in.point,None,x)
       val outEP = ElementPoint(x.out.point,None,x)
-      List(inEP,outEP)
+      (if((!(x.in.point - point)) < 1){
+        List(inEP)
+      }else{
+        Nil
+      }) ++ (if((!(x.out.point - point)) < 1){
+        List(outEP)
+      }else{
+        Nil
+      }) ++ Nil
+
     }).minByOption(s => !(s-point))
   }
 

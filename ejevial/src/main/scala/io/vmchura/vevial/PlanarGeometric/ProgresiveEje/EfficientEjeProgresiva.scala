@@ -1,8 +1,8 @@
 package io.vmchura.vevial.PlanarGeometric.ProgresiveEje
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
-import io.vmchura.vevial.PlanarGeometric.EjeElement.{ ElementPoint, TEjeElement}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement}
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.{CircleSegmentRestrictions, EjeEfficientWithRestrictions, FaintSegmentRestrictions, RectSegmentRestrictions, Restriction, WithRestrictionsIncremental}
 
 import scala.annotation.tailrec
@@ -38,7 +38,7 @@ case class EfficientEjeProgresiva(elements: List[WithProgresive])
     }
   }
 
-  override def findPointByProgresive(progresive: Int): Option[Point] = {
+  override def findPointByProgresive(progresive: Int): Option[TPoint] = {
     val eOpt = elements.find(wp =>wp.minProg <= progresive && progresive <= wp.maxProg)
     eOpt.flatMap{ e =>
       e.findPointByProgresive(progresive)
@@ -72,7 +72,7 @@ object EfficientEjeProgresiva{
     }
     trait MyEventByElement[A <: TEjeElement,B <: TEjeElement] extends MyEvent {
       def element: WithRestrictionsIncremental[A,B]
-      def point: Point
+      def point: TPoint
       def addRestriction(restriction: Restriction): Either[WithRestrictionsIncremental[A, B]#WTT, WithRestrictionsIncremental[A, B]#WTT] = element.addRestriction(restriction)
       lazy val elementPoint: ElementPoint = ElementPoint(point,None,element)
     }
@@ -88,7 +88,7 @@ object EfficientEjeProgresiva{
         ejeEficient.lengthToPoint(ep.get)
       }
 
-      override val point: Point = element.out.point
+      override val point: TPoint = element.out.point
     }
     case class BeginElement[A <: TEjeElement,B <: TEjeElement](element: WithRestrictionsIncremental[A,B]) extends MyEventByElement[A,B] {
       override  val distanceFromOrigin: Double = {
@@ -97,7 +97,7 @@ object EfficientEjeProgresiva{
         ejeEficient.lengthToPoint(ep.get)
       }
 
-      override val point: Point = element.in.point
+      override val point: TPoint = element.in.point
     }
     case class MinusInfinityEvent() extends MyEventByRestriction {
       override val distanceFromOrigin: Double = Double.NegativeInfinity

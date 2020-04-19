@@ -1,6 +1,6 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement, TSimpleEjeElement}
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
 
@@ -45,7 +45,7 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
   override lazy val in: PointUnitaryVector = elements.head.in
   override lazy val out: PointUnitaryVector = elements.last.out
 
-  override def projectPoint(point: Point): Option[ElementPoint] = {
+  override def projectPoint(point: TPoint): Option[ElementPoint] = {
 
     (for{
       (xIni,xEnd) <- fX(point.x)
@@ -71,7 +71,7 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
   }
 
 
-  override def pointIsInsideElement(point: Point): Boolean = projectPoint(point).exists(ep => ep.toSource.isEmpty)
+  override def pointIsInsideElement(point: TPoint): Boolean = projectPoint(point).exists(ep => ep.toSource.isEmpty)
 
   override def lengthToPoint(epoint: ElementPoint): Double = {
     val ElementPoint(_,_,owner) = epoint
@@ -80,13 +80,13 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
     }.getOrElse(throw new IllegalStateException())
     result
   }
-  override lazy val leftmostPoint: Point = elements.map(_.leftmostPoint).minBy(_.x)
+  override lazy val leftmostPoint: TPoint = elements.map(_.leftmostPoint).minBy(_.x)
 
-  override lazy val  rightmostPoint: Point = elements.map(_.rightmostPoint).maxBy(_.x)
+  override lazy val  rightmostPoint: TPoint = elements.map(_.rightmostPoint).maxBy(_.x)
 
-  override lazy val  upperPoint: Point = elements.map(_.upperPoint).maxBy(_.y)
+  override lazy val  upperPoint: TPoint = elements.map(_.upperPoint).maxBy(_.y)
 
-  override lazy val  lowerPoint: Point = elements.map(_.lowerPoint).minBy(_.y)
+  override lazy val  lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 
 
 }
@@ -105,7 +105,7 @@ object EfficientSeqEjeElements{
     case NonEmptySeqEjeElements(elements) => new EfficientSeqEjeElements(elements)
   }
 
-  def bruteForceCalculation(elementsAround: Seq[TEjeElement], point: Point, debug: Boolean = false): Option[ElementPoint] = {
+  def bruteForceCalculation(elementsAround: Seq[TEjeElement], point: TPoint, debug: Boolean = false): Option[ElementPoint] = {
     def printDebug(message: String,tag: String = "-"): Unit = if(debug) println(s"EfficientSeqEjeElements.bruteForceCalculation : [$tag] => $message")
     if(elementsAround.nonEmpty) {
       val points10m = elementsAround.filter(e => (e.in.point - point).magnitude <= 10).mkString(" --\n")

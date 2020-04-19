@@ -9,17 +9,17 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
-trait TLinkPoint[A <: TPoint] {
+trait TLinkPoint {
   def in: PointUnitaryVector
   def out: PointUnitaryVector
-  def next: Option[TLinkPoint[A]]
-  def next_= (newNext: Option[TLinkPoint[A]]): Unit
-  def prev: Option[TLinkPoint[A]]
-  def prev_= (newPrev: Option[TLinkPoint[A]]): Unit
-  def elements: Seq[TEjeElementTemporal[A]]
-  final def untilTarget(target: TLinkPoint[A]): List[TLinkPoint[A]] = {
-    val seqElements = ListBuffer.empty[TLinkPoint[A]]
-    var x: Option[TLinkPoint[A]] = Some(this)
+  def next: Option[TLinkPoint]
+  def next_= (newNext: Option[TLinkPoint]): Unit
+  def prev: Option[TLinkPoint]
+  def prev_= (newPrev: Option[TLinkPoint]): Unit
+  def elements: Seq[TEjeElementTemporal]
+  final def untilTarget(target: TLinkPoint): List[TLinkPoint] = {
+    val seqElements = ListBuffer.empty[TLinkPoint]
+    var x: Option[TLinkPoint] = Some(this)
     while(x.isDefined){
       val t = x.get
 
@@ -34,21 +34,53 @@ trait TLinkPoint[A <: TPoint] {
 
     seqElements.toList
   }
+  final def nodesUntilTarget(target: TLinkPoint): List[TPoint] = {
+    val seqElements = ListBuffer[TPoint](in.point)
+    var x: Option[TLinkPoint] = Some(this)
+
+    while(x.isDefined){
+      val t = x.get
+
+      seqElements.append(t.out.point)
+
+      if(t == target){
+        x = None
+      }else{
+        x =t.next
+      }
+    }
+
+    seqElements.toList
+  }
+  final def prevNth(n: Int): TLinkPoint = {
+    if(n == 0)
+      this
+    else{
+      prev.map(_.prevNth(n-1)).getOrElse(this)
+    }
+  }
+  final def nextNth(n: Int): TLinkPoint = {
+    if(n == 0)
+      this
+    else{
+      next.map(_.nextNth(n-1)).getOrElse(this)
+    }
+  }
 }
 
-sealed trait TEjeElementTemporal[A <: TPoint] extends TEjeElement{
-  def ejeSection: TLinkPoint[A]
+sealed trait TEjeElementTemporal extends TEjeElement{
+  def ejeSection: TLinkPoint
 }
 
-case class FaintTemporal[A](from: Point, end: Point, ejeSection: TLinkPoint[A]) extends TFaintElement with TEjeElementTemporal[A]
-case class RectTemporal[A](originPoint: Point, endPoint: Point, ejeSection: TLinkPoint[A]) extends TRectSegment with TEjeElementTemporal[A]
-case class CircleTemporal[A](originPoint: Point, centerPoint: Point, endPoint: Point, antiClockWise: Boolean, ejeSection: TLinkPoint[A]) extends TCircleSegment with TEjeElementTemporal[A]
+case class FaintTemporal(from: TPoint, end: TPoint, ejeSection: TLinkPoint) extends TFaintElement with TEjeElementTemporal
+case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLinkPoint) extends TRectSegment with TEjeElementTemporal
+case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, ejeSection: TLinkPoint) extends TCircleSegment with TEjeElementTemporal
 
-case class GeoLinkGraph(in: PointUnitaryVector,out: PointUnitaryVector,
-                        var prev: Option[TLinkPoint[GeoNode]]=None, var next: Option[TLinkPoint[GeoNode]]=None
-                       ) extends TLinkPoint[GeoNode] {
+class GeoLinkGraph(val in: PointUnitaryVector,val out: PointUnitaryVector,
+                        var prev: Option[TLinkPoint]=None, var next: Option[TLinkPoint]=None
+                       ) extends TLinkPoint {
 
-  override val elements: Seq[TEjeElementTemporal[GeoNode]] = {
+  override val elements: Seq[TEjeElementTemporal] = {
     LinearEquationsSolver.buildCircleTangent(in,out) match {
       case Some(x) => {
         val c = CircleTemporal(x.originPoint,x.centerPoint,x.endPoint,x.antiClockWise,this)
@@ -63,16 +95,19 @@ case class GeoLinkGraph(in: PointUnitaryVector,out: PointUnitaryVector,
 
 }
 
-trait TLinkUpdater[A]{
+trait TLinkUpdater{
   def removeElements: Seq[TEjeElement] => Unit
   def addElements: Seq[TEjeElement] => Unit
-  final def updateSegment(oldLinkBegin: TLinkPoint[A], oldLinkEnd: TLinkPoint[A],
-                    newLinkBegin: TLinkPoint[A], newLinkEnd: TLinkPoint[A]): Unit = {
+  final def updateSegment[A <: TPoint](oldLinkBegin: TLinkPoint, oldLinkEnd: TLinkPoint,
+                    newLinkBegin: TLinkPoint, newLinkEnd: TLinkPoint): Unit = {
     val elementsToDrop = oldLinkBegin.untilTarget(oldLinkEnd).flatMap(_.elements)
+    println(s"#Elements to drop: ${elementsToDrop.length}")
+
     removeElements(elementsToDrop)
 
     val elementsToAdd = newLinkBegin.untilTarget(newLinkEnd).flatMap(_.elements)
     addElements(elementsToAdd)
+    println(s"#Elements to add: ${elementsToAdd.length}")
 
     oldLinkBegin.prev match {
       case Some(prev) =>
@@ -96,8 +131,31 @@ trait TLinkUpdater[A]{
 
 trait TLinkManager{
   def initialGraph: LinearGraph[GeoNode]
+  val geoNodeLinkMap: mutable.Map[GeoNode,GeoLinkGraph] = mutable.Map.empty[GeoNode,GeoLinkGraph]
+
+  final def addGeoNodeLinkRelation(geoNode: GeoNode, geoLinkGraph: GeoLinkGraph): Unit = {
+    if(geoNodeLinkMap.contains(geoNode)){
+      geoNodeLinkMap(geoNode) = geoLinkGraph
+    }else{
+      geoNodeLinkMap += geoNode -> geoLinkGraph
+    }
+  }
+
+
+
+
   final def initialElementsGenerated: List[TEjeElement] = {
-    val nodes = initialGraph.nodes.toArray
+    val nodes: Array[GeoNode] = initialGraph.nodes.toArray
+
+    val links = buildLink(nodes,None,None)
+    links.flatMap(_.elements)
+
+
+  }
+
+  def buildDirections(nodes: Array[GeoNode],
+                      left: Option[TDirection],
+                      right: Option[TDirection]): Array[TDirection] = {
     val directions = Array.fill(nodes.length)(new DirectionAverage())
     nodes.length match {
       case i if i<=3 => throw  new IllegalArgumentException("not enough elements")
@@ -109,34 +167,56 @@ trait TLinkManager{
       }
 
     }
+    left.foreach{ leftDirection =>
+      directions(0) = {
+        val d = new DirectionAverage()
+        d.add(leftDirection)
+        d
+      }
+    }
+
+    right.foreach{ rightDirection =>
+      directions(nodes.length-1) = {
+        val d = new DirectionAverage()
+        d.add(rightDirection)
+        d
+      }
+
+    }
+
+    directions.map(_.value())
+  }
+
+  def buildLink(nodes: Array[GeoNode],
+                left: Option[TDirection],
+                right: Option[TDirection]): List[GeoLinkGraph] = {
+    val directions = buildDirections(nodes,left,right)
 
     val links = (1 until nodes.length).map{ i =>
-      GeoLinkGraph(PointUnitaryVector(nodes(i-1),directions(i-1).value()),
-        PointUnitaryVector(nodes(i),directions(i).value())
+      val geoLink = new GeoLinkGraph(PointUnitaryVector(nodes(i-1),directions(i-1)),
+        PointUnitaryVector(nodes(i),directions(i))
       )
+
+      addGeoNodeLinkRelation(nodes(i-1),geoLink)
+      addGeoNodeLinkRelation(nodes(i),geoLink)
+
+      geoLink
+
+
     }
 
     links.zip(links.tail).foreach{ case (a,b) =>
       a.next = Some(b)
       b.prev = Some(a)
     }
-
-    links.flatMap(_.elements).toList
-
-
+    links.toList
   }
-
-
-
-
-
-
 
 }
 
 class DirectionAverage(){
   val allValues = ListBuffer.empty[PlanarVector]
   def add(t: TDirection): Unit = allValues += PlanarVector(t.direction,1)
-  def value(): TDirection  = allValues.reduceLeft{case (a,b) => a + b}.direction
+  def value(): TDirection  = allValues.reduceLeft(_ + _).direction
 
 }

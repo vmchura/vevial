@@ -1,7 +1,7 @@
 package algorithms
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, NonEmptySeqEjeElements, TSeqEjeElementsBase}
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment, TCircleSegment, TEjeElement}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje
@@ -38,7 +38,7 @@ object EjeBuilderDraft {
   def buildEjeBase(nodes: List[GeoNode]): TSeqEjeElementsBase = {
     import LinearEquationsSolver.{buildCircleSegment,buildCircleTangent}
     var numTimes = Int.MaxValue
-    def buildEje(nodes: List[Point], prevElement: Option[TEjeElement]): TSeqEjeElementsBase = {
+    def buildEje(nodes: List[TPoint], prevElement: Option[TEjeElement]): TSeqEjeElementsBase = {
       (nodes,prevElement) match {
         case (a :: p :: b :: q :: tail, None) =>
           val initialPartEje: TSeqEjeElementsBase = (for{

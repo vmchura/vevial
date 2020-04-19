@@ -4,7 +4,7 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 
 
-class ProgresivePoint(p: Point,val progresive: Double) extends  Point(p.x,p.y)  {
+class ProgresivePoint(p: TPoint,val progresive: Double) extends  Point(p.x,p.y)  {
   def withNewInitialLinearReference(newProgresive: Double): ProgresivePoint = new ProgresivePoint(p,newProgresive)
 
 
