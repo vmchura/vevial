@@ -1,6 +1,6 @@
 package algorithms
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TDirection}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, TCircleSegment}
 
 object LinearEquationsSolver {
@@ -134,5 +134,25 @@ object LinearEquationsSolver {
 
     res
 
+  }
+
+  def calcDirections(a: Point, b: Point, c: Point): (TDirection,TDirection,TDirection) = {
+    buildCircleSegment(a,b,c) match {
+      case Some(circ) => {
+        def calcDir(x: Point): TDirection = {
+          val v = (x-circ.centerPoint).direction
+          if(circ.antiClockWise)
+            v <¬ 1
+          else
+            v <¬ 3
+        }
+        (calcDir(a),calcDir(b),calcDir(c))
+      }
+      case None => {
+        val d = (c-a).direction
+        (d,d,d)
+      }
+
+    }
   }
 }

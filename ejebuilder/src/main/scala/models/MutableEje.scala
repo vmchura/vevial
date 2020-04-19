@@ -65,5 +65,17 @@ class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
     blockY.removeSameElementPoint(element)
   }
 
+  def endPointsClosest(point: Point): Option[ElementPoint] = {
+    val elementsX = blockX.getElementsAround(point.x)
+    val elementsY = blockY.getElementsAround(point.y)
+
+    val intersection = elementsX intersect elementsY
+    intersection.toList.flatMap(x => {
+      val inEP = ElementPoint(x.in.point,None,x)
+      val outEP = ElementPoint(x.out.point,None,x)
+      List(inEP,outEP)
+    }).minByOption(s => !(s-point))
+  }
+
 }
 

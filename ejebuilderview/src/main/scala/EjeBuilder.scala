@@ -1,5 +1,5 @@
 import scalafx.Includes._
-import Layers.{SimpleEjeVialLayer, GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleIRIRelevamientoLayer}
+import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
@@ -14,7 +14,7 @@ import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
+import models.{EjeEditable, GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
@@ -27,26 +27,15 @@ import scala.collection.mutable.ListBuffer
 object EjeBuilder extends JFXApp{
 
   val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
-  val linkLayer = new LinkLayer()
   val geoNodeLayer = new GeoNodeLayer()
   val ejeLayer = new SimpleEjeVialLayer()
   offsetX() = 0d
   offsetY() = 0d
 
-  var linearGraphEditable = Option.empty[LinearGraphEditable]
-
-  def buildEje(): MutableEje = {
-    val t0 = System.currentTimeMillis()
-    val ejeBuilder = new EjeBuilderDraft[RelevamientoIRI[IRIElementData],IRIElementData](relevamientosAdded.toList)
-    val t1 = System.currentTimeMillis()
-    val ans = ejeBuilder.buildEje()
-    val t2 = System.currentTimeMillis()
-    println(s"EjebuilderDrat: ${t1-t0}")
-    println(s"buildEje: ${t2-t1}")
-    ans
-  }
+  var ejeEditableOpt = Option.empty[EjeEditable]
 
 
+  class LinkSelector
 
 
   def loadNewFile(relevamientos: Seq[RelevamientoIRI[IRIElementData]]): Unit = {
@@ -55,18 +44,18 @@ object EjeBuilder extends JFXApp{
     }
     val relevamientosSimples = relevamientos.map(x => new SimpleIRIRelevamientoLayer(x))
 
-    linearGraphEditable.foreach{_.clear()}
-    linearGraphEditable = None
+    ejeEditableOpt.foreach{_.clear()}
+    ejeEditableOpt = None
 
 
-      val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
+    val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
 
-      val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+    val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
 
-      linearGraphEditable = Some(LinearGraphEditable(singleLinearEje.nodes,linkLayer,geoNodeLayer,ejeLayer))
+    ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer))
 
-      offsetX() = singleLinearEje.nodes.head.center.x
-      offsetY() = singleLinearEje.nodes.head.center.y
+    offsetX() = singleLinearEje.nodes.head.center.x
+    offsetY() = singleLinearEje.nodes.head.center.y
 
 
     new ObservableListDelegate(relevamientosSimples.toArray.map(_.nodes),panelMapa.children)
@@ -119,7 +108,7 @@ object EjeBuilder extends JFXApp{
   }
 
 
-  new ObservableListDelegate(Array(linkLayer,geoNodeLayer,ejeLayer).map(_.nodes),panelMapa.children)
+  new ObservableListDelegate(Array(geoNodeLayer,ejeLayer).map(_.nodes),panelMapa.children)
 
 
 
@@ -166,13 +155,12 @@ object EjeBuilder extends JFXApp{
     if(movingState == DragginNode){
       for{
         node <- nodeMoving
-        lg <- linearGraphEditable
+        lg <- ejeEditableOpt
       }yield{
         val px = PointTransformer.convertXView2Real(ae.getX)
         val py = PointTransformer.convertYView2Real(ae.getY)
         val point = Point(px,py)
         lg.moveGeoNodeTo(node,point)
-        lg.geoNodesUpdated()
       }
     }
 
@@ -187,7 +175,7 @@ object EjeBuilder extends JFXApp{
     val py = PointTransformer.convertYView2Real(ae.getY)
     val point = Point(px,py)
     val newMovingState = for{
-      lg <- linearGraphEditable
+      lg <- ejeEditableOpt
       res <- lg.elementByPosition(point)
     }yield{
       res match {
@@ -215,7 +203,7 @@ object EjeBuilder extends JFXApp{
     val px = PointTransformer.convertXView2Real(ae.getX)
     val py = PointTransformer.convertYView2Real(ae.getY)
     val point = Point(px,py)
-    linearGraphEditable.foreach(lp => {
+    ejeEditableOpt.foreach(lp => {
       lp.elementByPosition(point) match {
 
         case Some(Right(ejeElement)) => stage.scene.value.cursor = Cursor.Crosshair
