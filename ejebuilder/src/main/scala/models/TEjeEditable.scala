@@ -130,6 +130,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater{
         val leftNth = toStart.prevNth(5)
         val rightNth = toStart.nextNth(5)
         val nodes = leftNth.nodesUntilTarget(rightNth).map(_.asInstanceOf[GeoNode])
+
         val link = buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
 
         updateSegment(leftNth,rightNth,link.head,link.last)

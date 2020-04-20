@@ -30,7 +30,7 @@ object PointsOnElementGenerator {
 
     override def generatePoints(a: TEjeElement): List[ElementPoint] = {
       a match {
-        case f: TFaintElement => List(ElementPoint(f.from,None,f),ElementPoint(f.end,None,f))
+        case f: TFaintElement => Nil
         case _ => calcPointToDistance(a,0) ::
           calcPointToDistance(a,a.length) ::
           (1 to a.length.toInt by 5).map(d => calcPointToDistance(a,d)).toList

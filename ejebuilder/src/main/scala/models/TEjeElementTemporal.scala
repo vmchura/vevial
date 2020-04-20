@@ -34,6 +34,22 @@ trait TLinkPoint {
 
     seqElements.toList
   }
+
+  final def untilEnd(): List[TLinkPoint] = {
+    val seqElements = ListBuffer.empty[TLinkPoint]
+    var x: Option[TLinkPoint] = Some(this)
+    while(x.isDefined){
+      val t = x.get
+
+      seqElements.append(t)
+
+
+        x =t.next
+
+    }
+
+    seqElements.toList
+  }
   final def nodesUntilTarget(target: TLinkPoint): List[TPoint] = {
     val seqElements = ListBuffer[TPoint](in.point)
     var x: Option[TLinkPoint] = Some(this)
@@ -68,6 +84,8 @@ trait TLinkPoint {
   }
 }
 
+
+
 sealed trait TEjeElementTemporal extends TEjeElement{
   def ejeSection: TLinkPoint
 }
@@ -88,7 +106,13 @@ class GeoLinkGraph(val in: PointUnitaryVector,val out: PointUnitaryVector,
         val right = if(c.endPoint ==? out.point) None else Some(RectTemporal(c.endPoint,out.point,this))
         List(left,Some(c),right).flatten
       }
-      case None => List(FaintTemporal(in.point,out.point,this))
+      case None => {
+
+        val recta = RectTemporal(in.point,out.point,this)
+        val f0 = FaintTemporal(in.point,recta.in.point,this)
+        val f1 = FaintTemporal(recta.out.point,out.point,this)
+        List(f0,recta,f1)
+      }
     }
   }
 
@@ -129,6 +153,7 @@ trait TLinkUpdater{
   }
 }
 
+
 trait TLinkManager{
   def initialGraph: LinearGraph[GeoNode]
   val geoNodeLinkMap: mutable.Map[GeoNode,GeoLinkGraph] = mutable.Map.empty[GeoNode,GeoLinkGraph]
@@ -140,9 +165,6 @@ trait TLinkManager{
       geoNodeLinkMap += geoNode -> geoLinkGraph
     }
   }
-
-
-
 
   final def initialElementsGenerated: List[TEjeElement] = {
     val nodes: Array[GeoNode] = initialGraph.nodes.toArray
@@ -190,6 +212,7 @@ trait TLinkManager{
   def buildLink(nodes: Array[GeoNode],
                 left: Option[TDirection],
                 right: Option[TDirection]): List[GeoLinkGraph] = {
+
     val directions = buildDirections(nodes,left,right)
 
     val links = (1 until nodes.length).map{ i =>
@@ -213,6 +236,8 @@ trait TLinkManager{
   }
 
 }
+
+
 
 class DirectionAverage(){
   val allValues = ListBuffer.empty[PlanarVector]
