@@ -1,5 +1,6 @@
 package models
 
+import AutomaticBuilder.models.{ProjectionOverElement, TProjection}
 import algorithms.LinearEquationsSolver
 import algorithms.LinearEquationsSolver.{buildCircleSegment, buildCircleTangent}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point, PointUnitaryVector, TDirection, TPoint}
@@ -88,35 +89,36 @@ trait TLinkPoint {
 
 sealed trait TEjeElementTemporal extends TEjeElement{
   def ejeSection: TLinkPoint
+  def projectionOverElement(point: TPoint): Option[TProjection]
 }
 
-case class FaintTemporal(from: TPoint, end: TPoint, ejeSection: TLinkPoint) extends TFaintElement with TEjeElementTemporal
-case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLinkPoint) extends TRectSegment with TEjeElementTemporal
-case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, ejeSection: TLinkPoint) extends TCircleSegment with TEjeElementTemporal
+case class FaintTemporal(from: TPoint, end: TPoint, ejeSection: TLinkPoint) extends TFaintElement with TEjeElementTemporal {
+  override def projectionOverElement(point: TPoint): Option[TProjection] = None
 
-class GeoLinkGraph(val in: PointUnitaryVector,val out: PointUnitaryVector,
-                        var prev: Option[TLinkPoint]=None, var next: Option[TLinkPoint]=None
-                       ) extends TLinkPoint {
+}
+case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLinkPoint) extends TRectSegment with TEjeElementTemporal {
+  override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
+    val lengthOverElement = lengthToPoint(ep)
+    val normalToPoint = ep.toSource.map{ pv =>
+      (in.direction x pv.direction ).z.sign*pv.magnitude
+    }.getOrElse(0d)
 
-  override val elements: Seq[TEjeElementTemporal] = {
-    LinearEquationsSolver.buildCircleTangent(in,out) match {
-      case Some(x) => {
-        val c = CircleTemporal(x.originPoint,x.centerPoint,x.endPoint,x.antiClockWise,this)
-        val left = if(c.originPoint ==? in.point) None else Some(RectTemporal(in.point,c.originPoint,this))
-        val right = if(c.endPoint ==? out.point) None else Some(RectTemporal(c.endPoint,out.point,this))
-        List(left,Some(c),right).flatten
-      }
-      case None => {
-
-        val recta = RectTemporal(in.point,out.point,this)
-        val f0 = FaintTemporal(in.point,recta.in.point,this)
-        val f1 = FaintTemporal(recta.out.point,out.point,this)
-        List(f0,recta,f1)
-      }
-    }
+    ProjectionOverElement(lengthOverElement,normalToPoint)
   }
 
 
+}
+case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, ejeSection: TLinkPoint) extends TCircleSegment with TEjeElementTemporal {
+  override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
+    val lengthOverElement = lengthToPoint(ep)
+    val normalToPoint = ep.toSource.map{ pv =>
+      val v = (ep.point - centerPoint).direction <¬ (if(antiClockWise) 1 else 3)
+      (v x pv.direction ).z.sign*pv.magnitude
+
+    }.getOrElse(0d)
+
+    ProjectionOverElement(lengthOverElement,normalToPoint)
+  }
 }
 
 trait TLinkUpdater{
