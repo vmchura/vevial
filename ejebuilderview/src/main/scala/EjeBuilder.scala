@@ -53,6 +53,7 @@ object EjeBuilder extends JFXApp{
     val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
 
     ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer))
+    ejeEditableOpt.foreach(_.setInitialPointsFree(relevamientos.flatMap(_.elements.flatMap(_.point.map(_.value)))))
 
     offsetX() = singleLinearEje.nodes.head.center.x
     offsetY() = singleLinearEje.nodes.head.center.y

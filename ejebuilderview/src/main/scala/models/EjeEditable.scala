@@ -23,8 +23,6 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
 
   }
 
-  println("HERE 2")
-  addElements(mutableEje.elements)
+  addElements(elementsToObserve)
   initialGraph.nodes.foreach(geoNodeAdded)
-  println("HERE 3")
 }

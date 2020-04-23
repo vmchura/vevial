@@ -4,9 +4,14 @@ import AutomaticBuilder.models.{ActionImproveEje, ProjectionOverElement, TElemen
 import algorithms.LinearEquationsSolver
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PointUnitaryVector, TPoint}
 
+import scala.collection.mutable.ListBuffer
+
 class GeoLinkGraph(val in: PointUnitaryVector,val out: PointUnitaryVector,
                    var prev: Option[TLinkPoint]=None, var next: Option[TLinkPoint]=None
-                  ) extends TLinkPoint with TElementCanImprove{
+                  ) extends TLinkPoint {
+  private val pointsDataCoveringMutable = ListBuffer.empty[TPoint]
+  def pointsDataCovering: Iterable[TPoint] = pointsDataCoveringMutable.toSeq
+  def addPointCovered(tpoint: TPoint): Unit = pointsDataCoveringMutable += tpoint
 
   override val elements: Seq[TEjeElementTemporal] = {
     LinearEquationsSolver.buildCircleTangent(in,out) match {

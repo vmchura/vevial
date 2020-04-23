@@ -1,18 +1,33 @@
 package models
 
+import AutomaticBuilder.models.{ActionImproveEje, ElementActionToImprove, NoAction, SetPointAt, SimpleAgentEjeEvaluator, TActuatorEje, TElementCanImprove}
 import algorithms.LinearEquationsSolver
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
 
-trait TEjeEditable extends TLinkManager with TLinkUpdater{
+trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
+  val logger = LoggerFactory.getLogger(this.getClass)
 
   def geoNodeAdded(geoNode: GeoNode): Unit
   def geoNodeRemoved(geoNode: GeoNode): Unit
   def elementAdded(e: TEjeElement): Unit
   def elementRemoved(e: TEjeElement): Unit
-  val mutableEje = new MutableEje(initialElementsGenerated)
+  protected val (elementsToObserve,linksToObserve) = initialElementsGenerated
+  private val mutableEje = new MutableEje(elementsToObserve)
+  logger.info(s"Num elements on mutable eje: ${mutableEje.elements.length}")
+  val maxHeap = scala.collection.mutable.PriorityQueue.empty[ElementActionToImprove]
+
+  val linksEnabled = scala.collection.mutable.Set.empty[TElementCanImprove]
+
+  val pointsDataFree = ListBuffer.empty[TPoint]
+  final def setInitialPointsFree(freePoints: IterableOnce[TPoint]): Unit = {
+    pointsDataFree ++= freePoints
+    addLinks(linksToObserve)
+  }
+
 
   final override def removeElements: Seq[TEjeElement] => Unit = {elements: Seq[TEjeElement] =>
     elements.foreach(e => {
@@ -26,11 +41,31 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater{
       mutableEje.addElement(e)
     })
   }
-
   def clear(): Unit
+  override final def improveEjeByAction(elementAction: ElementActionToImprove): Unit = {
+    if(linksEnabled(elementAction.elementCanImprove)){
+      elementAction.actionImproveEje match {
+        case NoAction => ()
+        case s: SetPointAt =>
+          val e = elementAction.elementCanImprove
+          e.calcPointFromProjection(s) match {
+            case Some(np) =>
+              elementByPosition(np) match {
+                case Some(Left(_)) => println("Not changing nothing")
+                case Some(Right(elementPoint)) => createInnerNode(elementPoint)
+                case None => throw new IllegalArgumentException("action is recommended, projection not found")
+              }
+            case None => throw new IllegalStateException("Action is recommended, no point cant ve reconstructe found")
+
+          }
+
+      }
 
 
-
+    }else{
+      throw new IllegalArgumentException("link is not enabled")
+    }
+  }
 
   def elementByPosition(point: Point): Option[Either[GeoNode,ElementPoint]] = {
     mutableEje.endPointsClosest(point) match {
@@ -71,7 +106,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater{
       case s: TEjeElementTemporal => {
         val section = s.ejeSection
 
-        val newGeoNode = new GeoNode(elementPoint.point)
+        val newGeoNode = new GeoNode(elementPoint.sourcePoint)
 
 
         val (left,right) = createPairLinks(section.in,section.out,newGeoNode)
@@ -115,6 +150,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater{
         val toStart = (x,y) match {
           case (Some(a),Some(b)) =>
             val (left,right) = createPairLinks(a.in,b.out,newGeoNode)
+
             updateSegment(a,b,left,right)
             left
           case (Some(a),None) =>
@@ -144,6 +180,46 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater{
 
 
   }
+
+  final override def addLinks: Seq[TLinkPoint] => Unit = links => {
+    logger.info(s"Adding links ${links.length}")
+    linksEnabled.addAll(links)
+    assignPointsFree()
+    links.foreach{ link =>
+      val observer = new ObserverImpl(link)
+      link.pointsDataCovering.foreach(observer.addProjection)
+      val eat = ElementActionToImprove(link,SimpleAgentEjeEvaluator.deliberateAnAction(observer))
+      maxHeap += eat
+    }
+  }
+
+  final override def removeLinks: Seq[TLinkPoint] => Unit = _.foreach(link => {
+    linksEnabled.remove(link)
+    pointsDataFree.appendAll(link.pointsDataCovering)
+  })
+
+  def assignPointsFree(): Unit = {
+    logger.info(s"assinging ${pointsDataFree.length} Points Free")
+    val pointsFree = pointsDataFree.filter(p => {
+      mutableEje.projectPoint(p) match {
+        case None =>
+          true
+        case Some(ep) =>
+          ep.ejeElementOwner match {
+            case temp: TEjeElementTemporal =>
+              temp.ejeSection.addPointCovered(ep)
+              false
+            case x =>
+              true
+          }
+      }
+    })
+
+    pointsDataFree.clear()
+    pointsDataFree ++= pointsFree
+    logger.info(s"Points free after asigning: ${pointsDataFree.length}")
+  }
+
 
 
 }

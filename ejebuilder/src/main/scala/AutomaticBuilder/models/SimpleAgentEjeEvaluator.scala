@@ -1,6 +1,6 @@
 package AutomaticBuilder.models
 
-trait SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
+object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
   override final def deliberateAnAction(observer: TObserver): ActionImproveEje = {
     val elementsObserved = observer.elementsAdded()
     if(elementsObserved.isEmpty){

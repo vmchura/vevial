@@ -6,4 +6,5 @@ case class ElementPoint(point: TPoint, toSource: Option[PlanarVector], ejeElemen
   override val x: Double = point.x
   override val y: Double = point.y
   //def changeOwner[B <: TEjeElement[B]](newOwner: B): ElementPoint[B] = ElementPoint(point,toSource,newOwner)
+  val sourcePoint: TPoint = toSource.map(s => point +s ).getOrElse(point)
 }

@@ -1,6 +1,6 @@
 package models
 
-import AutomaticBuilder.models.{ProjectionOverElement, TProjection}
+import AutomaticBuilder.models.{ProjectionOverElement, TElementCanImprove, TProjection}
 import algorithms.LinearEquationsSolver
 import algorithms.LinearEquationsSolver.{buildCircleSegment, buildCircleTangent}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point, PointUnitaryVector, TDirection, TPoint}
@@ -10,7 +10,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
-trait TLinkPoint {
+trait TLinkPoint extends TElementCanImprove{
   def in: PointUnitaryVector
   def out: PointUnitaryVector
   def next: Option[TLinkPoint]
@@ -83,6 +83,19 @@ trait TLinkPoint {
       next.map(_.nextNth(n-1)).getOrElse(this)
     }
   }
+  override final def calcPointFromProjection(tProjection: TProjection): Option[Point] = {
+    elements.scanLeft((tProjection.distanceOverElement,Option.empty[Point])){
+      case ((lengthToFit,_),e) => (lengthToFit - e.length,e.pointFromProjection(ProjectionOverElement(lengthToFit,tProjection.distanceNormal)))
+    }.flatMap(_._2).headOption
+
+  }
+
+  def pointsDataCovering: Iterable[TPoint]
+  def addPointCovered(tpoint: TPoint): Unit
+
+
+
+
 }
 
 
@@ -90,11 +103,13 @@ trait TLinkPoint {
 sealed trait TEjeElementTemporal extends TEjeElement{
   def ejeSection: TLinkPoint
   def projectionOverElement(point: TPoint): Option[TProjection]
+  def pointFromProjection(tprojection: TProjection): Option[Point]
 }
 
 case class FaintTemporal(from: TPoint, end: TPoint, ejeSection: TLinkPoint) extends TFaintElement with TEjeElementTemporal {
   override def projectionOverElement(point: TPoint): Option[TProjection] = None
 
+  override def pointFromProjection(tprojection: TProjection): Option[Point] = None
 }
 case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLinkPoint) extends TRectSegment with TEjeElementTemporal {
   override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
@@ -106,7 +121,15 @@ case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLink
     ProjectionOverElement(lengthOverElement,normalToPoint)
   }
 
+  override def pointFromProjection(tprojection: TProjection): Option[Point] = {
+   if(tprojection.distanceOverElement < 0 || tprojection.distanceOverElement > length){
+     None
+   }else{
+     val p = in.point + in.direction*(tprojection.distanceOverElement)
+     Some(p + (in.direction <¬ (if(tprojection.distanceNormal>0) 1 else 3))*(tprojection.distanceNormal))
+   }
 
+  }
 }
 case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, ejeSection: TLinkPoint) extends TCircleSegment with TEjeElementTemporal {
   override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
@@ -119,21 +142,39 @@ case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TP
 
     ProjectionOverElement(lengthOverElement,normalToPoint)
   }
+
+  override def pointFromProjection(tprojection: TProjection): Option[Point] = {
+    if(tprojection.distanceOverElement < 0 || tprojection.distanceOverElement > length){
+      None
+    }else{
+      val v = in.point - centerPoint
+      val alpha = tprojection.distanceOverElement/radius
+      val p = v << (alpha * (if(antiClockWise) 1 else -1))
+      Some((centerPoint + p) + (p.direction*(tprojection.distanceNormal)))
+    }
+
+  }
 }
 
 trait TLinkUpdater{
   def removeElements: Seq[TEjeElement] => Unit
   def addElements: Seq[TEjeElement] => Unit
+  def removeLinks: Seq[TLinkPoint] => Unit
+  def addLinks: Seq[TLinkPoint] => Unit
   final def updateSegment[A <: TPoint](oldLinkBegin: TLinkPoint, oldLinkEnd: TLinkPoint,
                     newLinkBegin: TLinkPoint, newLinkEnd: TLinkPoint): Unit = {
-    val elementsToDrop = oldLinkBegin.untilTarget(oldLinkEnd).flatMap(_.elements)
-    println(s"#Elements to drop: ${elementsToDrop.length}")
+    val linksToDrop = oldLinkBegin.untilTarget(oldLinkEnd)
+    val elementsToDrop = linksToDrop.flatMap(_.elements)
 
+    removeLinks(linksToDrop)
     removeElements(elementsToDrop)
 
-    val elementsToAdd = newLinkBegin.untilTarget(newLinkEnd).flatMap(_.elements)
+    val linksToAdd = newLinkBegin.untilTarget(newLinkEnd)
+    val elementsToAdd = linksToAdd.flatMap(_.elements)
+
+    addLinks(linksToAdd)
     addElements(elementsToAdd)
-    println(s"#Elements to add: ${elementsToAdd.length}")
+
 
     oldLinkBegin.prev match {
       case Some(prev) =>
@@ -160,6 +201,7 @@ trait TLinkManager{
   def initialGraph: LinearGraph[GeoNode]
   val geoNodeLinkMap: mutable.Map[GeoNode,GeoLinkGraph] = mutable.Map.empty[GeoNode,GeoLinkGraph]
 
+
   final def addGeoNodeLinkRelation(geoNode: GeoNode, geoLinkGraph: GeoLinkGraph): Unit = {
     if(geoNodeLinkMap.contains(geoNode)){
       geoNodeLinkMap(geoNode) = geoLinkGraph
@@ -168,13 +210,10 @@ trait TLinkManager{
     }
   }
 
-  final def initialElementsGenerated: List[TEjeElement] = {
+  final def initialElementsGenerated: (List[TEjeElement],List[TLinkPoint])= {
     val nodes: Array[GeoNode] = initialGraph.nodes.toArray
-
     val links = buildLink(nodes,None,None)
-    links.flatMap(_.elements)
-
-
+    (links.flatMap(_.elements), links)
   }
 
   def buildDirections(nodes: Array[GeoNode],
