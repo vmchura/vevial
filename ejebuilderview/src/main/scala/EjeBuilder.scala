@@ -1,9 +1,10 @@
+import AutomaticBuilder.models.ElementActionToImprove
 import scalafx.Includes._
 import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import scalafx.application.JFXApp
+import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Cursor, Node, Scene}
@@ -52,7 +53,10 @@ object EjeBuilder extends JFXApp{
 
     val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
 
-    ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer))
+    ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer, p => {
+      offsetX() = p.x - (800/2.0)*factor()
+      offsetY() = p.y + (640/2.0)*factor()
+    }))
     ejeEditableOpt.foreach(_.setInitialPointsFree(relevamientos.flatMap(_.elements.flatMap(_.point.map(_.value)))))
 
     offsetX() = singleLinearEje.nodes.head.center.x
@@ -140,6 +144,8 @@ object EjeBuilder extends JFXApp{
         offsetX() = offsetX() - (ae.getX - lx) * factor()
         offsetY() = offsetY() + (ae.getY - ly) * factor()
       }
+
+
       lastPositionX() = Some(ae.getX)
       lastPositionY() = Some(ae.getY)
 
@@ -172,33 +178,62 @@ object EjeBuilder extends JFXApp{
 
     println("Mouse released")
   }
-
+  var elementToImprove = Option.empty[ElementActionToImprove]
   panelMapa.onMousePressed = ae => {
-    val px = PointTransformer.convertXView2Real(ae.getX)
-    val py = PointTransformer.convertYView2Real(ae.getY)
-    val point = Point(px,py)
-    val newMovingState = for{
-      lg <- ejeEditableOpt
-      res <- lg.elementByPosition(point)
-    }yield{
-      res match {
-        case Right(ep) =>{
-          val node = lg.createInnerNode(ep)
-          stage.scene().cursor = Cursor.ClosedHand
-          nodeMoving = Some(node)
-          DragginNode
-        }
-        case Left(node) => {
-          stage.scene().cursor = Cursor.ClosedHand
-          nodeMoving = Some(node)
-          DragginNode
+    if(ae.isSecondaryButtonDown){
+      if(elementToImprove.isEmpty){
+        ejeEditableOpt.foreach(ej => {
+          ej.popNextUpgrade() match {
+            case Some(up) => {
+              println(up)
+              elementToImprove = Some(up)
+              ej.locateUpgrade(up.elementCanImprove)
+
+            }
+            case None => println("nothing to upgrade")
+          }
+        })
+      }else{
+        ejeEditableOpt.foreach(ej => {
+          if (ej.applyUpgrade(elementToImprove.get)) {
+            println("change made")
+          } else {
+            println("cant do change")
+          }
+        })
+
+        elementToImprove = None
+      }
+
+    }else{
+
+      val px = PointTransformer.convertXView2Real(ae.getX)
+      val py = PointTransformer.convertYView2Real(ae.getY)
+      val point = Point(px,py)
+      val newMovingState = for{
+        lg <- ejeEditableOpt
+        res <- lg.elementByPosition(point)
+      }yield{
+        res match {
+          case Right(ep) =>{
+            val node = lg.createInnerNode(ep)
+            stage.scene().cursor = Cursor.ClosedHand
+            nodeMoving = Some(node)
+            DragginNode
+          }
+          case Left(node) => {
+            stage.scene().cursor = Cursor.ClosedHand
+            nodeMoving = Some(node)
+            DragginNode
+          }
         }
       }
+      newMovingState match {
+        case Some(ms) => movingState = ms
+        case None => movingState = DragginMap
+      }
     }
-    newMovingState match {
-      case Some(ms) => movingState = ms
-      case None => movingState = DragginMap
-    }
+
 
   }
 
@@ -245,11 +280,19 @@ object EjeBuilder extends JFXApp{
     scene = new Scene {
 
       content = new BorderPane() {
-        left = new Button("left")
-        top = new Button("top")
+        top = new Button("top"){
+          onAction = _ => {
+
+
+          }
+        }
+        left = new Button("left"){
+          onAction = _ => {
+            println("click on top!!")
+          }
+        }
         center =  panelMapa
       }
-      cursor = Cursor.Move
     }
   }
 }

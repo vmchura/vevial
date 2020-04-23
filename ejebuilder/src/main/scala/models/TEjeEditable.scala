@@ -1,15 +1,15 @@
 package models
 
-import AutomaticBuilder.models.{ActionImproveEje, ElementActionToImprove, NoAction, SetPointAt, SimpleAgentEjeEvaluator, TActuatorEje, TElementCanImprove}
+import AutomaticBuilder.models.{ElementActionToImprove, NoAction, SetPointAt, SimpleAgentEjeEvaluator, TElementCanImprove, TIterativeImproving}
 import algorithms.LinearEquationsSolver
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
 
-trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
-  val logger = LoggerFactory.getLogger(this.getClass)
+trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImproving{
+  protected val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def geoNodeAdded(geoNode: GeoNode): Unit
   def geoNodeRemoved(geoNode: GeoNode): Unit
@@ -18,11 +18,10 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
   protected val (elementsToObserve,linksToObserve) = initialElementsGenerated
   private val mutableEje = new MutableEje(elementsToObserve)
   logger.info(s"Num elements on mutable eje: ${mutableEje.elements.length}")
-  val maxHeap = scala.collection.mutable.PriorityQueue.empty[ElementActionToImprove]
 
   val linksEnabled = scala.collection.mutable.Set.empty[TElementCanImprove]
 
-  val pointsDataFree = ListBuffer.empty[TPoint]
+  private val pointsDataFree = ListBuffer.empty[TPoint]
   final def setInitialPointsFree(freePoints: IterableOnce[TPoint]): Unit = {
     pointsDataFree ++= freePoints
     addLinks(linksToObserve)
@@ -42,30 +41,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
     })
   }
   def clear(): Unit
-  override final def improveEjeByAction(elementAction: ElementActionToImprove): Unit = {
-    if(linksEnabled(elementAction.elementCanImprove)){
-      elementAction.actionImproveEje match {
-        case NoAction => ()
-        case s: SetPointAt =>
-          val e = elementAction.elementCanImprove
-          e.calcPointFromProjection(s) match {
-            case Some(np) =>
-              elementByPosition(np) match {
-                case Some(Left(_)) => println("Not changing nothing")
-                case Some(Right(elementPoint)) => createInnerNode(elementPoint)
-                case None => throw new IllegalArgumentException("action is recommended, projection not found")
-              }
-            case None => throw new IllegalStateException("Action is recommended, no point cant ve reconstructe found")
 
-          }
-
-      }
-
-
-    }else{
-      throw new IllegalArgumentException("link is not enabled")
-    }
-  }
 
   def elementByPosition(point: Point): Option[Either[GeoNode,ElementPoint]] = {
     mutableEje.endPointsClosest(point) match {
@@ -103,7 +79,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
   def createInnerNode(elementPoint: ElementPoint): GeoNode = {
 
     elementPoint.ejeElementOwner match {
-      case s: TEjeElementTemporal => {
+      case s: TEjeElementTemporal =>
         val section = s.ejeSection
 
         val newGeoNode = new GeoNode(elementPoint.sourcePoint)
@@ -120,7 +96,6 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
 
         updateSegment(leftNth,rightNth,link.head,link.last)
         newGeoNode
-      }
       case _ => throw new IllegalArgumentException("NOT A GEO LINK?")
     }
 
@@ -189,7 +164,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
       val observer = new ObserverImpl(link)
       link.pointsDataCovering.foreach(observer.addProjection)
       val eat = ElementActionToImprove(link,SimpleAgentEjeEvaluator.deliberateAnAction(observer))
-      maxHeap += eat
+      addActionToImprove(eat)
     }
   }
 
@@ -207,10 +182,9 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
         case Some(ep) =>
           ep.ejeElementOwner match {
             case temp: TEjeElementTemporal =>
-              temp.ejeSection.addPointCovered(ep)
+              temp.ejeSection.addPointCovered(p)
               false
-            case x =>
-              true
+            case _ => true
           }
       }
     })
@@ -219,6 +193,38 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater with TActuatorEje{
     pointsDataFree ++= pointsFree
     logger.info(s"Points free after asigning: ${pointsDataFree.length}")
   }
+
+  override final def applyUpgrade(ea: ElementActionToImprove): Boolean = {
+    if(linksEnabled(ea.elementCanImprove)){
+      ea.actionImproveEje match {
+        case NoAction => ()
+        case s: SetPointAt =>
+          val e = ea.elementCanImprove
+          e.calcPointFromProjection(s) match {
+            case Some(np) =>
+              elementByPosition(np) match {
+                case Some(Left(_)) => println("Not changing nothing")
+                case Some(Right(elementPoint)) => createInnerNode(elementPoint)
+                case None => throw new IllegalArgumentException("action is recommended, projection not found")
+              }
+            case None => throw new IllegalStateException("Action is recommended, no point cant ve reconstructe found")
+
+          }
+
+
+
+      }
+
+      true
+
+
+    }else{
+      false
+    }
+  }
+
+
+  override final def isElementValid(element: TElementCanImprove): Boolean = linksEnabled.contains(element)
 
 
 

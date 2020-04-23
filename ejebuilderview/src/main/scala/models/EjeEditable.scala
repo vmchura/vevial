@@ -1,12 +1,14 @@
 package models
 
+import AutomaticBuilder.models.TElementCanImprove
 import Layers.{GeoNodeLayer, LinkLayer, SimpleEjeVialLayer}
 import algorithms.EjeBuilderDraft
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.PlanarGeometric.EjeElement.TEjeElement
 
 case class EjeEditable(initialGraph: LinearGraph[GeoNode],
                        geoNodeLayer: GeoNodeLayer,
-                       ejeLayer: SimpleEjeVialLayer) extends TEjeEditable {
+                       ejeLayer: SimpleEjeVialLayer, centerWindow: TPoint => Unit) extends TEjeEditable {
 
   override def geoNodeAdded(geoNode: GeoNode): Unit = geoNodeLayer.add(geoNode)
 
@@ -25,4 +27,17 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
 
   addElements(elementsToObserve)
   initialGraph.nodes.foreach(geoNodeAdded)
+
+  /**
+    * changes the state previous to the next upgrade
+    *   - ex. visually move the window to the next point
+    *   - ex. automaticale, does not do anything
+    */
+  override def locateUpgrade(element: TElementCanImprove): Unit = {
+    element match {
+      case t: TLinkPoint => centerWindow(t.in.point -%- t.out.point)
+      case _ => ()
+    }
+
+  }
 }
