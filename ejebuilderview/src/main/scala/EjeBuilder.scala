@@ -1,6 +1,6 @@
-import AutomaticBuilder.models.ElementActionToImprove
+import AutomaticBuilder.models.{ElementActionToImprove, SetPointAt}
 import scalafx.Includes._
-import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
+import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
@@ -13,9 +13,10 @@ import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii
 import UtilTransformers.PointTransformer._
 import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{EjeEditable, GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
@@ -30,6 +31,7 @@ object EjeBuilder extends JFXApp{
   val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
   val geoNodeLayer = new GeoNodeLayer()
   val ejeLayer = new SimpleEjeVialLayer()
+  val projectionLayer = new ProjectionPointLayer()
   offsetX() = 0d
   offsetY() = 0d
 
@@ -113,7 +115,7 @@ object EjeBuilder extends JFXApp{
   }
 
 
-  new ObservableListDelegate(Array(geoNodeLayer,ejeLayer).map(_.nodes),panelMapa.children)
+  new ObservableListDelegate(Array(geoNodeLayer,ejeLayer,projectionLayer).map(_.nodes),panelMapa.children)
 
 
 
@@ -188,6 +190,46 @@ object EjeBuilder extends JFXApp{
               println(up)
               elementToImprove = Some(up)
               ej.locateUpgrade(up.elementCanImprove)
+
+              val elementToDraw: Option[ElementPoint] = up.actionImproveEje match {
+                case e: SetPointAt =>
+                  (for{
+                    //FIXME it should inside de link, not a projection
+                    point <- up.elementCanImprove.calcPointFromProjection(e)
+                    eje <- ejeEditableOpt
+                    ep <- eje.elementByPosition(point)
+                  } yield{
+                    ep match {
+                      case Left(_) => None
+                      case Right(x) => Some(x)
+                    }
+                  }).flatten
+
+                case _ => None
+              }
+              projectionLayer.clear()
+
+
+              up.elementCanImprove match {
+                case geoPoint: GeoLinkGraph =>
+                  for{
+                    eje <- ejeEditableOpt
+                  }yield{
+                    val ep = geoPoint.pointsDataCovering.flatMap { x =>
+                      eje.elementByPosition(x) match {
+                        case Some(Right(ep)) => Some(ep)
+                        case _ => None
+                      }
+                    }
+                    ep.foreach{ e =>
+                      projectionLayer.add((e,false))
+                    }
+                  }
+                case _ => ()
+              }
+
+              elementToDraw.foreach(e => projectionLayer.add((e,true)))
+
 
             }
             case None => println("nothing to upgrade")

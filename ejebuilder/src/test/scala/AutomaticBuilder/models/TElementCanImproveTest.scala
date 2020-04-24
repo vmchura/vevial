@@ -29,4 +29,6 @@ class TElementCanImproveTest extends AnyFlatSpec {
     assert(Math.abs(List(observerD,observerR).map(_.elementsAdded().head.distanceNormal).sum) < 1e-6)
     assert(Math.abs(List(observerD,observerR).map(_.elementsAdded().head.distanceOverElement).sum - gd.length) < 1e-6)
   }
+
+
 }

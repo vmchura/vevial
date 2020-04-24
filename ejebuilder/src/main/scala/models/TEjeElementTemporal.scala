@@ -100,62 +100,6 @@ trait TLinkPoint extends TElementCanImprove{
 
 
 
-sealed trait TEjeElementTemporal extends TEjeElement{
-  def ejeSection: TLinkPoint
-  def projectionOverElement(point: TPoint): Option[TProjection]
-  def pointFromProjection(tprojection: TProjection): Option[Point]
-}
-
-case class FaintTemporal(from: TPoint, end: TPoint, ejeSection: TLinkPoint) extends TFaintElement with TEjeElementTemporal {
-  override def projectionOverElement(point: TPoint): Option[TProjection] = None
-
-  override def pointFromProjection(tprojection: TProjection): Option[Point] = None
-}
-case class RectTemporal(originPoint: TPoint, endPoint: TPoint, ejeSection: TLinkPoint) extends TRectSegment with TEjeElementTemporal {
-  override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
-    val lengthOverElement = lengthToPoint(ep)
-    val normalToPoint = ep.toSource.map{ pv =>
-      (in.direction x pv.direction ).z.sign*pv.magnitude
-    }.getOrElse(0d)
-
-    ProjectionOverElement(lengthOverElement,normalToPoint)
-  }
-
-  override def pointFromProjection(tprojection: TProjection): Option[Point] = {
-   if(tprojection.distanceOverElement < 0 || tprojection.distanceOverElement > length){
-     None
-   }else{
-     val p = in.point + in.direction*(tprojection.distanceOverElement)
-     Some(p + (in.direction <¬ (if(tprojection.distanceNormal>0) 1 else 3))*(tprojection.distanceNormal))
-   }
-
-  }
-}
-case class CircleTemporal(originPoint: TPoint, centerPoint: TPoint, endPoint: TPoint, antiClockWise: Boolean, ejeSection: TLinkPoint) extends TCircleSegment with TEjeElementTemporal {
-  override def projectionOverElement(point: TPoint): Option[TProjection] = projectPoint(point).map{ ep =>
-    val lengthOverElement = lengthToPoint(ep)
-    val normalToPoint = ep.toSource.map{ pv =>
-      val v = (ep.point - centerPoint).direction <¬ (if(antiClockWise) 1 else 3)
-      (v x pv.direction ).z.sign*pv.magnitude
-
-    }.getOrElse(0d)
-
-    ProjectionOverElement(lengthOverElement,normalToPoint)
-  }
-
-  override def pointFromProjection(tprojection: TProjection): Option[Point] = {
-    if(tprojection.distanceOverElement < 0 || tprojection.distanceOverElement > length){
-      None
-    }else{
-      val v = in.point - centerPoint
-      val alpha = tprojection.distanceOverElement/radius
-      val p = v << (alpha * (if(antiClockWise) 1 else -1))
-      Some((centerPoint + p) + (p.direction*(tprojection.distanceNormal)))
-    }
-
-  }
-}
-
 trait TLinkUpdater{
   def removeElements: Seq[TEjeElement] => Unit
   def addElements: Seq[TEjeElement] => Unit
@@ -172,9 +116,8 @@ trait TLinkUpdater{
     val linksToAdd = newLinkBegin.untilTarget(newLinkEnd)
     val elementsToAdd = linksToAdd.flatMap(_.elements)
 
-    addLinks(linksToAdd)
     addElements(elementsToAdd)
-
+    addLinks(linksToAdd)
 
     oldLinkBegin.prev match {
       case Some(prev) =>

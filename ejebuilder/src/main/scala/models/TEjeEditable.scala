@@ -43,7 +43,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
   def clear(): Unit
 
 
-  def elementByPosition(point: Point): Option[Either[GeoNode,ElementPoint]] = {
+  def elementByPosition(point: TPoint): Option[Either[GeoNode,ElementPoint]] = {
     mutableEje.endPointsClosest(point) match {
       case Some(ElementPoint(a:GeoNode,_,_))  => Some(Left(a))
       case _ => mutableEje.projectPoint(point).map(ep => Right(ep))
@@ -89,12 +89,14 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
 
 
         updateSegment(section,section,left,right)
+        geoNodeAdded(newGeoNode)
         val leftNth = left.prevNth(5)
         val rightNth = right.nextNth(5)
         val nodes = leftNth.nodesUntilTarget(rightNth).map(_.asInstanceOf[GeoNode])
         val link = buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
 
         updateSegment(leftNth,rightNth,link.head,link.last)
+
         newGeoNode
       case _ => throw new IllegalArgumentException("NOT A GEO LINK?")
     }

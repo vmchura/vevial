@@ -19,9 +19,9 @@ object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
 
       elementsObserved.foreach{ e =>
         val i = binIndx(e.distanceOverElement)
-        (Math.max(0,i-0) to (Math.min(numBins-1,i+0))).foreach{ j =>
-          val d = Math.max(1,Math.abs(j-i))
-          bins(j) += (e.distanceNormal*e.distanceNormal*e.distanceNormal.sign)/d
+        (Math.max(0,i-10) to (Math.min(numBins-1,i+10))).foreach{ j =>
+          //val d = Math.max(2,Math.abs(j-i))
+          bins(j) += (e.distanceNormal*e.distanceNormal*e.distanceNormal.sign)//d
           count(j) += 1
         }
       }
