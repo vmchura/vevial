@@ -1,44 +1,58 @@
 package AutomaticBuilder.models
 
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
+
+import scala.collection.mutable.ListBuffer
+
 object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
   override final def deliberateAnAction(observer: TObserver): ActionImproveEje = {
     val elementsObserved = observer.elementsAdded()
     if(elementsObserved.isEmpty){
       NoAction
     }else{
-      val numBins = 100
-      val bins = (0 until numBins).map(_ => 0d).toArray
-      val count = (0 until numBins).map(_ => 0).toArray
-      val w: Double = observer.elementObserved.length/numBins
-
-      def binIndx(lengthOverElement: Double): Int = {
-        val groupsLeft = (lengthOverElement/w).toInt
-        val i = groupsLeft
-        Math.min(numBins-1,Math.max(0, i))
+      val elementToUpdate = observer.elementObserved
+      val binX = elementsObserved.length match {
+        case i if i <10 => 2
+        case i if i < 20 => 5
+        case _ => 10
+      }
+      val binY = binX*2
+      val wx = elementToUpdate.length/binX
+      val wy = elementsObserved.map(_.distanceNormal.abs).max/(binY/2)
+      def indxX(x: Double): Int = {
+        (x/wx).toInt
       }
 
-      elementsObserved.foreach{ e =>
-        val i = binIndx(e.distanceOverElement)
-        (Math.max(0,i-10) to (Math.min(numBins-1,i+10))).foreach{ j =>
-          //val d = Math.max(2,Math.abs(j-i))
-          bins(j) += (e.distanceNormal*e.distanceNormal*e.distanceNormal.sign)//d
-          count(j) += 1
+      def indxY(y: Double): Int = {
+        binX + (y.abs/wy).toInt
+      }
+
+      val grid = Array.fill(binX+1,binY+1)(ListBuffer.empty[TProjection])
+      elementsObserved.foreach{ projection =>
+        val i = indxX(projection.distanceOverElement)
+        val j = indxY(projection.distanceNormal)
+        grid(i)(j).append(projection)
+
+      }
+      val gOpt = grid.flatten.filter(_.length>1).minByOption{ h =>
+        val m = h.length
+        h.map(_.distanceOverElement).sum/m
+      }
+      gOpt.map{ g =>
+        val n = g.length
+        val xProm = g.map(_.distanceOverElement).sum/n
+        val yProm = g.map(_.distanceNormal).sum/n
+        if(yProm.abs < 5)
+          NoAction
+        else{
+          SetPointAt(xProm,yProm)
         }
-      }
-
-      bins.indices.foreach(i => if(count(i)> 0) bins(i) /= count(i))
-
-      val indexMax = bins.zipWithIndex.maxBy(_._1.abs)._2
+      }.getOrElse(NoAction)
 
 
-      val res = SetPointAt(indexMax*w+w/2d,Math.sqrt(bins(indexMax).abs)*bins(indexMax).sign)
-/*
-      println(elementsObserved.mkString(", "))
-      println(bins.map(s => f"$s%.1f").mkString(" ,  "))
-      println(res)
 
- */
-      res
+
+
     }
 
   }
