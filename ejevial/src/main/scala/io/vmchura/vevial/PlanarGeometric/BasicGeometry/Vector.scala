@@ -89,7 +89,7 @@ object TDirection {
 
   def apply(): TDirection = AnyDirection()
 
-  private case class AnyDirection() extends TDirection {
+  case class AnyDirection private () extends TDirection {
     override val direction: TDirection = this
     override val magnitude: Double = 0
     override val dx: Double = 0
@@ -117,7 +117,7 @@ object TDirection {
     * @param dx: x component
     * @param dy: y component
     */
-  private case class Direction(dx: Double, dy: Double) extends TDirection{
+  case class Direction private (dx: Double, dy: Double) extends TDirection{
 
     override val direction: Direction = this
     override val magnitude: Double = 1.0

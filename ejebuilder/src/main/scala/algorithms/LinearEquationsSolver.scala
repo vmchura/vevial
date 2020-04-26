@@ -137,22 +137,32 @@ object LinearEquationsSolver {
   }
 
   def calcDirections(a: TPoint, b: TPoint, c: TPoint): (TDirection,TDirection,TDirection) = {
-    buildCircleSegment(a,b,c) match {
-      case Some(circ) => {
-        def calcDir(x: TPoint): TDirection = {
-          val v = (x-circ.centerPoint).direction
-          if(circ.antiClockWise)
-            v <¬ 1
-          else
-            v <¬ 3
-        }
-        (calcDir(a),calcDir(b),calcDir(c))
-      }
-      case None => {
-        val d = (c-a).direction
-        (d,d,d)
-      }
+    val d0 = !(b-a)
+    val d1 = !(c-b)
 
+    val mind = Math.min(d0,d1)
+    val maxd = Math.max(d0,d1)
+    if(mind*2 < maxd){
+      (TDirection(),TDirection(),TDirection())
+    }else{
+      buildCircleSegment(a,b,c) match {
+        case Some(circ) => {
+          def calcDir(x: TPoint): TDirection = {
+            val v = (x-circ.centerPoint).direction
+            if(circ.antiClockWise)
+              v <¬ 1
+            else
+              v <¬ 3
+          }
+          (calcDir(a),calcDir(b),calcDir(c))
+        }
+        case None => {
+          val d = (c-a).direction
+          (d,d,d)
+        }
+
+      }
     }
+
   }
 }

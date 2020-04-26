@@ -33,8 +33,8 @@ class MutableEje(val elements: List[TEjeElement]) extends  TSeqEjeElementsBase {
 
 
   private val (blockX,blockY) = {
-    val bx = new ELementBlocksContainer(leftmostPoint.x,rightmostPoint.x,distanceToFindProjection,_.x)
-    val by = new ELementBlocksContainer(lowerPoint.y,upperPoint.y,distanceToFindProjection,_.y)
+    val bx = new ELementBlocksContainer(leftmostPoint.x,rightmostPoint.x,12,_.x)
+    val by = new ELementBlocksContainer(lowerPoint.y,upperPoint.y,12,_.y)
 
 
 

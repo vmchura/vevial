@@ -12,11 +12,11 @@ object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
     }else{
       val elementToUpdate = observer.elementObserved
       val binX = elementsObserved.length match {
-        case i if i <10 => 2
-        case i if i < 20 => 5
-        case _ => 10
+        case i if i <10 => 4
+        case i if i < 20 => 10
+        case _ => 20
       }
-      val binY = binX*2
+      val binY = binX/2
       val wx = elementToUpdate.length/binX
       val wy = elementsObserved.map(_.distanceNormal.abs).max/(binY/2)
       def indxX(x: Double): Int = {
@@ -24,7 +24,7 @@ object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
       }
 
       def indxY(y: Double): Int = {
-        binX + (y.abs/wy).toInt
+        binY/2 + (y.abs/wy).toInt
       }
 
       val grid = Array.fill(binX+1,binY+1)(ListBuffer.empty[TProjection])
@@ -34,19 +34,25 @@ object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
         grid(i)(j).append(projection)
 
       }
-      val gOpt = grid.flatten.filter(_.length>1).minByOption{ h =>
+      val gOpt = grid.flatten.filter(_.length>1).sortBy{ h =>
         val m = h.length
         h.map(_.distanceOverElement).sum/m
+      }.find{
+        h =>
+          val m = h.length
+          val yprom = h.map(_.distanceNormal).sum/m
+          if(m >4)
+            yprom.abs > 1
+          else
+            yprom.abs > 4
       }
       gOpt.map{ g =>
         val n = g.length
         val xProm = g.map(_.distanceOverElement).sum/n
         val yProm = g.map(_.distanceNormal).sum/n
-        if(yProm.abs < 5)
-          NoAction
-        else{
-          SetPointAt(xProm,yProm)
-        }
+
+        SetPointAt(xProm,yProm)
+
       }.getOrElse(NoAction)
 
 

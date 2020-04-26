@@ -16,7 +16,7 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, TEjeElementTemporal}
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
@@ -187,7 +187,7 @@ object EjeBuilder extends JFXApp{
         ejeEditableOpt.foreach(ej => {
           ej.popNextUpgrade() match {
             case Some(up) => {
-              println(up)
+
               elementToImprove = Some(up)
               ej.locateUpgrade(up.elementCanImprove)
 
@@ -207,9 +207,10 @@ object EjeBuilder extends JFXApp{
 
                 case _ => None
               }
+
+
+/*
               projectionLayer.clear()
-
-
               up.elementCanImprove match {
                 case geoPoint: GeoLinkGraph =>
                   for{
@@ -227,7 +228,7 @@ object EjeBuilder extends JFXApp{
                   }
                 case _ => ()
               }
-
+*/
               elementToDraw.foreach(e => projectionLayer.add((e,true)))
 
 
@@ -286,7 +287,38 @@ object EjeBuilder extends JFXApp{
     ejeEditableOpt.foreach(lp => {
       lp.elementByPosition(point) match {
 
-        case Some(Right(ejeElement)) => stage.scene.value.cursor = Cursor.Crosshair
+        case Some(Right(ejeElement)) => {
+
+
+              ejeElement.ejeElementOwner match {
+                case temporal: TEjeElementTemporal =>
+
+
+                  temporal.ejeSection match {
+                    case geoPoint: GeoLinkGraph =>
+                      projectionLayer.clear()
+
+                      for{
+                        eje <- ejeEditableOpt
+                      }yield{
+                        val ep = geoPoint.pointsDataCovering.flatMap { x =>
+                          eje.elementByPosition(x) match {
+                            case Some(Right(ep)) => Some(ep)
+                            case _ => None
+                          }
+                        }
+                        ep.foreach{ e =>
+                          projectionLayer.add((e,false))
+                        }
+                      }
+                    case _ => (println("section no geolinkgraph"))
+                  }
+                case z => println(s"NOT temporal $z")
+              }
+
+
+          stage.scene.value.cursor = Cursor.Crosshair
+        }
         case Some(Left(node)) =>  stage.scene.value.cursor = Cursor.OpenHand
         case None => stage.scene.value.cursor = Cursor.Move
       }

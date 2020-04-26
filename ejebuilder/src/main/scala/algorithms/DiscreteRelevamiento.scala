@@ -24,7 +24,8 @@ object DiscreteRelevamiento {
 
     implicit val extractorX: PointWithUsing => Double = _.x
     implicit val extractorY: PointWithUsing => Double = _.y
-    val RADIUS: Double = 15d
+    val RADIUS: Double = 40d
+    val MAX_D: Double = Math.sqrt(6d*6d+10d*10d)
     val (fX,fY) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
       SubsequenceFinder.find[PointWithUsing](RADIUS,RADIUS)(orderedList) (d) (e)} match {
       case first :: second :: Nil => (first,second)
@@ -46,7 +47,9 @@ object DiscreteRelevamiento {
         val closeByX = pointsSortedByX.slice(xIni,xEnd+1)
         val closeByY = pointsSortedByY.slice(yIni,yEnd+1)
 
-        val elementsAround = closeByX intersect closeByY
+        val elementsAround = (closeByX intersect closeByY).filter(p => (!(p-point) < MAX_D)).sortBy(p => !(p-point)).take(4)
+
+
         val n = elementsAround.length
         val xMedia = elementsAround.map(_.x).sum
         val yMedia = elementsAround.map(_.y).sum
@@ -65,7 +68,7 @@ object DiscreteRelevamiento {
         val closeByX = pointsSortedByX.slice(xIni,xEnd+1).filter(!_.used)
         val closeByY = pointsSortedByY.slice(yIni,yEnd+1).filter(!_.used)
 
-        (closeByX intersect closeByY).toList
+        (closeByX intersect closeByY).toList.filter(p => (!(p-point) < MAX_D)).sortBy(q => !(q-point))
 
 
       }).getOrElse(Nil)
@@ -87,7 +90,8 @@ object DiscreteRelevamiento {
     val edges = ListBuffer.empty[Edge[GeoNode]]
 
     val dfsAlgo = new DFS[GeoNode](_ => (),geoNode => {
-      val pAround = pointsFreeAround(geoNode)
+      val pAround = pointsFreeAround(geoNode).take(1)
+
       val neigbours = pAround.flatMap{ p =>
         if(p.used){
           None
@@ -120,6 +124,8 @@ object DiscreteRelevamiento {
       }
       pOpt.map{ point =>
         val (mp,pointsFound) = mediaPoint(point)
+        if(pointsFound.length > 4)
+          throw  new IllegalStateException("it only should be 4")
         val newNode = new GeoNode(mp)
         pointsFound.foreach(_.used = true)
         nodes.append(newNode)

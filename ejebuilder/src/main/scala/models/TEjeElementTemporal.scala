@@ -3,6 +3,7 @@ package models
 import AutomaticBuilder.models.{ProjectionOverElement, TElementCanImprove, TProjection}
 import algorithms.LinearEquationsSolver
 import algorithms.LinearEquationsSolver.{buildCircleSegment, buildCircleTangent}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TDirection.AnyDirection
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point, PointUnitaryVector, TDirection, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement._
 
@@ -167,9 +168,11 @@ trait TLinkManager{
       case i if i<=3 => throw  new IllegalArgumentException("not enough elements")
       case n => (2 until n).foreach{ i =>
         val (da,db,dc) = LinearEquationsSolver.calcDirections(nodes(i-2),nodes(i-1),nodes(i-0))
-        directions(i-2).add(da)
+        if(!da.isInstanceOf[AnyDirection])
+          directions(i-2).add(da)
         directions(i-1).add(db)
-        directions(i-0).add(dc)
+        if(!dc.isInstanceOf[AnyDirection])
+          directions(i-0).add(dc)
       }
 
     }
@@ -222,10 +225,3 @@ trait TLinkManager{
 }
 
 
-
-class DirectionAverage(){
-  val allValues = ListBuffer.empty[PlanarVector]
-  def add(t: TDirection): Unit = allValues += PlanarVector(t.direction,1)
-  def value(): TDirection  = allValues.reduceLeft(_ + _).direction
-
-}
