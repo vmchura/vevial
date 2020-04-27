@@ -1,5 +1,6 @@
 package algorithms
 
+import com.typesafe.scalalogging.Logger
 import io.vmchura.vevial.PlanarGeometric.BasicEje.SubsequenceFinder
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.elementdata.{TElementData, UPoint}
@@ -10,7 +11,10 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object DiscreteRelevamiento {
+  val logger = Logger(this.getClass)
   def convertIntoDiscreteRelevamiento[A <: TSimpleRelevamiento[B],B <: TElementData[B], N <: TGeoNode[N]](relevamientos: Seq[A]): Seq[LinearGraph[GeoNode]] = {
+
+    logger.debug("Starting to build seq linear graph")
 
     class PointWithUsing(point: Point) extends TPoint {
       var used: Boolean = false
@@ -24,20 +28,18 @@ object DiscreteRelevamiento {
 
     implicit val extractorX: PointWithUsing => Double = _.x
     implicit val extractorY: PointWithUsing => Double = _.y
-    val RADIUS: Double = 40d
-    val MAX_D: Double = Math.sqrt(6d*6d+10d*10d)
+    val STEP_SAMPLE: Double = 10d
+    val APROX_WIDTH_ROAD: Double = 6d
+    val MAX_D: Double = Math.sqrt(APROX_WIDTH_ROAD*APROX_WIDTH_ROAD + STEP_SAMPLE*STEP_SAMPLE)
+    val RADIUS: Double = MAX_D
+
     val (fX,fY) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
       SubsequenceFinder.find[PointWithUsing](RADIUS,RADIUS)(orderedList) (d) (e)} match {
       case first :: second :: Nil => (first,second)
       case _ => (null,null)
     }
-    val (fXAround,fYAround) = List((extractorX,pointsSortedByX),(extractorY,pointsSortedByY)).map{case (e,orderedList) => (d: Double) =>
-      SubsequenceFinder.find[PointWithUsing](RADIUS*2,RADIUS*2)(orderedList) (d) (e)} match {
-      case first :: second :: Nil => (first,second)
-      case _ => (null,null)
-    }
 
-    def mediaPoint(point: PointWithUsing): (Point,Seq[PointWithUsing]) = {
+    def mediaPoint(point: TPoint): (Point,Seq[PointWithUsing]) = {
 
       (for{
         (xIni,xEnd) <- fX(point.x)
@@ -47,7 +49,7 @@ object DiscreteRelevamiento {
         val closeByX = pointsSortedByX.slice(xIni,xEnd+1)
         val closeByY = pointsSortedByY.slice(yIni,yEnd+1)
 
-        val elementsAround = (closeByX intersect closeByY).filter(p => (!(p-point) < MAX_D)).sortBy(p => !(p-point)).take(4)
+        val elementsAround = (closeByX intersect closeByY).filter(p => (!(p-point) < MAX_D))
 
 
         val n = elementsAround.length
@@ -60,80 +62,47 @@ object DiscreteRelevamiento {
 
     }
 
-    def pointsFreeAround(point: TPoint): Seq[PointWithUsing] = {
-      (for{
-        (xIni,xEnd) <- fXAround(point.x)
-        (yIni,yEnd) <- fYAround(point.y)
-      }yield {
-        val closeByX = pointsSortedByX.slice(xIni,xEnd+1).filter(!_.used)
-        val closeByY = pointsSortedByY.slice(yIni,yEnd+1).filter(!_.used)
-
-        (closeByX intersect closeByY).toList.filter(p => (!(p-point) < MAX_D)).sortBy(q => !(q-point))
-
-
-      }).getOrElse(Nil)
-    }
-
 
     /**
+      *
+      * CREATE DRAFT NODES
+      *
       * The idea
-      * 1.  Start with any point that are not used
-      * 2.  find the media around that point, and create a node
-      * 3.  mark those points as used
-      * 4.  starting from the media, look for close points not used
-      * 5.  if point found, create a node, and connect to previous node
+      * repeat until all points are used
+      *   1.  Start with any point that are not used
+      *   2.  find the media around that point, and create a node
+      *   3.  mark those points as used.
       */
 
+
     val pointsFree: mutable.Queue[PointWithUsing] = mutable.Queue(points: _*)
-
-    val nodes = ListBuffer.empty[GeoNode]
-    val edges = ListBuffer.empty[Edge[GeoNode]]
-
-    val dfsAlgo = new DFS[GeoNode](_ => (),geoNode => {
-      val pAround = pointsFreeAround(geoNode).take(1)
-
-      val neigbours = pAround.flatMap{ p =>
-        if(p.used){
-          None
-        }else{
-          val (mp,pointsFound) = mediaPoint(p)
-          pointsFound.foreach(_.used = true)
-          Some(new GeoNode(mp))
-        }
-      }
-
-      neigbours.foreach{ n =>
-        edges.append(Edge(geoNode,n))
-      }
-
-      nodes.appendAll(neigbours)
-
-      neigbours
-
-    })
-
+    val nodesFirstDraft = ListBuffer.empty[TPoint]
 
     while(pointsFree.nonEmpty){
-
-      val pOpt = {
-        pointsFree.dequeueWhile(_.used)
-        if(pointsFree.nonEmpty)
-          Some(pointsFree.dequeue())
-        else
-          None
-      }
-      pOpt.map{ point =>
-        val (mp,pointsFound) = mediaPoint(point)
-        if(pointsFound.length > 4)
-          throw  new IllegalStateException("it only should be 4")
-        val newNode = new GeoNode(mp)
+      val q = pointsFree.dequeue()
+      if(!q.used){
+        val (mp,pointsFound) = mediaPoint(q)
         pointsFound.foreach(_.used = true)
-        nodes.append(newNode)
-        dfsAlgo.run(newNode)
+        nodesFirstDraft.append(mp)
       }
     }
 
-    val graph = new Graph(nodes.toList,edges.toSet)
+    logger.debug(s"First nodes draft: ${nodesFirstDraft.length}")
+
+    val nodes = nodesFirstDraft.map{ t =>
+      val (mp,_) = mediaPoint(t)
+      new GeoNode(mp)
+    }.toArray
+
+
+
+    val edges = nodes.zipWithIndex.flatMap{ case(n,i) =>
+      nodes.drop(i).sortBy(m => !(m-n)).headOption.map(m => List(Edge(n,m),Edge(m,n))).getOrElse(Nil)
+    }.toSet
+
+    logger.debug(s"Total Edges: ${edges.size}")
+
+    val graph = new Graph(nodes.toList,edges)
 
     algorithms.BasicTreatment.buildTree(graph).map(_.toLinearGraph())
 

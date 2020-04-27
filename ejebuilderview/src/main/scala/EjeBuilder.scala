@@ -12,6 +12,7 @@ import scalafx.scene.control.{Alert, Button}
 import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
 import UtilTransformers.PointTransformer._
 import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
+import com.typesafe.scalalogging.Logger
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
@@ -27,7 +28,7 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 
 object EjeBuilder extends JFXApp{
-
+  val logger = Logger(this.getClass)
   val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
   val geoNodeLayer = new GeoNodeLayer()
   val ejeLayer = new SimpleEjeVialLayer()
@@ -53,7 +54,9 @@ object EjeBuilder extends JFXApp{
 
     val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
 
+    logger.debug(s"sequence of eje built")
     val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+    logger.debug(s"single linear eje built")
 
     ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer, p => {
       offsetX() = p.x - (800/2.0)*factor()

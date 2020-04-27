@@ -64,8 +64,7 @@ case class TreeGraph[A <: TNode[A]] private (nodes: Seq[A],edges: Set[Edge[A]]) 
         x = x.parent
       }
       reversedNodes.append(x)
-      println(lastV)
-      println(reversedNodes.take(5).mkString(" - "))
+
       LinearGraph(reversedNodes.toList)
     }
 
