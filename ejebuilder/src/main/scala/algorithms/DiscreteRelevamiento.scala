@@ -72,20 +72,25 @@ object DiscreteRelevamiento {
       *   1.  Start with any point that are not used
       *   2.  find the media around that point, and create a node
       *   3.  mark those points as used.
+      *
+      *  after that, get a better nodes and build edges with the closest node
       */
 
 
-    val pointsFree: mutable.Queue[PointWithUsing] = mutable.Queue(points: _*)
-    val nodesFirstDraft = ListBuffer.empty[TPoint]
-
-    while(pointsFree.nonEmpty){
-      val q = pointsFree.dequeue()
+    val nodesFirstDraft = points.flatMap{ q =>
       if(!q.used){
         val (mp,pointsFound) = mediaPoint(q)
         pointsFound.foreach(_.used = true)
-        nodesFirstDraft.append(mp)
+        Some(mp)
+      }else{
+        None
       }
     }
+
+
+    /**
+      * after that, get a better nodes and build edges with the closest node
+      */
 
     logger.debug(s"First nodes draft: ${nodesFirstDraft.length}")
 
