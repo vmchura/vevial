@@ -104,7 +104,6 @@ object EjeBuilder extends JFXApp{
             case _: Throwable => None
           }
         }
-        println("Adding files")
         loadNewFile(relevamientos.toList)
         e.setDropCompleted(true)
         e.consume()
@@ -181,7 +180,6 @@ object EjeBuilder extends JFXApp{
     lastPositionX() = None
     lastPositionY() = None
 
-    println("Mouse released")
   }
   var elementToImprove = Option.empty[ElementActionToImprove]
   panelMapa.onMousePressed = ae => {

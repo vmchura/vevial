@@ -97,12 +97,12 @@ object DiscreteRelevamiento {
     val nodes = nodesFirstDraft.map{ t =>
       val (mp,_) = mediaPoint(t)
       new GeoNode(mp)
-    }.toArray
+    }
 
 
 
     val edges = nodes.zipWithIndex.flatMap{ case(n,i) =>
-      nodes.drop(i).sortBy(m => !(m-n)).headOption.map(m => List(Edge(n,m),Edge(m,n))).getOrElse(Nil)
+      nodes.drop(i).filter(m => (!(m-n)) < 2*MAX_D).sortBy(m => !(m-n)).headOption.map(m => List(Edge(n,m),Edge(m,n))).getOrElse(Nil)
     }.toSet
 
     logger.debug(s"Total Edges: ${edges.size}")

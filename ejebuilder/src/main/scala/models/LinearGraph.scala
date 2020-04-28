@@ -40,17 +40,27 @@ object LinearGraph {
 
       val minDistance = Seq(ii,ie,ei,ee).min
 
-      val (original,added) = minDistance match {
-        case u if u == ii => (x0, x0.reverse() ++ head)
-        case u if u == ie => (x1, x1 ++ head)
-        case u if u == ei => (x2, head ++ x2)
-        case u if u == ee => (x3, head ++ x3.reverse())
-        case _ => throw new IllegalArgumentException("value is not present in the array?")
-      }
+      if(minDistance < 1000) {
 
-      lb.remove(lb.indexWhere( _ == original))
-      lb.remove(lb.indexWhere( _ == head))
-      lb.append(added)
+        val (original, added) = minDistance match {
+          case u if u == ii => (x0, x0.reverse() ++ head)
+          case u if u == ie => (x1, x1 ++ head)
+          case u if u == ei => (x2, head ++ x2)
+          case u if u == ee => (x3, head ++ x3.reverse())
+          case _ => throw new IllegalArgumentException("value is not present in the array?")
+        }
+
+        lb.remove(lb.indexWhere(_ == original))
+        lb.remove(lb.indexWhere(_ == head))
+        lb.append(added)
+      }else{
+        lb.remove(lb.indexWhere(_ == head))
+        if(head.nodes.length > 100){
+          lb.append(head)
+        }else{
+          println(head.nodes.map(_.center).mkString(" , "))
+        }
+      }
 
     }
 
