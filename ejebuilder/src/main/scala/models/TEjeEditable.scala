@@ -6,13 +6,25 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVecto
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement}
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImproving{
   protected val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def geoNodeAdded(geoNode: GeoNode): Unit
-  def geoNodeRemoved(geoNode: GeoNode): Unit
+  private val currentGeoNodes: mutable.Set[GeoNode] = mutable.Set.empty[GeoNode]
+  def geoNodesPresent: List[GeoNode] = currentGeoNodes.toList
+
+  protected def geoNodeAdded(geoNode: GeoNode): Unit
+  final def addGeoNode(geoNode: GeoNode): Unit = {
+    currentGeoNodes += geoNode
+    geoNodeAdded(geoNode)
+  }
+  protected def geoNodeRemoved(geoNode: GeoNode): Unit
+  final def removeGeoNode(geoNode: GeoNode): Unit = {
+    currentGeoNodes -= geoNode
+    geoNodeRemoved(geoNode)
+  }
   def elementAdded(e: TEjeElement): Unit
   def elementRemoved(e: TEjeElement): Unit
   protected val (elementsToObserve,linksToObserve) = initialElementsGenerated
@@ -89,7 +101,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
 
 
         updateSegment(section,section,left,right)
-        geoNodeAdded(newGeoNode)
+        addGeoNode(newGeoNode)
         val leftNth = left.prevNth(5)
         val rightNth = right.nextNth(5)
         val nodes = leftNth.nodesUntilTarget(rightNth).map(_.asInstanceOf[GeoNode])
@@ -101,6 +113,55 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
       case _ => throw new IllegalArgumentException("NOT A GEO LINK?")
     }
 
+
+  }
+  def dropNode(geoNode: GeoNode): Unit = {
+    logger.debug(s"Dropping node: $geoNode")
+    geoNodeLinkMap.get(geoNode) match {
+      case Some(section) =>
+        val in = section.in.point
+        val out = section.out.point
+        val prev = section.prev
+        val next = section.next
+        val (xOpt, yOpt) = if (in == geoNode) {
+          (prev, Some(section))
+        } else {
+          if (out == geoNode) {
+            (Some(section), next)
+          } else {
+            throw new IllegalArgumentException("Is not a correct END POINT")
+          }
+        }
+
+        removeGeoNode(geoNode)
+
+        (xOpt,yOpt) match {
+          case (Some(x),Some(y)) =>
+            val ln = new GeoLinkGraph(x.in,y.out)
+            (x.in.point,y.out.point) match {
+              case (a: GeoNode, b: GeoNode) =>
+                addGeoNodeLinkRelation(a,ln)
+                addGeoNodeLinkRelation(b,ln)
+              case _ => throw new IllegalStateException("not geoNode")
+            }
+
+            updateSegment(x,y,ln,ln)
+
+          case (Some(x),None) =>
+
+            dropSegment(x,x)
+
+
+          case (None,Some(y)) =>
+
+            dropSegment(y,y)
+          case _ => throw new IllegalArgumentException("Nor prev nor next")
+        }
+
+
+
+      case None => throw  new IllegalStateException("GEO NODE NOT REGISTERED")
+    }
 
   }
 
@@ -152,8 +213,8 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
 
     }
 
-    geoNodeAdded(newGeoNode)
-    geoNodeRemoved(geoNode)
+    addGeoNode(newGeoNode)
+    removeGeoNode(geoNode)
 
 
   }

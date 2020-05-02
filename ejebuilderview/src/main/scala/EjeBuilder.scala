@@ -1,4 +1,4 @@
-import AutomaticBuilder.models.{ElementActionToImprove, SetPointAt}
+import AutomaticBuilder.models.{ElementActionToImprove, SetPointAt, SimpleAgentEjeEvaluator}
 import scalafx.Includes._
 import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
@@ -17,11 +17,12 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, TEjeElementTemporal}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, ObserverImpl, TEjeElementTemporal}
 import scalafx.beans.property.ObjectProperty
+import scalafx.event.ActionEvent
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.input.TransferMode
+import scalafx.scene.input.{MouseEvent, TransferMode}
 import scalafx.scene.paint.Color
 
 import scala.jdk.CollectionConverters._
@@ -128,7 +129,7 @@ object EjeBuilder extends JFXApp{
   iniY <== convertYView2Real(panelMapa.height)
   object MovingState extends Enumeration {
     type MovingState = Value
-    val DragginMap, DragginNode, NotMoving = Value
+    val DragginMap, DragginNode,SelectionSquare, NotMoving = Value
   }
   import MovingState._
 
@@ -136,6 +137,10 @@ object EjeBuilder extends JFXApp{
   var nodeMoving = Option.empty[GeoNode]
   val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
   val lastPositionY = new ObjectProperty[Option[Double]](this,"lastPositionY",None)
+
+  var startSquare = Option.empty[Point]
+  var endSquare = Option.empty[Point]
+
   panelMapa.onMouseDragged = ae => {
 
     if(movingState == DragginMap) {
@@ -156,24 +161,66 @@ object EjeBuilder extends JFXApp{
     }else{
       if(movingState == DragginNode){
 
+      }else{
+        if(movingState == SelectionSquare){
+
+        }else{
+
+        }
       }
     }
 
   }
 
+  def getPointFromActionEvent(ae: MouseEvent): Point = {
+    val px = PointTransformer.convertXView2Real(ae.getX)
+    val py = PointTransformer.convertYView2Real(ae.getY)
+    Point(px,py)
+  }
+
   panelMapa.onMouseReleased = ae => {
 
+    logger.debug(s"MOUSE RELEASED: state: $movingState")
     if(movingState == DragginNode){
       for{
         node <- nodeMoving
         lg <- ejeEditableOpt
       }yield{
-        val px = PointTransformer.convertXView2Real(ae.getX)
-        val py = PointTransformer.convertYView2Real(ae.getY)
-        val point = Point(px,py)
+
+        val point = getPointFromActionEvent(ae)
         lg.moveGeoNodeTo(node,point)
       }
+    }else{
+      if(movingState == SelectionSquare){
+        endSquare = Some(getPointFromActionEvent(ae))
+        for{
+          start <- startSquare
+          end <- endSquare
+          eje <- ejeEditableOpt
+        }yield {
+          logger.debug(s"start: $start - $end")
+
+          val minX = Math.min(start.x,end.x)
+          val maxX = Math.max(start.x,end.x)
+
+          val minY = Math.min(start.y,end.y)
+          val maxY = Math.max(start.y,end.y)
+
+          logger.debug(f"[$minX%.0f.$maxX%.0f] - [$minY%.0f.$maxY%.0f]")
+          logger.debug(s"Length presents: ${eje.geoNodesPresent.length}")
+          eje.geoNodesPresent.filter{ p =>
+            minX <= p.x && p.x <= maxX &&
+            minY <= p.y && p.y <= maxY
+          }.foreach(eje.dropNode)
+
+
+
+        }
+      }
     }
+
+    startSquare = None
+    endSquare = None
 
     stage.scene().cursor = Cursor.Move
     movingState = NotMoving
@@ -184,6 +231,7 @@ object EjeBuilder extends JFXApp{
   var elementToImprove = Option.empty[ElementActionToImprove]
   panelMapa.onMousePressed = ae => {
     if(ae.isSecondaryButtonDown){
+      /*
       if(elementToImprove.isEmpty){
         ejeEditableOpt.foreach(ej => {
           ej.popNextUpgrade() match {
@@ -209,27 +257,6 @@ object EjeBuilder extends JFXApp{
                 case _ => None
               }
 
-
-/*
-              projectionLayer.clear()
-              up.elementCanImprove match {
-                case geoPoint: GeoLinkGraph =>
-                  for{
-                    eje <- ejeEditableOpt
-                  }yield{
-                    val ep = geoPoint.pointsDataCovering.flatMap { x =>
-                      eje.elementByPosition(x) match {
-                        case Some(Right(ep)) => Some(ep)
-                        case _ => None
-                      }
-                    }
-                    ep.foreach{ e =>
-                      projectionLayer.add((e,false))
-                    }
-                  }
-                case _ => ()
-              }
-*/
               elementToDraw.foreach(e => projectionLayer.add((e,true)))
 
 
@@ -249,81 +276,105 @@ object EjeBuilder extends JFXApp{
         elementToImprove = None
       }
 
-    }else{
+       */
+      val point = getPointFromActionEvent(ae)
+      ejeEditableOpt.foreach(lp => {
+        lp.elementByPosition(point) match {
 
-      val px = PointTransformer.convertXView2Real(ae.getX)
-      val py = PointTransformer.convertYView2Real(ae.getY)
-      val point = Point(px,py)
-      val newMovingState = for{
-        lg <- ejeEditableOpt
-        res <- lg.elementByPosition(point)
-      }yield{
-        res match {
-          case Right(ep) =>{
-            val node = lg.createInnerNode(ep)
-            stage.scene().cursor = Cursor.ClosedHand
-            nodeMoving = Some(node)
-            DragginNode
+          case Some(Right(ejeElement)) => {
+
+
+            ejeElement.ejeElementOwner match {
+              case temporal: TEjeElementTemporal =>
+
+
+
+                temporal.ejeSection match {
+                  case geoPoint: GeoLinkGraph =>
+
+                    projectionLayer.clear()
+
+                    for {
+                      eje <- ejeEditableOpt
+                    } yield {
+                      val ep = geoPoint.pointsDataCovering.flatMap { x =>
+                        eje.elementByPosition(x) match {
+                          case Some(Right(ep)) => Some(ep)
+                          case _ => None
+                        }
+                      }
+                      ep.foreach { e =>
+                        projectionLayer.add((e, false))
+                      }
+
+                      val observer = new ObserverImpl(geoPoint)
+                      geoPoint.pointsDataCovering.foreach(observer.addProjection)
+                      val eat = ElementActionToImprove(geoPoint,SimpleAgentEjeEvaluator.deliberateAnAction(observer))
+                      logger.debug(s"eat: $eat")
+                      eje.applyUpgrade(eat)
+                    }
+                  case _ => (println("section no geolinkgraph"))
+                }
+              case z => println(s"NOT temporal $z")
+            }
+
+
+            stage.scene.value.cursor = Cursor.Crosshair
           }
-          case Left(node) => {
-            stage.scene().cursor = Cursor.ClosedHand
-            nodeMoving = Some(node)
-            DragginNode
+          case Some(Left(node)) => stage.scene.value.cursor = Cursor.OpenHand
+          case None => stage.scene.value.cursor = Cursor.Move
+        }
+      })
+
+    }else{
+      if(ae.isMiddleButtonDown){
+
+        val px = PointTransformer.convertXView2Real(ae.getX)
+        val py = PointTransformer.convertYView2Real(ae.getY)
+        val point = Point(px,py)
+        val newMovingState = for{
+          lg <- ejeEditableOpt
+          res <- lg.elementByPosition(point)
+        }yield{
+          res match {
+            case Right(ep) =>{
+              val node = lg.createInnerNode(ep)
+              stage.scene().cursor = Cursor.ClosedHand
+              nodeMoving = Some(node)
+              DragginNode
+            }
+            case Left(node) => {
+              stage.scene().cursor = Cursor.ClosedHand
+              nodeMoving = Some(node)
+              DragginNode
+            }
           }
         }
+        newMovingState match {
+          case Some(ms) => movingState = ms
+          case None => movingState = DragginMap
+        }
+      }else{
+
+        if(ae.isPrimaryButtonDown){
+          startSquare = Some(getPointFromActionEvent(ae))
+          movingState = SelectionSquare
+          logger.debug(s"START: $startSquare")
+        }else{
+
+        }
       }
-      newMovingState match {
-        case Some(ms) => movingState = ms
-        case None => movingState = DragginMap
-      }
+
+
     }
 
 
   }
 
   panelMapa.onMouseMoved = ae => {
-    val px = PointTransformer.convertXView2Real(ae.getX)
-    val py = PointTransformer.convertYView2Real(ae.getY)
-    val point = Point(px,py)
-    ejeEditableOpt.foreach(lp => {
-      lp.elementByPosition(point) match {
 
-        case Some(Right(ejeElement)) => {
-
-
-              ejeElement.ejeElementOwner match {
-                case temporal: TEjeElementTemporal =>
-
-
-                  temporal.ejeSection match {
-                    case geoPoint: GeoLinkGraph =>
-                      projectionLayer.clear()
-
-                      for{
-                        eje <- ejeEditableOpt
-                      }yield{
-                        val ep = geoPoint.pointsDataCovering.flatMap { x =>
-                          eje.elementByPosition(x) match {
-                            case Some(Right(ep)) => Some(ep)
-                            case _ => None
-                          }
-                        }
-                        ep.foreach{ e =>
-                          projectionLayer.add((e,false))
-                        }
-                      }
-                    case _ => (println("section no geolinkgraph"))
-                  }
-                case z => println(s"NOT temporal $z")
-              }
-
-
-          stage.scene.value.cursor = Cursor.Crosshair
-        }
-        case Some(Left(node)) =>  stage.scene.value.cursor = Cursor.OpenHand
-        case None => stage.scene.value.cursor = Cursor.Move
-      }
-    })
+    if(movingState == NotMoving) {
+    }
   }
 
 

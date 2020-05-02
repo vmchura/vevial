@@ -138,6 +138,23 @@ trait TLinkUpdater{
 
 
   }
+  final def dropSegment[A <: TPoint](oldLinkBegin: TLinkPoint, oldLinkEnd: TLinkPoint): Unit = {
+    val linksToDrop = oldLinkBegin.untilTarget(oldLinkEnd)
+    val elementsToDrop = linksToDrop.flatMap(_.elements)
+
+    removeLinks(linksToDrop)
+    removeElements(elementsToDrop)
+
+    oldLinkBegin.prev.foreach{ prev =>
+      prev.next = oldLinkEnd.next
+    }
+
+    oldLinkEnd.next.foreach{ next =>
+      next.prev = oldLinkBegin.prev
+
+    }
+
+  }
 }
 
 

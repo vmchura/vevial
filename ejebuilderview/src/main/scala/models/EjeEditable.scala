@@ -26,7 +26,7 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
   }
 
   addElements(elementsToObserve)
-  initialGraph.nodes.foreach(geoNodeAdded)
+  initialGraph.nodes.foreach(addGeoNode)
 
   /**
     * changes the state previous to the next upgrade
@@ -40,4 +40,5 @@ case class EjeEditable(initialGraph: LinearGraph[GeoNode],
     }
 
   }
+
 }
