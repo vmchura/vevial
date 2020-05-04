@@ -51,4 +51,6 @@ class GeoLinkGraph(val in: PointUnitaryVector,val out: PointUnitaryVector,
 
   }
 
+  override def toString: String = s"Link($in,$out)"
+
 }

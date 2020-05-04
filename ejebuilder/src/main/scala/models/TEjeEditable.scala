@@ -27,8 +27,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
   }
   def elementAdded(e: TEjeElement): Unit
   def elementRemoved(e: TEjeElement): Unit
-  protected val (elementsToObserve,linksToObserve) = initialElementsGenerated
-  private val mutableEje = new MutableEje(elementsToObserve)
+  private val mutableEje = new MutableEje(initialEjeElements)
   logger.info(s"Num elements on mutable eje: ${mutableEje.elements.length}")
 
   val linksEnabled = scala.collection.mutable.Set.empty[TElementCanImprove]
@@ -36,7 +35,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
   private val pointsDataFree = ListBuffer.empty[TPoint]
   final def setInitialPointsFree(freePoints: IterableOnce[TPoint]): Unit = {
     pointsDataFree ++= freePoints
-    addLinks(linksToObserve)
+    addLinks(initialLinks)
   }
 
 
@@ -105,7 +104,11 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
         val leftNth = left.prevNth(5)
         val rightNth = right.nextNth(5)
         val nodes = leftNth.nodesUntilTarget(rightNth).map(_.asInstanceOf[GeoNode])
-        val link = buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
+        val link = TLinkManager.buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
+        link.foreach(link => {
+          addGeoNodeLinkRelation(link.in.point,link)
+          addGeoNodeLinkRelation(link.out.point,link)
+        })
 
         updateSegment(leftNth,rightNth,link.head,link.last)
 
@@ -205,7 +208,12 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
         val rightNth = toStart.nextNth(5)
         val nodes = leftNth.nodesUntilTarget(rightNth).map(_.asInstanceOf[GeoNode])
 
-        val link = buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
+        val link = TLinkManager.buildLink(nodes.toArray,Some(leftNth.in.direction),Some(rightNth.out.direction))
+
+        link.foreach(link => {
+          addGeoNodeLinkRelation(link.in.point,link)
+          addGeoNodeLinkRelation(link.out.point,link)
+        })
 
         updateSegment(leftNth,rightNth,link.head,link.last)
 
@@ -291,4 +299,7 @@ trait TEjeEditable extends TLinkManager with TLinkUpdater  with TIterativeImprov
 
 
 
+  def headLink(): Option[TLinkPoint] = {
+    geoNodeLinkMap.find{case (_,lg) => isElementValid(lg)}.map(_._2.firstDefined())
+  }
 }

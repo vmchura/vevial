@@ -1,3 +1,5 @@
+import java.io.File
+
 import AutomaticBuilder.models.{ElementActionToImprove, SetPointAt, SimpleAgentEjeEvaluator}
 import scalafx.Includes._
 import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
@@ -13,11 +15,12 @@ import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii
 import UtilTransformers.PointTransformer._
 import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
 import com.typesafe.scalalogging.Logger
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
+import io.DraftManager
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, ObserverImpl, TEjeElementTemporal}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, ObserverImpl, TEjeElementTemporal, TLinkPoint}
 import scalafx.beans.property.ObjectProperty
 import scalafx.event.ActionEvent
 import scalafx.geometry.Insets
@@ -27,10 +30,12 @@ import scalafx.scene.paint.Color
 
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
+import scala.xml.{Elem, XML}
 
 object EjeBuilder extends JFXApp{
   val logger = Logger(this.getClass)
   val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
+  val filedAdded = ListBuffer.empty[java.io.File]
   val geoNodeLayer = new GeoNodeLayer()
   val ejeLayer = new SimpleEjeVialLayer()
   val projectionLayer = new ProjectionPointLayer()
@@ -42,36 +47,45 @@ object EjeBuilder extends JFXApp{
 
   class LinkSelector
 
-
-  def loadNewFile(relevamientos: Seq[RelevamientoIRI[IRIElementData]]): Unit = {
+  def showNewRelevamiento(relevamientos: Seq[RelevamientoIRI[IRIElementData]]): Unit = {
     relevamientos.foreach{ relevamiento =>
       relevamientosAdded.append(relevamiento)
     }
     val relevamientosSimples = relevamientos.map(x => new SimpleIRIRelevamientoLayer(x))
-
-    ejeEditableOpt.foreach{_.clear()}
-    ejeEditableOpt = None
-
-
-    val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData],IRIElementData,GeoNode](relevamientosAdded.toList)
-
-    logger.debug(s"sequence of eje built")
-    val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
-    logger.debug(s"single linear eje built")
-
-    ejeEditableOpt = Some(EjeEditable(singleLinearEje,geoNodeLayer,ejeLayer, p => {
-      offsetX() = p.x - (800/2.0)*factor()
-      offsetY() = p.y + (640/2.0)*factor()
-    }))
-    ejeEditableOpt.foreach(_.setInitialPointsFree(relevamientos.flatMap(_.elements.flatMap(_.point.map(_.value)))))
-
-    offsetX() = singleLinearEje.nodes.head.center.x
-    offsetY() = singleLinearEje.nodes.head.center.y
-
-
     new ObservableListDelegate(relevamientosSimples.toArray.map(_.nodes),panelMapa.children)
 
   }
+
+  def generateNewEje(dataEntry: Either[List[RelevamientoIRI[IRIElementData]],TLinkPoint]): Option[EjeEditable] = {
+    ejeEditableOpt.foreach{_.clear()}
+    ejeEditableOpt = None
+
+    val commonData: (GeoNodeLayer,SimpleEjeVialLayer,TPoint => Unit) = (geoNodeLayer,ejeLayer, (p: TPoint) => {
+      offsetX() = p.x - (800/2.0)*factor()
+      offsetY() = p.y + (640/2.0)*factor()
+    })
+
+    try {
+      val eje = dataEntry match {
+        case Left(relevamientos) =>
+          val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData], IRIElementData, GeoNode](relevamientos)
+          val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
+          EjeEditable(singleLinearEje)(commonData._1, commonData._2, commonData._3)
+        case Right(head) =>
+          val links = head.untilEnd()
+          EjeEditable(links.flatMap(_.elements), links)(commonData._1, commonData._2, commonData._3)
+
+      }
+      eje.setInitialPointsFree(relevamientosAdded.flatMap(_.elements.flatMap(_.point.map(_.value))))
+      commonData._3(eje.initialEjeElements.head.in.point)
+      Some(eje)
+    }catch {
+      case e: Throwable =>
+        logger.debug(s"No se pudo crear eje: ${e.toString}")
+        None
+    }
+  }
+
 
   //val relevamientoFile = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h50m20s Survey T1 HIZQ.csv")
   //val relevamientoFile2 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h13m18s Survey T1 HDER.csv")
@@ -94,18 +108,48 @@ object EjeBuilder extends JFXApp{
       }
     }
 
+    def filesIntoRelevamientos(files: Seq[File]): Seq[RelevamientoIRI[IRIElementData]] = {
+      files.flatMap { file: File =>
+
+        try {
+          Some(RelevamientoIRI(file, cd => IRIElementData(cd)))
+        } catch {
+          case e: Throwable => {
+
+            val a = new Alert(AlertType.Warning, s"Cant load file ${file} error: ${e.toString}")
+            a.resizable = true
+            a.showAndWait()
+            None
+          }
+        }
+      }
+    }
     onDragDropped = e => {
 
       val db = e.getDragboard
       if(db.hasFiles){
-        val relevamientos = db.getFiles.asScala.flatMap{ file =>
-          try{
-            Some(RelevamientoIRI(file,cd => IRIElementData(cd)))
-          }catch{
-            case _: Throwable => None
-          }
+
+        val hasXmlExtension: File => Boolean = {_.getAbsolutePath.endsWith(".xml")}
+        val files = db.getFiles.asScala.toList
+        files.filterNot(hasXmlExtension).foreach(filedAdded.append)
+
+        if(files.exists(hasXmlExtension)){
+            val docFile = files.find(hasXmlExtension).get
+            val doc: Elem = XML.loadFile(docFile)
+            val (linkInitial,seqFiles) = DraftManager.loadProject(doc)
+            val relevamientos = filesIntoRelevamientos(seqFiles)
+            seqFiles.foreach(filedAdded.append)
+            showNewRelevamiento(relevamientos)
+
+            ejeEditableOpt = generateNewEje(Right(linkInitial))
+
+        }else {
+          val relevamientos = filesIntoRelevamientos(db.getFiles.asScala.toList)
+          showNewRelevamiento(relevamientos)
+          ejeEditableOpt = generateNewEje(Left(relevamientosAdded.toList))
         }
-        loadNewFile(relevamientos.toList)
+
+
         e.setDropCompleted(true)
         e.consume()
 
@@ -408,7 +452,21 @@ object EjeBuilder extends JFXApp{
       content = new BorderPane() {
         top = new Button("top"){
           onAction = _ => {
+            val urlSave = "/home/vmchura/Documents/testProject.xml"
+            val res = (for{
+              eje <- ejeEditableOpt
+              head <- eje.headLink()
+            }yield{
+              Right(DraftManager.saveProject(urlSave)(head,filedAdded.toSeq))
+            }).getOrElse(Left("No eje defined"))
 
+            val alert = res match {
+              case Left(error) => new Alert(AlertType.Error, s"error $error")
+              case Right(true) => new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
+              case Right(false) => new Alert(AlertType.Warning, s"No guardado")
+            }
+            alert.resizable = true
+            alert.showAndWait()
 
           }
         }
