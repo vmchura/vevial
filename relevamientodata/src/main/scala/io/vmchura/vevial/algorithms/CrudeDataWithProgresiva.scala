@@ -1,4 +1,4 @@
-package io.vmchura.vevial.Calculator.algorithms
+package io.vmchura.vevial.algorithms
 
 import io.vmchura.vevial.elementdata.{DataWithPoint, TCrudeIRIData}
 

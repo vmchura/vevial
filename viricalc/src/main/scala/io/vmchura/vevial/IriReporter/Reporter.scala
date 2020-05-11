@@ -5,11 +5,11 @@ import java.nio.file.{Files, Path}
 import com.norbitltd.spoiwo.model.enums.{CellBorderStyle, CellFill, CellHorizontalAlignment, CellVerticalAlignment}
 import com.norbitltd.spoiwo.model._
 import io.vmchura.vevial.Calculator.IriCalculator
-import io.vmchura.vevial.Calculator.models.RelevamientoIRIProgresivas
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import com.norbitltd.spoiwo.natures.xlsx.Model2XlsxConversions._
 import io.vmchura.vevial.IriReporter.Reporter.MorningColor._
 import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.models.RelevamientoIRIProgresivas
 
 import scala.collection.mutable.ListBuffer
 

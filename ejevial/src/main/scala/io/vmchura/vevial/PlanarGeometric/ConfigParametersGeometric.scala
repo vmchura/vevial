@@ -7,5 +7,5 @@ object ConfigParametersGeometric {
   def areCloseValuesForMagnitude(d: Double, t: Double): Boolean = Math.abs(d-t)<1e-4
   def areCloseInAxisDistance(ux: Double, vx: Double): Boolean = Math.abs(ux-vx) < 1e-4
   def areCloseInLinearReference(p1: Double, p2: Double): Boolean = Math.abs(p1-p2) < 1e-4
-  val distanceToFindProjection = 50.0 //metres
+  val distanceToFindProjection = 10.0 //metres
 }

@@ -13,7 +13,7 @@ import scalafx.scene.{Cursor, Node, Scene}
 import scalafx.scene.control.{Alert, Button}
 import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
 import UtilTransformers.PointTransformer._
-import algorithms.{DiscreteRelevamiento, EjeBuilderDraft}
+import algorithms.{DiscreteRelevamiento, EjeBuilderDraft, MaximizeEje}
 import com.typesafe.scalalogging.Logger
 import io.DraftManager
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
@@ -137,11 +137,16 @@ object EjeBuilder extends JFXApp{
             val docFile = files.find(hasXmlExtension).get
             val doc: Elem = XML.loadFile(docFile)
             val (linkInitial,seqFiles) = DraftManager.loadProject(doc)
-            val relevamientos = filesIntoRelevamientos(seqFiles)
-            seqFiles.foreach(filedAdded.append)
-            showNewRelevamiento(relevamientos)
+            MaximizeEje(seqFiles,linkInitial) match {
+              case Left(error) => logger.debug(s"error ${error.mkString("\n")}")
+              case Right(linkInitialImproved) =>
+                val relevamientos = filesIntoRelevamientos(seqFiles)
+                seqFiles.foreach(filedAdded.append)
+                showNewRelevamiento(relevamientos)
 
-            ejeEditableOpt = generateNewEje(Right(linkInitial))
+                ejeEditableOpt = generateNewEje(Right(linkInitialImproved))
+            }
+
 
         }else {
           val relevamientos = filesIntoRelevamientos(db.getFiles.asScala.toList)

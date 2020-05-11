@@ -1,8 +1,8 @@
-package io.vmchura.vevial.Calculator.algorithms
+package io.vmchura.vevial.algorithms
 
-import io.vmchura.vevial.Calculator.models.IRIElementDataOptProgresiva
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.elementdata.{DataWithPoint, TCrudeIRIData}
+import io.vmchura.vevial.models.IRIElementDataOptProgresiva
 
 object AlgorithmAssignProgresivas {
 
@@ -122,6 +122,6 @@ object AlgorithmAssignProgresivas {
                 override def isForward: Boolean = isForwardResult
             }
            // elementsWithOnlyProjection.map(e => IRIElementDataProgresiva(e.iriElementData,e.indx,fileID,e.progresiva.get))
-        } else throw new IllegalStateException("Not all elements tiene progresiva")
+        } else throw new IllegalStateException("Not all elements have progressives")
     }
 }

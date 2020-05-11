@@ -6,10 +6,11 @@ import java.nio.file.{Files, Path}
 import com.norbitltd.spoiwo.model._
 import com.norbitltd.spoiwo.natures.csv.Model2CsvConversions._
 import com.norbitltd.spoiwo.model.{Cell, CellDataFormat, CellRange, CellStyle, Image, Row, Sheet, Workbook}
-import io.vmchura.vevial.Calculator.models.{IriProgWithEvents, RelevamientoIRIProgresivas}
+import io.vmchura.vevial.Calculator.models.IriProgWithEvents
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.models.RelevamientoIRIProgresivas
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 

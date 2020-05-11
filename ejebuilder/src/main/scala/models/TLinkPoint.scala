@@ -90,6 +90,22 @@ trait TLinkPoint extends TElementCanImprove{
     }.flatMap(_._2).headOption
 
   }
+  def calcTangent(lengthOverElement: Double): Option[TDirection] = {
+    elements.scanLeft((lengthOverElement,Option.empty[TDirection])){
+      case ((lengthToFit,_),e) => {
+        if(e.length >= lengthToFit){
+          val direc = e.pointFromProjection(ProjectionOverElement(lengthToFit,0d)).map(p =>
+            e.tangent(p)
+          )
+          (lengthToFit-e.length,direc)
+
+        }else{
+          (lengthToFit-e.length,None)
+        }
+
+      }
+    }.flatMap(_._2).headOption
+  }
 
   def pointsDataCovering: Iterable[TPoint]
   def addPointCovered(tpoint: TPoint): Unit

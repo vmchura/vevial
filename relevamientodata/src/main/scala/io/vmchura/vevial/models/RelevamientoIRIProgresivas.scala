@@ -1,11 +1,9 @@
-package io.vmchura.vevial.Calculator.models
+package io.vmchura.vevial.models
 
-import java.util.UUID
-
-import io.vmchura.vevial.Calculator.algorithms.{AlgorithmAssignProgresivas, DataWithProgresivaSeq}
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
-import io.vmchura.vevial.elementdata.{DataWithPoint, IRIElementData, TElementWithPoint}
+import io.vmchura.vevial.algorithms.{AlgorithmAssignProgresivas, DataWithProgresivaSeq}
+import io.vmchura.vevial.elementdata.TElementWithPoint
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 class RelevamientoIRIProgresivas[T <: TElementWithPoint[T]](val fileID: String,

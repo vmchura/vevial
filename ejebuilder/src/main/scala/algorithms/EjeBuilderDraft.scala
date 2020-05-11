@@ -1,5 +1,6 @@
 package algorithms
 
+import io.vmchura.vevial.EjeVialBuilder.TConvertibleToEje
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, NonEmptySeqEjeElements, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment, TCircleSegment, TEjeElement}
@@ -10,12 +11,12 @@ import io.vmchura.vevial.elementdata.TElementData
 import io.vmchura.vevial.relevamiento.TSimpleRelevamiento
 import models.{GeoNode, LinearGraph, MutableEje, TEjeBuilder}
 
-class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](override val relevamientos: Seq[A]) extends TEjeBuilder[A,B]{
+class EjeBuilderDraft[+A <: TSimpleRelevamiento[B],B <: TElementData[B]](val relevamientos: Seq[A]) {
 
 
 
 
-  override def buildEje(): MutableEje = {
+  def buildEje(): MutableEje = {
 
     val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[A,B,GeoNode](relevamientos)
 
