@@ -44,8 +44,14 @@ case class UDirection(value: TDirection, sigma2: Double) extends  UncertainData[
   override def |-|(other: UDirection): UDirection =  {
     val dx = UDouble(value.dx,sigma2) |-| UDouble(other.value.dx,other.sigma2)
     val dy = UDouble(value.dy,sigma2) |-| UDouble(other.value.dy,other.sigma2)
-    val p = TDirection(dx.value,dy.value)
-    UDirection(p,dx.sigma2)
+    val s = Math.sqrt(dx.value*dx.value+dy.value*dy.value)
+    if(s < 1e-6){
+      UDirection(TDirection(),Double.PositiveInfinity)
+    }else{
+      val p = TDirection(dx.value/s,dy.value/s)
+      UDirection(p,dx.sigma2)
+    }
+
   }
 }
 
