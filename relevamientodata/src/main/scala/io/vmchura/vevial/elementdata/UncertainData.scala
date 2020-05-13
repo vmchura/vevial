@@ -22,7 +22,7 @@ object UncertainData{
       case (_,Double.PositiveInfinity) => x
       case (sx,sy) =>
         val u = (x.value*sy + y.value*sx)/(sx+sy)
-        UDouble(u,sx+sy)
+        UDouble(u,(sx*sy)/(sx+sy))
     }
   }
 }
