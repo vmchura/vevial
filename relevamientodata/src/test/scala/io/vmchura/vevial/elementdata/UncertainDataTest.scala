@@ -16,7 +16,8 @@ class UncertainDataTest extends AnyFlatSpec {
 
   "Middle point" should "give aproximate values" in {
     val m = p |-| q
-    assertResult(UPoint(Point(0.5d,0.5d),0.4d))(m)
+    assertResult(Point(0.5d,0.5d))(m.value)
+    assert(Math.abs(m.sigma2-0.1d)<1e-6)
   }
   "Middle point with uncertain point" should "give close to the other one" in {
     val m = p |-| r
