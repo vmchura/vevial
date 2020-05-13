@@ -7,7 +7,7 @@ import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.IriReporter.{IriValueAfterProcess, Reporter}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.elementdata.IRIElementData
-import io.vmchura.vevial.models.RelevamientoIRIProgresivas
+import io.vmchura.vevial.models.{IRIElementDataProgresiva, RelevamientoIRIProgresivas}
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 import scala.collection.mutable.ListBuffer
