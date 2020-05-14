@@ -58,7 +58,7 @@ trait TTangentDefinedBy2Points {
       q <- to
       v <- q.value -? p.value
     }yield{
-      UDirection(v.direction,p.sigma2+q.sigma2)
+      UDirection(v.direction,Math.atan((p.sigma2+q.sigma2)/ v.magnitude))
     }).getOrElse(PointTangent.UNKNOW_DIRECTION)
   }
 }
@@ -76,7 +76,10 @@ case class PointWithPrev(point: Option[UPoint],prev: UPoint) extends TPointTange
 case class PointWithPrevNext(point: Option[UPoint], prev: UPoint, next: UPoint) extends TPointTangent {
   override def tangent: UDirection = point.fold(PointTangent.UNKNOW_DIRECTION){ p =>
     val (_,d,_) = LinearEquationsSolver.calcDirections(prev.value,p.value,next.value)
-    UDirection(d,p.sigma2 + prev.sigma2 + next.sigma2)
+    (next.value -? prev.value).fold(UDirection(TDirection(),Double.PositiveInfinity)){ v =>
+      UDirection(d,Math.atan((p.sigma2+prev.sigma2+next.sigma2)/ v.magnitude))
+    }
+
   }
 }
 
