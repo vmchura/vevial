@@ -1,7 +1,7 @@
 package io.vmchura.vevial.algorithms
 
-import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
-import io.vmchura.vevial.elementdata.{DataWithPoint, TCrudeIRIData}
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
+import io.vmchura.vevial.elementdata.DataWithPoint
 import io.vmchura.vevial.models.IRIElementDataOptProgresiva
 
 object AlgorithmAssignProgresivas {
@@ -17,13 +17,10 @@ object AlgorithmAssignProgresivas {
       * *   - An interval are segments that the extrems points ARE certain
       * *   - Just use te values of the sensor to update progresivas*
       **
-      * @param data
-      * @param interval
-      * @param ejeVial
       * @return
       */
-    def simpleAlgorithm[T <: DataWithPoint](data: Seq[T], interval: Int, ejeVial: EfficientEjeProgresiva): DataWithProgresivaSeq[(Int,T)] = {
-        val elementsWithOnlyProjection = data.zipWithIndex.map { case (e, indx) => {
+    def simpleAlgorithm[T <: DataWithPoint](data: Seq[T], interval: Int, ejeVial: TEfficientSeqEjeElementsProgresiva): DataWithProgresivaSeq[(Int,T)] = {
+        val elementsWithOnlyProjection = data.zipWithIndex.map { case (e, indx) =>
             val projectionCertainty = for {
                 p <- e.point
                 q <- ejeVial.projectPoint(p.value)
@@ -36,10 +33,9 @@ object AlgorithmAssignProgresivas {
 
 
             IRIElementDataOptProgresiva(e,indx,projectionCertainty.map(_._1),projectionCertainty.map(_._2).getOrElse(100.0))
+        }.toArray
 
-        }}.toArray
-
-        val indxCoeherent = (elementsWithOnlyProjection.zip(elementsWithOnlyProjection.tail).flatMap{ case (a,b) =>
+        val indxCoeherent = elementsWithOnlyProjection.zip(elementsWithOnlyProjection.tail).flatMap{ case (a,b) =>
             for{
                 progA <- a.progresiva
                 progB <- b.progresiva
@@ -53,7 +49,7 @@ object AlgorithmAssignProgresivas {
                     Nil
                 }
             }
-        }).flatten.distinct.sorted
+        }.flatten.distinct.sorted
 
         if(indxCoeherent.length < 1)
             throw new IllegalStateException("No existe ningun punto coherente")
@@ -110,11 +106,11 @@ object AlgorithmAssignProgresivas {
 
         processFirstBlock(indxCoeherent.head)
         processLastBlock(indxCoeherent.last)
-        indxCoeherent.zip(indxCoeherent.tail).foreach{case (i,j) => {
+        indxCoeherent.zip(indxCoeherent.tail).foreach{case (i,j) =>
             if(i < j-1){
                 processBlock(i,j)
             }
-        }}
+        }
 
         if(elementsWithOnlyProjection.forall(_.progresiva.isDefined)) {
             new DataWithProgresivaSeq[(Int,T)] {
