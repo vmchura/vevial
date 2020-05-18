@@ -1,14 +1,14 @@
 package io.vmchura.vevial.models
 
 import io.vmchura.vevial.EjeVialUtil.Progresiva
-import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import io.vmchura.vevial.algorithms.{AlgorithmAssignProgresivas, DataWithProgresivaSeq}
 import io.vmchura.vevial.elementdata.TElementWithPoint
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
 class RelevamientoIRIProgresivas[T <: TElementWithPoint[T]](val fileID: String,
                                                      val relevamientoIRI: RelevamientoIRI[T],
-                                                     ejeVial: EfficientEjeProgresiva, progFrom: Progresiva, progTo: Progresiva)
+                                                     ejeVial: TEfficientSeqEjeElementsProgresiva, progFrom: Progresiva, progTo: Progresiva)
   extends DataWithProgresivaSeq[IRIElementDataProgresiva[T]]{
 
 
@@ -29,7 +29,7 @@ class RelevamientoIRIProgresivas[T <: TElementWithPoint[T]](val fileID: String,
     (prog.min,prog.max)
   }
 
-  override val isForward = elements.head.progresiva < elements.last.progresiva
+  override val isForward: Boolean = elements.head.progresiva < elements.last.progresiva
 
 
 }
