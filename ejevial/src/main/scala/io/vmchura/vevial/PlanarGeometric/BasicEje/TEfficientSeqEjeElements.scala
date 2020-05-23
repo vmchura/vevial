@@ -1,6 +1,6 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement, TSimpleEjeElement}
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
 
