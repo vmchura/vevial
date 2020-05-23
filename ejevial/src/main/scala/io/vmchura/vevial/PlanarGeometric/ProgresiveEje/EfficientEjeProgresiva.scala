@@ -1,7 +1,8 @@
 package io.vmchura.vevial.PlanarGeometric.ProgresiveEje
 
+import com.typesafe.scalalogging.Logger
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{ElementPoint, TEjeElement}
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.{CircleSegmentRestrictions, EjeEfficientWithRestrictions, FaintSegmentRestrictions, RectSegmentRestrictions, Restriction, WithRestrictionsIncremental}
 
@@ -55,6 +56,7 @@ case class EfficientEjeProgresiva(elements: List[WithProgresive])
 
 object EfficientEjeProgresiva{
 
+  private val logger = Logger(classOf[EfficientEjeProgresiva])
   def apply(elements: List[WithProgresive]): EfficientEjeProgresiva = new EfficientEjeProgresiva(elements)
 
   def apply[U <: TEfficientSeqEjeElements,V <: TEfficientSeqEjeElements](ejeEficient: EjeEfficientWithRestrictions[U,V]): EfficientEjeProgresiva = {
@@ -73,7 +75,6 @@ object EfficientEjeProgresiva{
     trait MyEventByElement[A <: TEjeElement,B <: TEjeElement] extends MyEvent {
       def element: WithRestrictionsIncremental[A,B]
       def point: TPoint
-      def addRestriction(restriction: Restriction): Either[WithRestrictionsIncremental[A, B]#WTT, WithRestrictionsIncremental[A, B]#WTT] = element.addRestriction(restriction)
       lazy val elementPoint: ElementPoint = ElementPoint(point,None,element)
     }
     case class RestrictionEvent(restriction: Restriction) extends MyEventByRestriction {
@@ -120,8 +121,7 @@ object EfficientEjeProgresiva{
           ejeEficient.restrictions.map(r => RestrictionEvent(r))
       })}.sortBy(_.distanceFromOrigin)
 
-    val elementEvents = ejeEficient.elementsWithRestrictions.toList.flatMap(e =>Seq(BeginElement(e),EndElement(e)))
-    val listElementsEvents: List[MyEventByElement[_,_]] =  elementEvents.sortBy(_.distanceFromOrigin)
+
 
     /**
       * the objective is to add restrictions to both ends of elements
@@ -130,46 +130,55 @@ object EfficientEjeProgresiva{
       *        lr: ListRestrictions, toCalcEndPointsRestrictions
       *        lw: Array OfWithRestrictionsIncremental, result, since it is an array, can be updated
       */
+
+    //add to a MyEventByElement and index
+    case class MyEventByElementWithIndex(ee: MyEventByElement[TEjeElement,TEjeElement], index: Int)
     val lw: Array[WithRestrictionsIncremental[TEjeElement, TEjeElement]] = ejeEficient.elementsWithRestrictions
-    val maplwElement2Index: Map[WithRestrictionsIncremental[_, _],Int] = lw.zipWithIndex.map{case (e,i) => e -> i}.toMap
-    var acumTimeNano =  0d
 
-    def updateArray(elementByEvent: MyEventByElement[_,_], progresiva: Double): Unit = {
-      //val wri = lw.find(_ ==  elementByEvent.element)
-      val t0 = System.nanoTime()
-      val wri = maplwElement2Index.get(elementByEvent.element)
+    val elementEvents = lw.zipWithIndex.toList.flatMap{case (e,i) =>Seq(MyEventByElementWithIndex(BeginElement(e),i),MyEventByElementWithIndex(EndElement(e),i))}
+    val listElementsEvents: List[MyEventByElementWithIndex] =  elementEvents.sortBy(_.ee.distanceFromOrigin)
 
 
-      assert(wri.isDefined)
-      //val indx = lw.indexOf(wri.get)
-      val indx = wri.get
-      lw.update(indx,lw(indx).addRestriction(Restriction(elementByEvent.elementPoint,progresiva)) match {
-        case Left(value) =>  value
+
+
+
+
+
+
+
+    def updateArray(elementByEvent: MyEventByElementWithIndex, progresiva: Double): Unit = {
+
+      val indx = elementByEvent.index
+      lw.update(indx,lw(indx).addRestriction(Restriction(elementByEvent.ee.elementPoint,progresiva)) match {
+        case Left(value) =>
+          logger.debug(s"can't add ${elementByEvent.ee.elementPoint}, $progresiva to $value")
+          value
 
         case Right(value) => value
 
       })
-      val t1 = System.nanoTime()
-      acumTimeNano += (t1-t0)/ 1000000.0
     }
 
+
     @tailrec
-    def addBothEndsRestrictions(le: List[MyEventByElement[_,_]],
+    def addBothEndsRestrictions(le: List[MyEventByElementWithIndex],
                                 lr: List[MyEventByRestriction]): Unit = {
 
       le match {
         case Nil => ()
-        case e :: _ =>
+        case MyEventByElementWithIndex(e,indx) :: _ =>
+
+
           lr match {
             case Nil => ()
             case _ :: Nil => ()
             case ri :: _  if e < ri => addBothEndsRestrictions(le,lr.tail)
             case _ :: rj :: _  if e > rj => addBothEndsRestrictions(le,lr.tail)
             case MinusInfinityEvent() :: rj :: _ =>
-              updateArray(e,rj.progresive - (rj || e))
+              updateArray(MyEventByElementWithIndex(e,indx),rj.progresive - (rj || e))
               addBothEndsRestrictions(le.tail,lr)
             case ri :: PlusInfinityEvent() :: _ =>
-              updateArray(e,ri.progresive + (ri || e))
+              updateArray(MyEventByElementWithIndex(e,indx),ri.progresive + (ri || e))
               addBothEndsRestrictions(le.tail,lr)
             case ri :: rj :: _ =>
               val deltaProgresiva = ri.progresive-rj.progresive
@@ -181,32 +190,24 @@ object EfficientEjeProgresiva{
                 case (dp,dd) =>
                   ri.progresive-(ri.distanceFromOrigin-e.distanceFromOrigin)*dp/dd
               }
-              updateArray(e,newProgresiva)
+              updateArray(MyEventByElementWithIndex(e,indx),newProgresiva)
 
               addBothEndsRestrictions(le.tail,lr)
           }
       }
     }
 
-
     addBothEndsRestrictions(listElementsEvents,listRestrictionEvents)
 
     import WithDistributionFormula._
-    val lprog: List[WithProgresive] =
-
-        lw.toList.map {
+    val lprog: List[WithProgresive] = lw.map {
       case r: RectSegmentRestrictions => WithDistributionFormula.convert(r)
       case c: CircleSegmentRestrictions => WithDistributionFormula.convert(c)
-      case f: FaintSegmentRestrictions => WithDistributionFormula.convert(f)
+      case f: FaintSegmentRestrictions =>  WithDistributionFormula.convert(f)
       case _ => throw new IllegalArgumentException("it is not RectSegmentRestricctions neither Circ or Faint")
-    }
-
+    }.toList
 
       new EfficientEjeProgresiva(lprog)
-
-
-
-
 
   }
 }
