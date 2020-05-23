@@ -2,17 +2,17 @@ package algorithms
 import io.vmchura.vevial.PlanarGeometric.BasicEje.{ EmptySeqEjeElements, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointUnitaryVector
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TDirection.{AnyDirection, Direction}
-import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, FaintElement, RectSegment}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment}
 
 case class BasicSectionBuilder(in: PointUnitaryVector,out: PointUnitaryVector,dataToMatch: Seq[ProgPointTangent]) extends BuilderFixedPoints {
 
   override protected def buildElements: Either[Seq[Exception], TSeqEjeElementsBase] = {
 
     lazy val defaultRect = {
-      val f0 = FaintElement(in.point,in.point)
+
       val recta = RectSegment(in.point,out.point)
-      val f1 = FaintElement(out.point,out.point)
-      List(f0,recta,f1)
+
+      List(recta)
     }
     val e = (in.direction,out.direction) match {
       case (AnyDirection(),AnyDirection()) => defaultRect
