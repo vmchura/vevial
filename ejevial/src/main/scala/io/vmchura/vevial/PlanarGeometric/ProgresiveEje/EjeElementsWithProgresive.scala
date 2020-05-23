@@ -1,7 +1,7 @@
 package io.vmchura.vevial.PlanarGeometric.ProgresiveEje
 
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 import io.vmchura.vevial.PlanarGeometric.EjeElement._
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje._
@@ -50,11 +50,7 @@ trait WithDistributionFormulaByRestrictions extends WithProgresive {
   def restrictions: List[Restriction]
   assert(restrictions.length>=2)
   case class LinearRestriction(distanceFromReference: Double, progresive: Double)
-  val linearRestricctions: List[LinearRestriction] = restrictions.map(r => LinearRestriction(lengthToPoint(r.elementPoint),r.progresive)).sortBy(_.progresive)
-  if(!areCloseInLinearReference(linearRestricctions.head.distanceFromReference,0)){
-    println(restrictions)
-    println(linearRestricctions)
-  }
+  val linearRestricctions: List[LinearRestriction] = restrictions.map(r => LinearRestriction(lengthToPoint(r.elementPoint),r.progresive)).sortBy(_.distanceFromReference)
   assert(areCloseInLinearReference(linearRestricctions.head.distanceFromReference,0))
   assert(areCloseInLinearReference(linearRestricctions.last.distanceFromReference,length))
 
@@ -67,17 +63,15 @@ trait WithDistributionFormulaByRestrictions extends WithProgresive {
     }else{
       val segmentResultOpt = linearRestricctions.zip(linearRestricctions.tail).find{
         case (m,n) => m.distanceFromReference <= dx && dx <= n.distanceFromReference}
-
-
-      assert(segmentResultOpt.isDefined)
-      segmentResultOpt.get match {
-        case (LinearRestriction(di,pi), LinearRestriction(dj,pj)) =>
+      segmentResultOpt match {
+        case Some((LinearRestriction(di,pi), LinearRestriction(dj,pj))) =>
 
           if(areCloseInLinearReference(dj,di)){
             pi
           }else {
             (dx - di) * (pj - pi) / (dj - di) + pi
           }
+        case None => throw new IllegalStateException("segment should be found")
 
       }
     }
@@ -96,17 +90,19 @@ trait ConverterWithDistrutionFormula[A <: WithRestrictionsIncremental[A,_],C <: 
 object WithDistributionFormula{
   implicit val r2f_RectConverter: ConverterWithDistrutionFormula[RectSegmentRestrictions, RectSegmentProgresiva] =
     (value: RectSegmentRestrictions) => value.element match {
-    case RectSegment(originPoint, endPoint) => RectSegmentProgresiva(originPoint, endPoint, value.restrictions)
+    case r: TRectSegment => RectSegmentProgresiva(r.originPoint, r.endPoint, value.restrictions)
   }
   implicit val r2f_CircConverter: ConverterWithDistrutionFormula[CircleSegmentRestrictions, CircleSegmentProgresiva] =
     (value: CircleSegmentRestrictions) => value.element match {
-    case CircleSegment(origin, center, end, cc) => CircleSegmentProgresiva(origin, center, end, cc, value.restrictions)
+    case c: TCircleSegment => CircleSegmentProgresiva(c.originPoint, c.centerPoint, c.endPoint, c.antiClockWise, value.restrictions)
   }
 
   implicit val r2f_FaintConverter: ConverterWithDistrutionFormula[FaintSegmentRestrictions, FaintSegmentProgresiva] =
     (value: FaintSegmentRestrictions) => value.element match {
-    case FaintElement(origin, end) => FaintSegmentProgresiva(origin, end, value.restrictions)
-  }
+    case f: TFaintElement =>
+      println(value)
+      FaintSegmentProgresiva(f.from, f.end, value.restrictions)
+    }
 
 
   def convert[A <: WithRestrictionsIncremental[A,_],
