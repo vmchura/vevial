@@ -1,27 +1,28 @@
 package io.vmchura.vevial.EjeVialBuilder
 
-import io.vmchura.vevial.PlanarGeometric.BasicEje.EfficientSeqEjeElements
+import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, TEfficientSeqEjeElements}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.{EjeEfficientWithRestrictions, ProgresivePoint}
-import com.typesafe.scalalogging.Logger
 
 trait TConvertibleToEje {
   final def toEje: Either[Seq[Exception],EfficientEjeProgresiva] = {
 
-
-    getSequenceElements.map{ efficientSeqElements =>
-
+    getSequenceElements.flatMap{ efficientSeqElements =>
         val sequenceWithRestrictions = EjeEfficientWithRestrictions(efficientSeqElements)
-        val logger = Logger(classOf[TConvertibleToEje])
+        val pointsProgresiveEither =
+          getSequenceProgresivePoint.foldLeft(Right(sequenceWithRestrictions) : Either[Seq[Exception], EjeEfficientWithRestrictions[TEfficientSeqEjeElements, TEfficientSeqEjeElements]]){
+            case (Left(error),_) => Left(error)
+            case (Right(sr), pp) =>
 
-        val pointsProgresive =
-          getSequenceProgresivePoint.foldLeft(sequenceWithRestrictions){case (sr, pp) => sr.addRestriction(pp) match {
-            case Right(value) => value
-            case Left(value) =>
-              logger.info(s"$pp was not added as restriction")
-              value
-          }}
-        EfficientEjeProgresiva(pointsProgresive)
+              sr.addRestriction(pp) match {
+                case Right(value) => Right(value)
+                case Left(_) => Left(List(new IllegalStateException(s"Cant add $pp to $sr")))
+              }
+          }
+        pointsProgresiveEither.map{ pointsProgresive =>
+          EfficientEjeProgresiva(pointsProgresive)
+        }
+
       }
     }
 
