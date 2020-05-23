@@ -46,14 +46,14 @@ object SimpleAgentEjeEvaluator extends TAgentEjeEvaluator {
           else
             yprom.abs > 4
       }
-      gOpt.map{ g =>
+      gOpt.fold(NoAction: ActionImproveEje){ g =>
         val n = g.length
         val xProm = g.map(_.distanceOverElement).sum/n
         val yProm = g.map(_.distanceNormal).sum/n
 
         SetPointAt(xProm,yProm)
 
-      }.getOrElse(NoAction)
+      }
 
 
 

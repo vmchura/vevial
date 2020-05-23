@@ -11,6 +11,8 @@ class SimpleAgentEjeEvaluatorTest extends AnyFlatSpec {
     val observerD = new ObserverImpl(gd)
 
     observerD.addProjection(Point(5,5))
+    observerD.addProjection(Point(5.1,5.1))
+    observerD.addProjection(Point(5.2,5.2))
     observerD.addProjection(Point(6,6))
 
     val action = SimpleAgentEjeEvaluator.deliberateAnAction(observerD)
@@ -25,11 +27,13 @@ class SimpleAgentEjeEvaluatorTest extends AnyFlatSpec {
     val observerD = new ObserverImpl(gd)
 
     observerD.addProjection(Point(5,-5))
+    observerD.addProjection(Point(5.1,-5.1))
+    observerD.addProjection(Point(5.2,-5.2))
     observerD.addProjection(Point(6,-6))
     val action = SimpleAgentEjeEvaluator.deliberateAnAction(observerD)
     val res = action match {
       case NoAction => false
-      case SetPointAt(x,y) if x>= 2 && x <= 10  && y>0 && y<6 =>  true
+      case SetPointAt(x,y) if x>= 2 && x <= 10  && y<0 && y > -6 =>  true
     }
     assert(res)
   }
