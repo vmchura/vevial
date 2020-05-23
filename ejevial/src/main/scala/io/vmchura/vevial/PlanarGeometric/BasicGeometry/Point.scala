@@ -45,6 +45,8 @@ trait TPoint{
   //are equivalent?
   def ==? (p: TPoint): Boolean = areCloseInAxisDistance(x,p.x) && areCloseInAxisDistance(y,p.y)
   //def project (ee: ElementoEje[_]): TPuntoProgresiva
+
+  override def toString: String = f"[$x%.2f, $y%.2f]"
 }
 
 case class Point(x: Double, y: Double) extends TPoint
