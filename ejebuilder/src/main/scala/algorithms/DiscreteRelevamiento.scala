@@ -3,15 +3,13 @@ package algorithms
 import com.typesafe.scalalogging.Logger
 import io.vmchura.vevial.PlanarGeometric.BasicEje.SubsequenceFinder
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
-import io.vmchura.vevial.elementdata.{TElementData, UPoint}
+import io.vmchura.vevial.elementdata.TElementData
 import io.vmchura.vevial.relevamiento.TSimpleRelevamiento
 import models.{Edge, GeoNode, Graph, LinearGraph, TGeoNode}
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 object DiscreteRelevamiento {
-  val logger = Logger(this.getClass)
+  private val logger = Logger(this.getClass)
   def convertIntoDiscreteRelevamiento[A <: TSimpleRelevamiento[B],B <: TElementData[B], N <: TGeoNode[N]](relevamientos: Seq[A]): Seq[LinearGraph[GeoNode]] = {
 
     logger.debug("Starting to build seq linear graph")
@@ -49,7 +47,7 @@ object DiscreteRelevamiento {
         val closeByX = pointsSortedByX.slice(xIni,xEnd+1)
         val closeByY = pointsSortedByY.slice(yIni,yEnd+1)
 
-        val elementsAround = (closeByX intersect closeByY).filter(p => (!(p-point) < MAX_D))
+        val elementsAround = (closeByX intersect closeByY).filter(p => (!(p-point)) < MAX_D)
 
 
         val n = elementsAround.length
@@ -92,7 +90,6 @@ object DiscreteRelevamiento {
       * after that, get a better nodes and build edges with the closest node
       */
 
-    logger.debug(s"First nodes draft: ${nodesFirstDraft.length}")
 
     val nodes = nodesFirstDraft.map{ t =>
       val (mp,_) = mediaPoint(t)
@@ -102,10 +99,9 @@ object DiscreteRelevamiento {
 
 
     val edges = nodes.zipWithIndex.flatMap{ case(n,i) =>
-      nodes.drop(i).filter(m => (!(m-n)) < 2*MAX_D).sortBy(m => !(m-n)).headOption.map(m => List(Edge(n,m),Edge(m,n))).getOrElse(Nil)
+      nodes.drop(i+1).filter(m => (!(m-n)) < 2*MAX_D).sortBy(m => !(m-n)).headOption.fold(List.empty[Edge[GeoNode]])(m => List(Edge(n,m),Edge(m,n)))
     }.toSet
 
-    logger.debug(s"Total Edges: ${edges.size}")
 
     val graph = new Graph(nodes.toList,edges)
 

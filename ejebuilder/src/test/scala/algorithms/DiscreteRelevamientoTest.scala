@@ -13,14 +13,14 @@ class DiscreteRelevamientoTest extends AnyFlatSpec {
   it should "create correct results" in {
     val simpleRelevamiento = RelevamientoIRI(Seq(
       IRIElementData(Some(UPoint(Point(0,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(6,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(12,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(18,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(24,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(5,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(10,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(15,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(20,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(25,0),0d)),None,None,None,None),
       IRIElementData(Some(UPoint(Point(30,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(36,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(42,0),0d)),None,None,None,None),
-      IRIElementData(Some(UPoint(Point(48,0),0d)),None,None,None,None)
+      IRIElementData(Some(UPoint(Point(35,0),0d)),None,None,None,None),
+      IRIElementData(Some(UPoint(Point(40,0),0d)),None,None,None,None)
     )
       ,Nil,0)
 
