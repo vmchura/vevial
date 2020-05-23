@@ -1,6 +1,5 @@
 package AutomaticBuilder.models
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 
 import scala.collection.mutable.ListBuffer
 
