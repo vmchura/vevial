@@ -90,18 +90,16 @@ trait ConverterWithDistrutionFormula[A <: WithRestrictionsIncremental[A,_],C <: 
 object WithDistributionFormula{
   implicit val r2f_RectConverter: ConverterWithDistrutionFormula[RectSegmentRestrictions, RectSegmentProgresiva] =
     (value: RectSegmentRestrictions) => value.element match {
-    case r: TRectSegment => RectSegmentProgresiva(r.originPoint, r.endPoint, value.restrictions)
-  }
+      case r: TRectSegment => RectSegmentProgresiva(r.originPoint, r.endPoint, value.restrictions)
+    }
   implicit val r2f_CircConverter: ConverterWithDistrutionFormula[CircleSegmentRestrictions, CircleSegmentProgresiva] =
     (value: CircleSegmentRestrictions) => value.element match {
-    case c: TCircleSegment => CircleSegmentProgresiva(c.originPoint, c.centerPoint, c.endPoint, c.antiClockWise, value.restrictions)
-  }
+      case c: TCircleSegment => CircleSegmentProgresiva(c.originPoint, c.centerPoint, c.endPoint, c.antiClockWise, value.restrictions)
+    }
 
   implicit val r2f_FaintConverter: ConverterWithDistrutionFormula[FaintSegmentRestrictions, FaintSegmentProgresiva] =
     (value: FaintSegmentRestrictions) => value.element match {
-    case f: TFaintElement =>
-      println(value)
-      FaintSegmentProgresiva(f.from, f.end, value.restrictions)
+      case f: TFaintElement =>  FaintSegmentProgresiva(f.from, f.end, value.restrictions)
     }
 
 
