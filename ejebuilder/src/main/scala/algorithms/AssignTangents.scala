@@ -100,11 +100,11 @@ object AssignTangents {
     loggger.debug(s"Size of sections ${sections.length}")
 
     new TConvertibleToEje {
-      override protected def getSequenceElements: Either[Seq[Exception], EfficientSeqEjeElements] = {
-        val inefficientEje: Either[Seq[Exception], TSeqEjeElementsBase] = sections.foldLeft(Right(EmptySeqEjeElements()) :Either[Seq[Exception],TSeqEjeElementsBase]){case (prevSeq,newElement) =>
+      override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] = {
+        val inefficientEje = sections.foldLeft(Right(EmptySeqEjeElements()) :Either[Exception,TSeqEjeElementsBase]){case (prevSeq,newElement) =>
           prevSeq.flatMap{ prevEje =>
             newElement.elements match {
-              case Left(errors) => Left(errors)
+              case Left(errors) => Left(errors.headOption.getOrElse(new IllegalStateException("List of error with no error")))
               case Right(bbp) =>Right(prevEje.append(bbp))
             }
           }

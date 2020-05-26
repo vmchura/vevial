@@ -9,11 +9,10 @@ class EjeFromLinks(headLink: TLinkPoint) extends TConvertibleToEje{
  // private val resultOfParsing: Either[Seq[Exception],(Seq[TSimpleEjeElement],Double)] = if(alignments.length == 1){
 
   private val elements = headLink.untilEnd().flatMap(_.elements)
-  override protected def getSequenceElements: Either[Seq[Exception], EfficientSeqEjeElements] = {
-    val inefficientEje = elements.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase){case (prevSeq,newElement) => {
-
+  override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] = {
+    val inefficientEje = elements.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase){case (prevSeq,newElement) =>
       prevSeq.append(newElement)
-    }}
+    }
 
     Right(EfficientSeqEjeElements(inefficientEje))
 

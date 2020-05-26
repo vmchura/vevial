@@ -15,7 +15,7 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
 
   private val xml = XML.load(source)//XML.loadFile(filename)
   private val alignments = xml \\ "Alignment"
-  private val resultOfParsing: Either[Seq[Exception],(Seq[TSimpleEjeElement],Double)] = if(alignments.length == 1){
+  private val resultOfParsing: Either[Exception,(Seq[TSimpleEjeElement],Double)] = if(alignments.length == 1){
     val aligment = alignments.head
     val attributes = Seq("desc","staStart","length","name")
     val values = attributes.map(k => aligment.attribute(k))
@@ -36,16 +36,16 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
         case _ => None
       }
       if(elements.isEmpty)
-        Left(Seq(new IllegalArgumentException("0 elements to build eje")))
+        Left(new IllegalArgumentException("0 elements to build eje"))
       else
         Right((elements.toSeq,iniStart))
 
     }else{
-      Left(Seq(new IllegalStateException(s"Not all values defined [for ${attributes.mkString(",")}]")))
+      Left(new IllegalStateException(s"Not all values defined [for ${attributes.mkString(",")}]"))
 
     }
   }else{
-    Left(Seq(new IllegalStateException(s"wrong allignments.lengh!=1 [=${alignments.length}]")))
+    Left(new IllegalStateException(s"wrong allignments.lengh!=1 [=${alignments.length}]"))
   }
 
 
@@ -96,7 +96,7 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
 
   }
 
-  override protected def getSequenceElements: Either[Seq[Exception], EfficientSeqEjeElements] = resultOfParsing.map {
+  override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] = resultOfParsing.map {
     case (elements,_)=>
       val inefficientEje = elements.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase){case (prevSeq,newElement) => prevSeq.append(newElement)}
 

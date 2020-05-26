@@ -6,7 +6,7 @@ import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.ProgresivePoint
 
 sealed class SimpleConvertibleToEje() extends TConvertibleToEje {
 
-  override protected def getSequenceElements: Either[Seq[Exception], EfficientSeqEjeElements] = {
+  override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] = {
     val r = RectSegment(Point(100,0),Point(200,0))
     val c = CircleSegment(Point(200,0),Point(200,100),Point(200,200),antiClockWise = true)
     Right(EfficientSeqEjeElements(TSeqEjeElementsBase().append(r).append(c)))

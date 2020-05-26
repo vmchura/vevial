@@ -26,13 +26,13 @@ class AssignTangentsTest extends AnyFlatSpec {
         case FaintTemporal(from, end, _) => FaintElement(from,end)
       }
 
-      override protected def getSequenceElements: Either[Seq[Exception], EfficientSeqEjeElements] =
+      override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] =
         try{
           val inefficientEje = links.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase)((a,b) => a.append(b))
           Right(EfficientSeqEjeElements(inefficientEje))
         }catch {
-          case e: Exception => Left(List(e))
-          case t: Throwable => Left(List(new IllegalArgumentException(s"with the data cant produce EfficientSeqEjeElements : ${t.toString}")))
+          case e: Exception => Left(e)
+          case t: Throwable => Left(new IllegalArgumentException(s"with the data cant produce EfficientSeqEjeElements : ${t.toString}"))
         }
 
 
@@ -43,13 +43,13 @@ class AssignTangentsTest extends AnyFlatSpec {
       }
     }
 
-    val res: Either[Seq[Exception], TConvertibleToEje] = convertibleEje.toEje.map(efficientEjeProgresiva => {
+    val res: Either[Exception, TConvertibleToEje] = convertibleEje.toEje.map(efficientEjeProgresiva => {
       AssignTangents.calcEjeWithBasicMath(efficientEjeProgresiva,seqFiles)
     })
 
 
     res.flatMap(_.toEje) match {
-      case Left(errors) => println(errors.mkString("\n"))
+      case Left(errors) => println(errors)
       case Right(z) => println(z.length)
     }
 
