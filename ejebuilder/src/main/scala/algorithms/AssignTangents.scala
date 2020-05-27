@@ -5,7 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import io.vmchura.vevial.EjeVialBuilder.TConvertibleToEje
 import io.vmchura.vevial.EjeVialUtil.Progresiva
-import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, TSeqEjeElementsBase}
+import io.vmchura.vevial.PlanarGeometric.BasicEje.{EfficientSeqEjeElements, EmptySeqEjeElements, SubsequenceFinder, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TDirection.Direction
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointUnitaryVector
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
@@ -53,8 +53,45 @@ object AssignTangents {
       }
     }.sortBy(_.prog).toList
 
+    val rangeProg = relConProgTangent.toArray
+    val findRange: ProgPointTangent => Option[(Int,Int)] = p => SubsequenceFinder.find(40,40)(rangeProg)(p.prog.toDouble)(_.prog)
+
+    val findClosestByProgressive: ProgPointTangent => Option[ProgPointTangent] = p => {
+
+      val res = findRange(p).flatMap{case (i,j) =>
+        loggger.debug(s"range: $i -> $j")
+        (i to j).filter(k =>
+          (for{
+            p0 <- p.pointTangent.point
+            p1 <- rangeProg(k).pointTangent.point
+          }yield {
+            (!(p0.value-p1.value)) > 1e-5
+          }).getOrElse(false)
+        ).minByOption(k => (for{
+          p0 <- p.pointTangent.point
+          p1 <- rangeProg(k).pointTangent.point
+        }yield {
+          !(p0.value-p1.value)
+        }).getOrElse(100d))}
+
+      (for{
+        i <- res
+        p0 <- p.pointTangent.point
+        pi <- rangeProg(i).pointTangent.point
+      }yield{
+        if((!(p0.value - pi.value)) < 11d){
+          loggger.debug(s"Range found at: $i")
+          Some(rangeProg(i))
+        }else{
+          None
+        }
+      }).flatten
+
+
+    }
+
     //first try: segment each 100 m
-    val sectionLength = 100d
+    val sectionLength = 40d
     val sections: Seq[BuilderFixedPoints] = {
       val (list,elements,start,_) = relConProgTangent.foldLeft((List.empty[BuilderFixedPoints], List.empty[ProgPointTangent], Option.empty[PointUnitaryVector], Progresiva(Integer.MIN_VALUE))){
         case ((prevList, currentPoints, None, prog), nextPoint) =>
@@ -68,7 +105,24 @@ object AssignTangents {
         case ((prevList, currentPoints, Some(start), prog), nextPoint) =>
           (nextPoint.prog - prog.progresiva, nextPoint.pointTangent.point, nextPoint.pointTangent.tangent.value) match {
             case (distanceToStart,Some(UPoint(point, _)),d: Direction) if distanceToStart > sectionLength =>
-              val end = PointUnitaryVector(point,d)
+
+
+              val end: PointUnitaryVector = {
+                val defaultValue = PointUnitaryVector(point,d)
+                findClosestByProgressive(nextPoint).fold(defaultValue)(ppt => {
+                  val mediaPoint = for{
+                    p0 <- nextPoint.pointTangent.point
+                    p1 <- ppt.pointTangent.point
+                  }yield{
+                    p0 |-| p1
+                  }
+
+                  val mediaTangent = nextPoint.pointTangent.tangent |-| ppt.pointTangent.tangent
+                  mediaPoint.fold(defaultValue)(q => PointUnitaryVector(q.value,mediaTangent.value))
+                })
+
+
+              }
               val bb = BasicSectionBuilder(start,end, currentPoints)
               (bb :: prevList, Nil, Some(end), Progresiva(nextPoint.prog))
             case (_,Some(_),_) =>
