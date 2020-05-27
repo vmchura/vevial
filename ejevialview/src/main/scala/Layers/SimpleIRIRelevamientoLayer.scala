@@ -1,6 +1,6 @@
 package Layers
 
-import io.vmchura.vevial.elementdata.{DataWithPoint, IRIElementData, TElementWithPoint}
+import io.vmchura.vevial.elementdata.TElementWithPoint
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
@@ -13,10 +13,6 @@ class SimpleIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: Rel
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
     *
-    * @param x
-    * @param y
-    * @param u
-    * @param v
     */
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 }
@@ -30,7 +26,7 @@ object SimpleIRIRelevamientoLayer{
       List(new Circle(){
         centerX <== p.value.x.toView_X()
         centerY <== p.value.y.toView_Y()
-        radius = 5
+        radius = 3
         fill = Color.Blue
       })
     }).getOrElse{
