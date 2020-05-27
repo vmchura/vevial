@@ -54,39 +54,18 @@ object AssignTangents {
     }.sortBy(_.prog).toList
 
     val rangeProg = relConProgTangent.toArray
-    val findRange: ProgPointTangent => Option[(Int,Int)] = p => SubsequenceFinder.find(40,40)(rangeProg)(p.prog.toDouble)(_.prog)
+    val findRange: ProgPointTangent => Option[(Int,Int)] = p => SubsequenceFinder.find(12,12)(rangeProg)(p.prog.toDouble)(_.prog)
 
-    val findClosestByProgressive: ProgPointTangent => Option[ProgPointTangent] = p => {
+    val averageWithClosestPoints: ProgPointTangent => Option[PointUnitaryVector] = p => {
 
       val res = findRange(p).flatMap{case (i,j) =>
-        loggger.debug(s"range: $i -> $j")
-        (i to j).filter(k =>
-          (for{
-            p0 <- p.pointTangent.point
-            p1 <- rangeProg(k).pointTangent.point
-          }yield {
-            (!(p0.value-p1.value)) > 1e-5
-          }).getOrElse(false)
-        ).minByOption(k => (for{
-          p0 <- p.pointTangent.point
-          p1 <- rangeProg(k).pointTangent.point
-        }yield {
-          !(p0.value-p1.value)
-        }).getOrElse(100d))}
+        type PVMeta = (UPoint,UDirection)
+        val dataMeta: Seq[PVMeta] = (i to j).flatMap(k => rangeProg(k).pointTangent.point.map(p => (p,rangeProg(k).pointTangent.tangent)))
+        val u = dataMeta.reduceLeftOption[PVMeta]{case ((a,b),(x,y)) => (a |-| x, b |-| y)}
+        u.map{ case (pd,dd) =>  PointUnitaryVector(pd.value,dd.value)}
 
-      (for{
-        i <- res
-        p0 <- p.pointTangent.point
-        pi <- rangeProg(i).pointTangent.point
-      }yield{
-        if((!(p0.value - pi.value)) < 11d){
-          loggger.debug(s"Range found at: $i")
-          Some(rangeProg(i))
-        }else{
-          None
-        }
-      }).flatten
-
+      }
+      res
 
     }
 
@@ -109,19 +88,7 @@ object AssignTangents {
 
               val end: PointUnitaryVector = {
                 val defaultValue = PointUnitaryVector(point,d)
-                findClosestByProgressive(nextPoint).fold(defaultValue)(ppt => {
-                  val mediaPoint = for{
-                    p0 <- nextPoint.pointTangent.point
-                    p1 <- ppt.pointTangent.point
-                  }yield{
-                    p0 |-| p1
-                  }
-
-                  val mediaTangent = nextPoint.pointTangent.tangent |-| ppt.pointTangent.tangent
-                  mediaPoint.fold(defaultValue)(q => PointUnitaryVector(q.value,mediaTangent.value))
-                })
-
-
+                averageWithClosestPoints(nextPoint).getOrElse(defaultValue)
               }
               val bb = BasicSectionBuilder(start,end, currentPoints)
               (bb :: prevList, Nil, Some(end), Progresiva(nextPoint.prog))
