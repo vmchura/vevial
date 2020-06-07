@@ -2,7 +2,7 @@ package gym.evialgame
 
 import gym.evialgame.RopeEje.RopeElement
 import io.vmchura.vevial.PlanarGeometric.BasicEje.EfficientSeqEjeElements
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, PointUnitaryVector, TPoint}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, ElementPoint, RectSegment, TEjeElement}
 case class RopeEje(nodes: Seq[RopeNode]) {
   def turnRopeNode(indx: Int, initialTorque: Double): RopeEje = {
@@ -13,20 +13,18 @@ case class RopeEje(nodes: Seq[RopeNode]) {
       throw  new IllegalArgumentException("turning a node which is not defined")
     case class TurnState(prevNode: Option[RopeNode],prevUpdatedNode: Option[RopeNode], torque: Double)
     val (preflix,suffix) = nodes.splitAt(indx)
-    val suffixUpdated = suffix.zipWithIndex.scanLeft(TurnState(None,None,initialTorque)){case (prevTurnState, (currentNode,indx)) => {
+    val suffixUpdated = suffix.zipWithIndex.scanLeft(TurnState(None,None,initialTorque)){case (prevTurnState, (currentNode,indx)) =>
 
       prevTurnState match {
         /**
           * add beta to the prevNode, y aproximar con currentNode
           */
-        case TurnState(Some(prevNode),Some(prevNodeUpdated), torque) =>{
+        case TurnState(Some(prevNode),Some(prevNodeUpdated), torque) =>
           val nextPoint = prevNode.turnNode(prevNodeUpdated.originalPoint,torque,calcForce(indx),currentNode.originalPoint)
           TurnState(Some(currentNode),Some(currentNode.copy(originalPoint = nextPoint)),torque*0.6)
-        }
         case TurnState(_,_, torque) => TurnState(Some(currentNode),Some(currentNode),torque)
       }
-
-    }}.flatMap(_.prevUpdatedNode)
+    }.flatMap(_.prevUpdatedNode)
 
     RopeEje(preflix ++ suffixUpdated)
 
@@ -61,7 +59,7 @@ object RopeEje{
     override val in: PointUnitaryVector = PointUnitaryVector(originPoint,pVector.direction)
     override val out: PointUnitaryVector = PointUnitaryVector(endPoint,pVector.direction)
 
-    override def projectPoint(point: Point): Option[ElementPoint] = {
+    override def projectPoint(point: TPoint): Option[ElementPoint] = {
       val v = point - originPoint
       val s = in.direction
       val distance  =  (v * s) / (s * s)
@@ -74,7 +72,7 @@ object RopeEje{
 
     }
 
-    override def pointIsInsideElement(point: Point): Boolean = {
+    override def pointIsInsideElement(point: TPoint): Boolean = {
       val sumLengths = (point-?originPoint).map(_.magnitude).getOrElse(0d) + (point-?endPoint).map(_.magnitude).getOrElse(0d)
       length*2 > sumLengths
     }
@@ -88,6 +86,7 @@ object RopeEje{
     override def upperPoint: Point = throw new IllegalArgumentException()
 
     override def lowerPoint: Point = throw new IllegalArgumentException()
+
   }
 
 }

@@ -21,7 +21,7 @@ object RunnerAnalizarLongitudElements {
         ce.calcCircElementAndSaveGraph("/home/vmchura/Documents/001.Projects/Vevial/tesisanalytics/src/main/scala/analizetramos/resultCircular.png")
         ce.calcCircAngleElementAndSaveGraph("/home/vmchura/Documents/001.Projects/Vevial/tesisanalytics/src/main/scala/analizetramos/resultAngleCirc.png")
         ce.calcCircAngleLengthElementAndSaveGraph("/home/vmchura/Documents/001.Projects/Vevial/tesisanalytics/src/main/scala/analizetramos/resultAngleLengthCirc.png")
-      case Left(value) => (value.foreach(println))
+      case Left(value) => println(value)
     }
   }
 }

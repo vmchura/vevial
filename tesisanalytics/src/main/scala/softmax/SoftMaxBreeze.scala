@@ -5,10 +5,13 @@ import agent.{AgentInfo, BaseAgent}
 import environment.{BaseEnvironment, EnvInfo}
 import rlglue.RLGlue
 import breeze.linalg._
-import breeze.numerics.exp
 
 object SoftMaxBreeze {
   import RFunctionDefiner.RInitializer.R
+
+
+
+
   /**
     * Computes softmax probability for all actions
     * @param actor_w    np.array, an array of actor weights
@@ -21,66 +24,25 @@ object SoftMaxBreeze {
       * First compute the list of state-action preferences (1~2 lines)
       * state_action_preferences = ? (list of size 3)
       */
-    //state_action_preferences = actor_w[:, tiles].sum(axis=1)
-    //val state_action_preferences: Array[Double] = actor_w.map(w => tiles.map(w).sum)
+    // h(s,a): Vector[Double] = tiles
+    //                                                            𝑇
+    //val state_action_preferences: Vector[Double] = ℎ(𝑠,𝑎,𝜃) = 𝜃   ℎ(𝑠,𝑎)
     val state_action_preferences: Vector[Double] = sum(actor_w(::,tiles.toSeq),Axis._1)
 
-    /**
-      * # Set the constant c by finding the maximum of state-action preferences (use np.max) (1 line)
-      * # c = ? (float)
-      * ### START CODE HERE ###
-      * c = np.max(state_action_preferences)
-      * ### END CODE HERE ###
-      */
-    val c = max(state_action_preferences)
+    val ans = SoftmaxTyped.compute_softmax_prob(state_action_preferences)
 
-    /**
-      * # Compute the numerator by subtracting c from state-action preferences and exponentiating it (use np.exp) (1 line)
-      * # numerator = ? (list of size 3)
-      * ### START CODE HERE ###
-      * numerator = np.exp(state_action_preferences - c)
-      * ### END CODE HERE ###
-      */
-
-    //val numerator = state_action_preferences.map{p => Math.exp(p-c)}
-    val numerator: Vector[Double] = exp(state_action_preferences-c)
-
-    /**
-      * # Next compute the denominator by summing the values in the numerator (use np.sum) (1 line)
-      * # denominator = ? (float)
-      * ### START CODE HERE ###
-      * denominator = np.sum(numerator)
-      * ### END CODE HERE ###
-      */
-
-    val denominator = sum(numerator)
-
-    /**
-      * # Create a probability array by dividing each element in numerator array by denominator (1 line)
-      * # We will store this probability array in self.softmax_prob as it will be useful later when updating the Actor
-      * # softmax_prob = ? (list of size 3)
-      * ### START CODE HERE ###
-      * softmax_prob = numerator / denominator
-      * ### END CODE HERE ###
-      */
-    //val softmax_prob = numerator.map(_ / denominator)
-    val softmax_prob: Vector[Double] = numerator/denominator
-
-
-    if(softmax_prob(0).isNaN){
+    if(ans(0).isNaN){
       val s = s"""
-        |actor_w : $actor_w
-        |tiles: ${tiles.mkString(" - ")}
-        |sliced: ${actor_w(::,tiles.toSeq).toString(maxLines = 10,maxWidth = 5000)}
-        |state_action: $state_action_preferences
-        |c: $c
-        |num: $numerator
-        |den: $denominator
-        |softmax: $softmax_prob
-        |""".stripMargin
+                 |actor_w : $actor_w
+                 |tiles: ${tiles.mkString(" - ")}
+                 |sliced: ${actor_w(::,tiles.toSeq).toString(maxLines = 10,maxWidth = 5000)}
+                 |state_action: $state_action_preferences
+
+.                 |""".stripMargin
       println(s)
     }
-    softmax_prob
+    ans
+
   }
 
   final def sample(dist: Vector[Double]): Int = {
@@ -196,7 +158,7 @@ object SoftMaxBreeze {
       actor_ss <- agentInfoExperiment.actor_step_size
       critic_ss <- agentInfoExperiment.critic_step_size
       avg_reward_ss <- agentInfoExperiment.avg_reward_step_size
-      γ <- agentInfoExperiment.gamma
+      gamma <- agentInfoExperiment.gamma
     }yield{
 
       println(s"num_tilings: $num_tilings num_tiles: $num_tiles actor_ss: $actor_ss critic_ss: $critic_ss avg_reward_ss: $avg_reward_ss")
@@ -204,7 +166,7 @@ object SoftMaxBreeze {
 
       val agentInfo = AgentInfo(iht_size=agentInfoExperiment.iht_size,num_tilings = num_tilings,
         num_tiles = num_tiles,actor_step_size = actor_ss,critic_step_size = critic_ss,
-        avg_reward_step_size =avg_reward_ss,num_actions = agentInfoExperiment.num_actions,99,γ
+        avg_reward_step_size =avg_reward_ss,num_actions = agentInfoExperiment.num_actions,99,gamma
       )
 
       //val return_per_step = Array.fill(experimentParameter.num_runs,experimentParameter.max_steps)(0d)
@@ -224,17 +186,9 @@ object SoftMaxBreeze {
           }
 
           //rl_glue.rl_start()
-
-
           (iter,rl_glue.agent.real_value(rl_glue.env.env_start()))
 
         }
-
-
-
-
-
-
 
       }.toArray
 
