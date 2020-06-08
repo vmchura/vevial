@@ -7,7 +7,7 @@ class LinearEnvironmentTypedTest extends AnyFlatSpec {
   import BaseEnvironmentTyped.TerminalState._
   behavior of "LinearEnvironment Typed"
   it should "Not be initilized" in {
-    val le = new LinearEnvironmentTyped(EnvInfo(0))
+    val le = new LinearEnvironmentTyped()
     assert(le.env_step(1) match {
       case Left(StateIsUnknow(_)) => true
       case _ => false
@@ -16,13 +16,13 @@ class LinearEnvironmentTypedTest extends AnyFlatSpec {
   }
 
   it should "Be 0 the first observation" in {
-    val le = new LinearEnvironmentTyped(EnvInfo(0))
+    val le = new LinearEnvironmentTyped()
     val obs = le.env_start()
-    assertResult(1)(obs.length)
-    assertResult(0d)(obs(0))
+
+    assertResult(1)(obs)
   }
   it should "Advance 1 position" in {
-    val le = new LinearEnvironmentTyped(EnvInfo(0))
+    val le = new LinearEnvironmentTyped()
     val _ = le.env_start()
     assert(le.env_step(2) match {
       case Right(RewardFeatureState(1f, observation, OnProcess)) =>
@@ -33,7 +33,7 @@ class LinearEnvironmentTypedTest extends AnyFlatSpec {
     })
   }
   it should "Advance 9 position and reach to final" in {
-    val le = new LinearEnvironmentTyped(EnvInfo(0))
+    val le = new LinearEnvironmentTyped()
     val _ = le.env_start()
     (1 to 9).foreach(_ => le.env_step(2))
     assert(le.env_step(2) match {

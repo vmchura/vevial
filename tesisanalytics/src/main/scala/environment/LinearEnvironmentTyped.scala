@@ -4,7 +4,7 @@ import TerminalState._
 /**
   * |o|....|f|
   */
-class LinearEnvironmentTyped(evenInfo: EnvInfo) extends BaseEnvironmentTyped{
+class LinearEnvironmentTyped() extends BaseEnvironmentTyped[Int]{
   private val valid_actions:  Array[Action] = Array.range(0,3)
   private val actions: Array[Int] = Array(-1,0,1)
   private val END_STRIP: Int = 10
@@ -16,12 +16,12 @@ class LinearEnvironmentTyped(evenInfo: EnvInfo) extends BaseEnvironmentTyped{
     *
     * @return The first state observation from the environment.
     */
-  override def env_start(): Observation = {
+  override def env_start(): Int = {
     currentState = 0
     environmentFinished = OnProcess
     stateToObservation(currentState)
   }
-  private def stateToObservation(state: Int): Observation = breeze.linalg.Vector(state)
+  private def stateToObservation(state: Int): Int = state
 
   /**
     * A step taken by the environment.
@@ -30,9 +30,9 @@ class LinearEnvironmentTyped(evenInfo: EnvInfo) extends BaseEnvironmentTyped{
     * @return (float, state, Boolean): a tuple of the reward, state observation,
     *         and boolean indicating if it's terminal.
     */
-  override def env_step(action: Action): Either[EnvironmentError,RewardFeatureState] = {
+  override def env_step(action: Action): Either[EnvironmentError,RewardFeatureState[Int]] = {
 
-    def processAction(): Either[EnvironmentError,RewardFeatureState] = {
+    def processAction(): Either[EnvironmentError,RewardFeatureState[Int]] = {
 
       val indexAction = valid_actions.indexWhere(_ == action)
       if(indexAction >= 0){
