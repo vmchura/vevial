@@ -7,7 +7,7 @@ import gym.{FantasyParabolicData, FantasyParabolicProblem}
 class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParabolicProblem]{
   private val valid_actions:  Array[Action] = Array.range(0,4)
   private val actions: Array[Int] = Array.range(0,4)
-  private var currentState: FantasyParabolicProblem = new FantasyParabolicProblem(Nil)
+  private var currentState: FantasyParabolicProblem = new FantasyParabolicProblem(Nil,0,0)
   private var environmentFinished: TerminalState.Value = UnknowState
 
   /**
@@ -17,8 +17,8 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
     * @return The first state observation from the environment.
     */
   override def env_start(): FantasyParabolicProblem = {
-    val data = List(FantasyParabolicData(0,0),FantasyParabolicData(100,0),FantasyParabolicData(200,0),FantasyParabolicData(300,5))
-    currentState = new FantasyParabolicProblem(data)
+    val data = List(FantasyParabolicData(0,0),FantasyParabolicData(100,0),FantasyParabolicData(200,2.1f),FantasyParabolicData(300,3f))
+    currentState = new FantasyParabolicProblem(data,0,400)
     environmentFinished = OnProcess
     currentState
   }
@@ -36,11 +36,13 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
       val indexAction = valid_actions.indexWhere(_ == action)
       if(indexAction >= 0){
         (actions(indexAction),currentState) match {
-          case (_,s) if s.totalLength < s.environment.minLengthDivisible => Left(StateIsUnknow(s"State: $currentState is not correctly defined"))
+          case (_,s) if s.totalLength < s.environment.minLengthDivisible =>
+            Left(StateIsUnknow(s"State: $currentState is not correctly defined"))
           case (0,s) => Right(RewardFeatureState(s.rewardByCurrentDistribution,s,Finished))
           case (a,_) =>
-            currentState.cutAt(a).map{
+            currentState.cutAt(a-1).map{
               case (r,Some(np)) =>
+                currentState = np
                 RewardFeatureState(r,np,OnProcess)
               case (r,None) =>
                 environmentFinished = Finished

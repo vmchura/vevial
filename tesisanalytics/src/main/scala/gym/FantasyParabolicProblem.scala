@@ -2,33 +2,41 @@ package gym
 
 import environment.BaseEnvironmentTyped.{EnvironmentError, InvalidAction, Reward}
 
-class FantasyParabolicProblem(val data: List[FantasyParabolicData]) extends ProblemDivisible[FantasyParabolicProblem,FantasyParabolicData] {
+class FantasyParabolicProblem(val data: List[FantasyParabolicData],val minData: Double, val maxData: Double) extends ProblemDivisible[FantasyParabolicProblem,FantasyParabolicData] {
   val environment: ProblemDivisbleEnvironment[FantasyParabolicProblem, FantasyParabolicData] = FantasyParabolicEnvironment
 
   override val subDivisionsCutAt: Array[Double] = {
-    val delta = (maxData.toCompare - minData.toCompare)/(environment.numCuts+1)
-    Array.range(1,environment.numCuts+1).map{ i =>  i*delta + minData.toCompare}
+    val delta = (maxData - minData)/(environment.numCuts+1)
+    Array.range(1,environment.numCuts+1).map{ i =>  i*delta + minData}
   }
 
 
   override def cutAt(nCut: Int): Either[EnvironmentError,(Reward,Option[FantasyParabolicProblem])] = {
+
     val cut = subDivisionsCutAt(nCut)
-    val (d0,d1) = data.map(d => d.copy(y = d.y*4f/5f)).partition(_.toCompare < cut)
-    val p0 = new FantasyParabolicProblem(d0)
-    val p1 = new FantasyParabolicProblem(d1)
-    val newReward: Reward = environment.rewardByCut + (nCut match {
-      case 0 => p0.rewardByCurrentDistribution
-      case 1 => List(p0,p1).map(_.rewardByCurrentDistribution).sum
-      case 2 => p1.rewardByCurrentDistribution
-      case _ => -1f
-    })
+
+    val factor = nCut match {
+      case 0 => 1f/5f
+      case 1 => 2f/5f
+      case 2 => 4f/5f
+      case _ => 100f
+    }
+
+    val (d0,d1) = data.map(d => d.copy(y = d.y*factor)).partition(_.toCompare < cut)
+    val p0 = new FantasyParabolicProblem(d0,minData,cut)
+    val p1 = new FantasyParabolicProblem(d1,cut,maxData)
+    val newReward: Reward = environment.rewardByCut + List(p0,p1).map(_.rewardByCurrentDistribution).sum
 
     val newProblem = nCut match {
-      case 0 => Some(p1)
+      case 0 => if(p1.totalLength > environment.minLengthDivisible) Some(p1)  else  None
       case 1 => None
-      case 2 => Some(p0)
+      case 2 => if(p0.totalLength > environment.minLengthDivisible) Some(p0)  else  None
       case _ => None
     }
+
+
+
+
     if(nCut > 2)
       Left(InvalidAction(s"cut at $nCut is not defined"))
     else
@@ -38,35 +46,32 @@ class FantasyParabolicProblem(val data: List[FantasyParabolicData]) extends Prob
 
   override def calcChunks(): List[List[FantasyParabolicData]] = {
     val L = environment.lengthChunks
-    val delta = maxData.toCompare - minData.toCompare
+    val delta = maxData - minData
     val k = (delta/L).toInt + 1
 
     (0 until k).map(i => {
-      val ini = i*L + minData.toCompare
-      val end = if(i == k-1) maxData.toCompare else ini + L
+      val ini = i*L + minData
+      val end = if(i == k-1) maxData else ini + L
       data.filter(d => ini <= d.toCompare && d.toCompare < end)
     }).toList
 
   }
 
   override def rewardByCurrentDistribution: Reward = {
-    if(totalLength < environment.minLengthDivisible)
-      -10f
-    else {
       - chunksDontPassLimitCriteria()*1f
-
-    }
   }
 
   override def calcSubDivisions(): List[FantasyParabolicProblem] = {
-    val divisions: List[Double] = minData.toCompare :: (subDivisionsCutAt.toList ::: (maxData.toCompare :: Nil))
+    val divisions: List[Double] = minData :: (subDivisionsCutAt.toList ::: (maxData :: Nil))
     divisions.zip(divisions.tail).map{ case (a,b) =>
-      new FantasyParabolicProblem(data.filter(d => a <= d.toCompare && d.toCompare < b))
+      new FantasyParabolicProblem(data.filter(d => a <= d.toCompare && d.toCompare < b),a,b)
     }
 
   }
 
-  override def chunksDontPassLimitCriteria(): Int = Math.max(calcChunks().count(environment.isChunkBadFormed),environment.limitChunksFailCriteria)
+  override def chunksDontPassLimitCriteria(): Int = Math.min(calcChunks().count(environment.isChunkBadFormed),environment.limitChunksFailCriteria)
+
+  override def toString: String = s"FantasyParabolicProblem[Data: $data, $minData - $maxData]"
 }
 
 

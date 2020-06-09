@@ -1,24 +1,27 @@
 package RlAlgorithm
 
-import agent.LinearAgentTyped
+import agent.{AgentACFantasyParabolic, BaseAgentTyped, LinearAgentTyped}
 import com.typesafe.scalalogging.Logger
 import environment.BaseEnvironmentTyped._
-import environment.LinearEnvironmentTyped
+import environment.{BaseEnvironmentTyped, EnvironmentACFantasyParabolic, LinearEnvironmentTyped}
+import gym.FantasyParabolicProblem
+import tiles.TileCoderTyped
 
 
 object OneStepActorCritic {
   import TerminalState._
 
   private val logger = Logger(this.getClass)
-  def runExperimentLinearStrip(ihtSize: Int, numTilings: Int, numTiles: Int,
-                    gamma: Float,actorStepSize: Float,criticStepSize: Float,
-                               maxNumEpisodes: Int): Iterable[Float] = {
+  def runExperimentActorCriticSoftMax[A](ihtSize: Int, numTilings: Int, numTiles: Int,
+                                         gamma: Float, actorStepSize: Float, criticStepSize: Float,
+                                         maxNumEpisodes: Int, builderComponents: ExperimentBuilderComponents[A]): Iterable[Float] = {
 
-    val tileCoder = LinearAgentTyped.buildTileCoder(ihtSize,numTilings,numTiles)
-    val agent = new LinearAgentTyped(3,gamma,actorStepSize,criticStepSize,tileCoder)
-    val env = new LinearEnvironmentTyped()
+    val tileCoder = builderComponents.getTileCoder(ihtSize,numTilings,numTiles)
+    val agent = builderComponents.getAgent(gamma,actorStepSize,criticStepSize,tileCoder)
+    val env = builderComponents.getEnvironment
 
     def runStep(a: Action, prevAcum: Double): Either[EnvironmentError,Double] = {
+
       env.env_step(a).flatMap(k => {
         val RewardFeatureState(reward,_,state) = k
         state match {
@@ -49,4 +52,22 @@ object OneStepActorCritic {
 
 
   }
+
+  val LINEAR_STRIP_COMPONENT_BUILDER: ExperimentBuilderComponents[Int] = new ExperimentBuilderComponents[Int] {
+    override def getTileCoder(ihtSize: Int, numTilings: Int, numTiles: Int): TileCoderTyped[Int] = LinearAgentTyped.buildTileCoder(ihtSize,numTilings,numTiles)
+
+    override def getAgent(gamma: Float, actorStepSize: Float, criticStepSize: Float, tileCoder: TileCoderTyped[Int]): BaseAgentTyped[Int] = new LinearAgentTyped(3,gamma,actorStepSize,criticStepSize,tileCoder)
+
+    override def getEnvironment: BaseEnvironmentTyped[Int] = new LinearEnvironmentTyped()
+  }
+
+  val FANTASY_PARABOLIC_COMPONENT_BUILDER: ExperimentBuilderComponents[FantasyParabolicProblem] = new ExperimentBuilderComponents[FantasyParabolicProblem] {
+    override def getTileCoder(ihtSize: Int, numTilings: Int, numTiles: Int): TileCoderTyped[FantasyParabolicProblem] = AgentACFantasyParabolic.buildTileCoder(ihtSize,numTilings,numTiles)
+
+    override def getAgent(gamma: Float, actorStepSize: Float, criticStepSize: Float, tileCoder: TileCoderTyped[FantasyParabolicProblem]): BaseAgentTyped[FantasyParabolicProblem] = new AgentACFantasyParabolic(4,gamma,actorStepSize,criticStepSize,tileCoder)
+
+    override def getEnvironment: BaseEnvironmentTyped[FantasyParabolicProblem] = new EnvironmentACFantasyParabolic()
+  }
+
 }
+

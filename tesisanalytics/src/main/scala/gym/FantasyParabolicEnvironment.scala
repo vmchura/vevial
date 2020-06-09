@@ -15,7 +15,7 @@ object FantasyParabolicEnvironment extends ProblemDivisbleEnvironment[FantasyPar
   override def limitChunksFailCriteria: Int = 5
 
   override def isChunkBadFormed(chunkData: List[FantasyParabolicData]): Boolean = {
-    val data = chunkData.map(_.value).filter(_ > 2f).map(x => x*x)
+    val data = chunkData.map(_.value).filter(_.abs > 2f).map(x => x*x)
     val n = data.length
     val error = if(n==0) 0 else data.sum/n
     error > 10d
