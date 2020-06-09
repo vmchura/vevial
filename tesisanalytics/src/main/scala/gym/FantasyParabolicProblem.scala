@@ -5,14 +5,14 @@ import environment.BaseEnvironmentTyped.{EnvironmentError, InvalidAction, Reward
 class FantasyParabolicProblem(val data: List[FantasyParabolicData]) extends ProblemDivisible[FantasyParabolicProblem,FantasyParabolicData] {
   val environment: ProblemDivisbleEnvironment[FantasyParabolicProblem, FantasyParabolicData] = FantasyParabolicEnvironment
 
-  override val subDivisions: Array[Double] = {
+  override val subDivisionsCutAt: Array[Double] = {
     val delta = (maxData.toCompare - minData.toCompare)/(environment.numCuts+1)
     Array.range(1,environment.numCuts+1).map{ i =>  i*delta + minData.toCompare}
   }
 
 
   override def cutAt(nCut: Int): Either[EnvironmentError,(Reward,Option[FantasyParabolicProblem])] = {
-    val cut = subDivisions(nCut)
+    val cut = subDivisionsCutAt(nCut)
     val (d0,d1) = data.map(d => d.copy(y = d.y*4f/5f)).partition(_.toCompare < cut)
     val p0 = new FantasyParabolicProblem(d0)
     val p1 = new FantasyParabolicProblem(d1)
@@ -53,12 +53,20 @@ class FantasyParabolicProblem(val data: List[FantasyParabolicData]) extends Prob
     if(totalLength < environment.minLengthDivisible)
       -10f
     else {
-      val badChunks = Math.max(calcChunks().count(environment.isChunkBadFormed),environment.limitChunksFailCriteria)
-      - badChunks*1f
+      - chunksDontPassLimitCriteria()*1f
 
     }
   }
 
+  override def calcSubDivisions(): List[FantasyParabolicProblem] = {
+    val divisions: List[Double] = minData.toCompare :: (subDivisionsCutAt.toList ::: (maxData.toCompare :: Nil))
+    divisions.zip(divisions.tail).map{ case (a,b) =>
+      new FantasyParabolicProblem(data.filter(d => a <= d.toCompare && d.toCompare < b))
+    }
+
+  }
+
+  override def chunksDontPassLimitCriteria(): Int = Math.max(calcChunks().count(environment.isChunkBadFormed),environment.limitChunksFailCriteria)
 }
 
 
