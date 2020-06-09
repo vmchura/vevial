@@ -3,7 +3,7 @@ package gym
 import environment.BaseEnvironmentTyped.{EnvironmentError, InvalidAction, Reward}
 
 class FantasyParabolicProblem(val data: List[FantasyParabolicData]) extends ProblemDivisible[FantasyParabolicProblem,FantasyParabolicData] {
-  protected val environment: ProblemDivisbleEnvironment[FantasyParabolicProblem, FantasyParabolicData] = FantasyParabolicEnvironment
+  val environment: ProblemDivisbleEnvironment[FantasyParabolicProblem, FantasyParabolicData] = FantasyParabolicEnvironment
 
   override val subDivisions: Array[Double] = {
     val delta = (maxData.toCompare - minData.toCompare)/(environment.numCuts+1)
