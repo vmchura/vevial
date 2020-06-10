@@ -29,7 +29,7 @@ object SoftmaxTyped {
     val distributionAcummulative: Vector[Double] = distribution.scanLeft(0d)(_ + _)
     distributionAcummulative.findAll(_ >= p).minOption match {
       case Some(indx) => if(indx > 0) indx-1 else 0
-      case None => throw new IllegalArgumentException("")
+      case None => throw new IllegalArgumentException(s"cant find value on $distribution - $distributionAcummulative [$p]")
     }
   }
 }

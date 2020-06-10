@@ -21,8 +21,10 @@ class FantasyParabolicProblem(val data: List[FantasyParabolicData],val minData: 
     val p1 = new FantasyParabolicProblem(d1,cut,maxData)
     val newReward: Reward = {
       val rewardByCuttingIt = environment.rewardByCut + List(p0,p1).map(_.rewardByCurrentDistribution).sum
-      if(rewardByCuttingIt > rewardByCurrentDistribution)
-        1f
+      val increaseReward = rewardByCuttingIt - rewardByCurrentDistribution
+      if(increaseReward > 0){
+        Math.min(increaseReward,5f)
+      }
       else
         -1f
     }

@@ -12,6 +12,10 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
   private var currentState: FantasyParabolicProblem = new FantasyParabolicProblem(Nil,0,0)
   private var environmentFinished: TerminalState.Value = UnknowState
 
+  private var currentReward = 0f
+  private var initialReward = 0f
+  private var numberCuts = 0
+  private var finalReward = 0f
   /**
     * The first method called when the experiment starts, called before the
     * agent starts.
@@ -25,11 +29,13 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
     val data = List.fill(points){
       val pointAt = Random.nextFloat()*length
       val distance = Math.abs(errorAt-pointAt)
-      val scale: Float = Math.min(6f,50f/distance)
-      FantasyParabolicData(pointAt,Random.nextFloat()*scale)
+      val scale: Float = Math.min(4f,200f/distance)
+      FantasyParabolicData(pointAt,scale)
     }
 
     currentState = new FantasyParabolicProblem(data,0,length)
+    initialReward = currentState.rewardByCurrentDistribution
+    numberCuts = 0
     environmentFinished = OnProcess
     currentState
   }
@@ -46,12 +52,15 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
 
       val indexAction = valid_actions.indexWhere(_ == action)
       if(indexAction >= 0){
-        (actions(indexAction),currentState) match {
+        val resAfterAction = (actions(indexAction),currentState) match {
           case (_,s) if s.totalLength < s.environment.minLengthDivisible =>
             Left(StateIsUnknow(s"State: $currentState is not correctly defined"))
-          case (0,s) => Right(RewardFeatureState(0f,s,Finished))
+          case (0,s) =>
+            currentReward += s.rewardByCurrentDistribution
+            Right(RewardFeatureState(s.rewardByCurrentDistribution,s,Finished))
           case (a,_) =>
-            currentState.cutAt(a-1).map{
+            numberCuts += 1
+             currentState.cutAt(a-1).map{
               case (r,Some(np)) =>
                 currentState = np
                 RewardFeatureState(r,np,OnProcess)
@@ -59,7 +68,21 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
                 environmentFinished = Finished
                 RewardFeatureState(r, currentState, Finished)
             }
+
         }
+
+        finalReward = resAfterAction match {
+          case Right(x) => x.reward
+          case Left(_) => 0f
+        }
+        resAfterAction match {
+          case Left(e) => println(f"ERROR $e $initialReward%5.1f => $numberCuts%4d => $finalReward%5.1f")
+          case Right(RewardFeatureState(_,_,Finished)) => println(f"Finished $initialReward%5.1f => $numberCuts%4d => $finalReward%5.1f")
+          case _ => ()
+        }
+
+        resAfterAction
+
       }else{
         Left(InvalidAction(s"Action: $action is invalid"))
       }

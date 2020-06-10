@@ -21,5 +21,5 @@ object FantasyParabolicEnvironment extends ProblemDivisbleEnvironment[FantasyPar
     error > 10d
   }
 
-  override def rewardByCut: Reward = -1f
+  override def rewardByCut: Reward = -0.5f
 }
