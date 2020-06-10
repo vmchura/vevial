@@ -15,17 +15,17 @@ class FantasyParabolicProblem(val data: List[FantasyParabolicData],val minData: 
 
     val cut = subDivisionsCutAt(nCut)
 
-    val factor = nCut match {
-      case 0 => 1f/5f
-      case 1 => 2f/5f
-      case 2 => 4f/5f
-      case _ => 100f
-    }
 
-    val (d0,d1) = data.map(d => d.copy(y = d.y*factor)).partition(_.toCompare < cut)
+    val (d0,d1) = data.map(d => d.copy(y = d.y*4f/5f)).partition(_.toCompare < cut)
     val p0 = new FantasyParabolicProblem(d0,minData,cut)
     val p1 = new FantasyParabolicProblem(d1,cut,maxData)
-    val newReward: Reward = environment.rewardByCut + List(p0,p1).map(_.rewardByCurrentDistribution).sum
+    val newReward: Reward = {
+      val rewardByCuttingIt = environment.rewardByCut + List(p0,p1).map(_.rewardByCurrentDistribution).sum
+      if(rewardByCuttingIt > rewardByCurrentDistribution)
+        1f
+      else
+        -1f
+    }
 
     val newProblem = nCut match {
       case 0 => if(p1.totalLength > environment.minLengthDivisible) Some(p1)  else  None

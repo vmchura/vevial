@@ -4,6 +4,8 @@ import environment.BaseEnvironmentTyped.{Action, EnvironmentError, InvalidAction
 import environment.BaseEnvironmentTyped.TerminalState.{Finished, OnProcess, UnknowState}
 import gym.{FantasyParabolicData, FantasyParabolicProblem}
 
+import scala.util.Random
+
 class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParabolicProblem]{
   private val valid_actions:  Array[Action] = Array.range(0,4)
   private val actions: Array[Int] = Array.range(0,4)
@@ -17,8 +19,17 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
     * @return The first state observation from the environment.
     */
   override def env_start(): FantasyParabolicProblem = {
-    val data = List(FantasyParabolicData(0,0),FantasyParabolicData(100,0),FantasyParabolicData(200,2.1f),FantasyParabolicData(300,3f))
-    currentState = new FantasyParabolicProblem(data,0,400)
+    val length = Random.nextFloat()*1000f+100
+    val points = Random.nextInt(100)
+    val errorAt = Random.nextFloat()*length
+    val data = List.fill(points){
+      val pointAt = Random.nextFloat()*length
+      val distance = Math.abs(errorAt-pointAt)
+      val scale: Float = Math.min(6f,50f/distance)
+      FantasyParabolicData(pointAt,Random.nextFloat()*scale)
+    }
+
+    currentState = new FantasyParabolicProblem(data,0,length)
     environmentFinished = OnProcess
     currentState
   }
@@ -38,7 +49,7 @@ class EnvironmentACFantasyParabolic extends BaseEnvironmentTyped[FantasyParaboli
         (actions(indexAction),currentState) match {
           case (_,s) if s.totalLength < s.environment.minLengthDivisible =>
             Left(StateIsUnknow(s"State: $currentState is not correctly defined"))
-          case (0,s) => Right(RewardFeatureState(s.rewardByCurrentDistribution,s,Finished))
+          case (0,s) => Right(RewardFeatureState(0f,s,Finished))
           case (a,_) =>
             currentState.cutAt(a-1).map{
               case (r,Some(np)) =>
