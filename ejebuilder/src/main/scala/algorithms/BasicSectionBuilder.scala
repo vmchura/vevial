@@ -1,8 +1,9 @@
 package algorithms
-import io.vmchura.vevial.PlanarGeometric.BasicEje.{ EmptySeqEjeElements, TSeqEjeElementsBase}
+import io.vmchura.vevial.PlanarGeometric.BasicEje.{EmptySeqEjeElements, TSeqEjeElementsBase}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointUnitaryVector
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TDirection.{AnyDirection, Direction}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment}
+
 
 case class BasicSectionBuilder(in: PointUnitaryVector,out: PointUnitaryVector,dataToMatch: Seq[ProgPointTangent]) extends BuilderFixedPoints {
 
@@ -31,6 +32,45 @@ case class BasicSectionBuilder(in: PointUnitaryVector,out: PointUnitaryVector,da
 
     val inefficientEje: TSeqEjeElementsBase = e.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase){case (prevSeq,newElement) => prevSeq.append(newElement)}
     Right(inefficientEje)
+
+  }
+
+}
+
+object BasicSectionBuilder{
+  import scala.xml.Elem
+  import io.ElementsAsXML._
+
+  implicit class BasicSectionBuilderSerializable(val section: BasicSectionBuilder) extends SectionSerializable[BasicSectionBuilder] {
+
+    override def saveToNodeXML(): Elem = {
+      <SectionBuilder>
+        <in>
+        {savePointAsXML(section.in.point)}
+        {saveDirectionAsXML(section.in.direction)}
+        </in>
+        <out>
+          {savePointAsXML(section.out.point)}
+          {saveDirectionAsXML(section.out.direction)}
+        </out>
+        <data>
+          {section.dataToMatch.map(ProgPointTangent.saveAsXML)}
+        </data>
+      </SectionBuilder>
+    }
+  }
+
+  def loadBasicSectionBuilderFromNodeXML(elem: Elem): Option[BasicSectionBuilder] = {
+
+      for{
+        inNode <- (elem \ "in").headOption
+        outNode <- (elem \ "out").headOption
+      }yield{
+        val in = loadPointUnitaryVector(inNode)
+        val out = loadPointUnitaryVector(outNode)
+        val data = (elem \ "data" \\ "ProgPointTangent").flatMap(ProgPointTangent.loadFromXML)
+        BasicSectionBuilder(in,out,data)
+      }
 
   }
 

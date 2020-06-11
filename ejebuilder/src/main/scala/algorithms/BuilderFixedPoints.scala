@@ -3,6 +3,7 @@ package algorithms
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TSeqEjeElementsBase
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointUnitaryVector
 
+
 trait BuilderFixedPoints {
   def in: PointUnitaryVector
   def out: PointUnitaryVector

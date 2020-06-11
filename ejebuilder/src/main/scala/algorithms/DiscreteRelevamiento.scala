@@ -14,7 +14,7 @@ object DiscreteRelevamiento {
 
     logger.debug("Starting to build seq linear graph")
 
-    class PointWithUsing(point: Point) extends TPoint {
+    class PointWithUsing(point: TPoint) extends TPoint {
       var used: Boolean = false
       override val x: Double = point.x
       override val y: Double = point.y

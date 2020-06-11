@@ -1,6 +1,6 @@
 package io.vmchura.vevial.elementdata
 
-import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point, TDirection}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point, TDirection, TPoint}
 
 /**
   * https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Normal_Distribution_PDF.svg/1920px-Normal_Distribution_PDF.svg.png
@@ -27,7 +27,7 @@ object UncertainData{
   }
 }
 
-case class UPoint(value: Point, sigma2: Double) extends UncertainData[Point,UPoint] {
+case class UPoint(value: TPoint, sigma2: Double) extends UncertainData[TPoint,UPoint] {
   override def |-|(other: UPoint): UPoint = {
     val x = UDouble(value.x,sigma2) |-| UDouble(other.value.x,other.sigma2)
     val y = UDouble(value.y,sigma2) |-| UDouble(other.value.y,other.sigma2)
