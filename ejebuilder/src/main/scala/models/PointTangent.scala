@@ -31,6 +31,7 @@ sealed trait TPointTangent {
       case PointWithNext(p,n) => PointWithPrev(p,n)
       case PointWithPrev(p,n) => PointWithNext(p,n)
       case PointWithPrevNext(p,x,y) => PointWithPrevNext(p,y,x)
+      case PointTangentDefined(p,t) => PointTangentDefined(p,UDirection(t.value <¬ 2,t.sigma2))
     }
   }
 
@@ -44,7 +45,7 @@ object PointTangent {
   val UNKNOW_DIRECTION: UDirection = UDirection(TDirection(),Double.PositiveInfinity)
 }
 
-
+case class PointTangentDefined(point: Option[UPoint], tangent: UDirection) extends TPointTangent
 case class PointAlone(point: Option[UPoint]) extends TPointTangent {
   override def tangent: UDirection = PointTangent.UNKNOW_DIRECTION
 }
