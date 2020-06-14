@@ -70,9 +70,9 @@ object AssignTangents {
     }
 
     //first try: segment each 100 m
-    val sectionLength = 40d
+    val sectionLength = 100d
     val sections: Seq[BuilderFixedPoints] = {
-      val (list,elements,start,_) = relConProgTangent.foldLeft((List.empty[BuilderFixedPoints], List.empty[ProgPointTangent], Option.empty[PointUnitaryVector], Progresiva(Integer.MIN_VALUE))){
+      val fleft: (List[BuilderFixedPoints], List[ProgPointTangent], Option[PointUnitaryVector], Progresiva) = relConProgTangent.foldLeft((List.empty[BuilderFixedPoints], List.empty[ProgPointTangent], Option.empty[PointUnitaryVector], Progresiva(Integer.MIN_VALUE))){
         case ((prevList, currentPoints, None, prog), nextPoint) =>
           (nextPoint.pointTangent.point,nextPoint.pointTangent.tangent.value) match {
             case (Some(UPoint(p,_)),d: Direction) =>
@@ -90,7 +90,12 @@ object AssignTangents {
                 val defaultValue = PointUnitaryVector(point,d)
                 averageWithClosestPoints(nextPoint).getOrElse(defaultValue)
               }
-              val bb = BasicSectionBuilder(start,end, currentPoints)
+              val bb: BuilderFixedPoints = AxisFitProblem(start,end, currentPoints,prog.progresiva,nextPoint.prog) match {
+                case Left(error) =>
+                  println(s"ERROR $error")
+                  BasicSectionBuilder(start, end,currentPoints)
+                case Right(af) => af
+              }
               (bb :: prevList, Nil, Some(end), Progresiva(nextPoint.prog))
             case (_,Some(_),_) =>
               (prevList, nextPoint :: currentPoints, Some(start), prog)
@@ -99,6 +104,7 @@ object AssignTangents {
           }
       }
 
+      val (list,elements,start,_) = fleft
       val res = if(elements.length > 1){
         val end = (elements.last.pointTangent.point,elements.last.pointTangent.tangent) match {
           case (Some(UPoint(p,_)),UDirection(d,_)) => Some(PointUnitaryVector(p,d))
@@ -106,7 +112,12 @@ object AssignTangents {
         }
         (start,end) match {
           case (Some(in),Some(out)) =>
-            val bb = BasicSectionBuilder(in,out, elements)
+            val bb: BuilderFixedPoints = AxisFitProblem(in,out, elements, elements.map(_.prog).min, elements.map(_.prog).max) match {
+              case Left(error) =>
+                println(s"ERROR $error")
+                BasicSectionBuilder(in, out,elements)
+              case Right(af) => af
+            }
             (bb :: list).reverse
 
           case _ => list.reverse
@@ -117,6 +128,7 @@ object AssignTangents {
       }
       res
     }
+    //BasicSectionBuilder.saveSequenceBasicSectionBuilder(sections.map(_.asInstanceOf[BasicSectionBuilder]),"/home/vmchura/Documents/datasectionbuilder.xml")
 
     loggger.debug(s"Size of sections ${sections.length}")
 
@@ -125,7 +137,7 @@ object AssignTangents {
         val inefficientEje = sections.foldLeft(Right(EmptySeqEjeElements()) :Either[Exception,TSeqEjeElementsBase]){case (prevSeq,newElement) =>
           prevSeq.flatMap{ prevEje =>
             newElement.elements match {
-              case Left(errors) => Left(errors.headOption.getOrElse(new IllegalStateException("List of error with no error")))
+              case Left(errors) => Left(errors)
               case Right(bbp) =>Right(prevEje.append(bbp))
             }
           }

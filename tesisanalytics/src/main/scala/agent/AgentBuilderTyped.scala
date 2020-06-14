@@ -1,26 +1,26 @@
 package agent
 
-import gym.{FantasyParabolicEnvironment, FantasyParabolicProblem}
+import gym.{DataDivisble, FantasyParabolicEnvironment, ProblemDivisible}
 import tiles.TileCoderTyped
 
-class AgentACFantasyParabolic(val numActions: Int,
-                              val gamma: Float,
-                              val actorStepSizeParam: Float,
-                              val criticStepSizeParam: Float,
-                              val tileCoder: TileCoderTyped[FantasyParabolicProblem]) extends BaseAgentTyped[FantasyParabolicProblem]{
-  override def defaultObs: FantasyParabolicProblem = new FantasyParabolicProblem(Nil,0,0)
+class AgentBuilderTyped[P <: ProblemDivisible[P,D],D <: DataDivisble](val numActions: Int,
+                                                                      val gamma: Float,
+                                                                      val actorStepSizeParam: Float,
+                                                                      val criticStepSizeParam: Float,
+                                                                      val tileCoder: TileCoderTyped[P],
+                                                                      val defaultObs: P) extends BaseAgentTyped[P]{
 }
-object AgentACFantasyParabolic {
+object AgentBuilderTyped {
 
-  def buildTileCoder(ihtSizeParam: Int, numTilingsParam: Int, numTilesParam: Int): TileCoderTyped[FantasyParabolicProblem] = {
-    new TileCoderTyped[FantasyParabolicProblem] {
+  def buildTileCoder[P <: ProblemDivisible[P,D],D <: DataDivisble](ihtSizeParam: Int, numTilingsParam: Int, numTilesParam: Int): TileCoderTyped[P] = {
+    new TileCoderTyped[P] {
       override val ihtSize: Int = ihtSizeParam
 
       override val numTilings: Int = numTilingsParam
 
       override val numTiles: Int = numTilesParam
 
-      override def buildObs(input: FantasyParabolicProblem): Seq[Float] = {
+      override def buildObs(input: P): Seq[Float] = {
         val BAD_CHUNKS_MIN = 0f
         val BAD_CHUNKS_MAX: Float = FantasyParabolicEnvironment.limitChunksFailCriteria
 

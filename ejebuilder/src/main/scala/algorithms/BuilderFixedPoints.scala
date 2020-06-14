@@ -8,8 +8,8 @@ trait BuilderFixedPoints {
   def in: PointUnitaryVector
   def out: PointUnitaryVector
   def dataToMatch: Seq[ProgPointTangent]
-  protected def buildElements: Either[Seq[Exception],TSeqEjeElementsBase]
-  final def elements: Either[Seq[Exception],TSeqEjeElementsBase] = {
+  protected def buildElements: Either[Exception,TSeqEjeElementsBase]
+  final def elements: Either[Exception,TSeqEjeElementsBase] = {
 
     def almostSameElementAsInput(a: PointUnitaryVector, b: PointUnitaryVector): Boolean = a.point ==? b.point
 
@@ -20,7 +20,7 @@ trait BuilderFixedPoints {
         if(almostSameElementAsInput(in,base.in) && almostSameElementAsInput(out,base.out)){
           Right(base)
         }else{
-          Left(List(new IllegalStateException("In our out are not almost as to the parameters")))
+          Left(new IllegalStateException("In our out are not almost as to the parameters"))
         }
     }
   }

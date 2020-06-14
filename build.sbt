@@ -30,7 +30,7 @@ lazy val viricalc = (project in file("viricalc")).settings(commonSettings).setti
 
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
   name := "ejebuilder",
-).dependsOn(ejevial,relevamientodata)
+).dependsOn(ejevial,relevamientodata,tesis)
 
 lazy val ejebuilderview = (project in file("ejebuilderview")).settings(commonSettings ++ windowSettings).settings(
   name := "ejebuilderview"

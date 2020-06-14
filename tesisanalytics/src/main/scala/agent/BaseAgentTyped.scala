@@ -1,13 +1,17 @@
 package agent
 
+import java.io
+
 import breeze.linalg.{Axis, DenseMatrix, DenseVector, Vector, sum}
 import environment.BaseEnvironmentTyped._
 import softmax.SoftmaxTyped
 import tiles.TileCoderTyped
 
+import scala.reflect.io.File
 
-trait BaseAgentTyped[OBS] {
-  type StateType = Vector[Double]
+
+trait BaseAgentTyped[OBS] extends AgentEvaluator[OBS]{
+
 
   def numActions: Int
   def gamma: Float
@@ -17,7 +21,7 @@ trait BaseAgentTyped[OBS] {
   def tileCoder: TileCoderTyped[OBS]
 
   private val actions: Iterable[Action] = 0 until numActions
-  private val actorW = DenseMatrix.zeros[Double](numActions,tileCoder.ihtSize)
+  override val actorW = DenseMatrix.zeros[Double](numActions,tileCoder.ihtSize)
   private val criticW = DenseVector.zeros[Double](tileCoder.ihtSize)
   //αω: actorStepSize
   private val actorStepSize = actorStepSizeParam/tileCoder.numTilings
@@ -82,21 +86,8 @@ trait BaseAgentTyped[OBS] {
 
   }
 
-  def observation2InputTiles(observation: OBS): StateType = {
-    val active_tiles = tileCoder.getTiles(observation)
-    sum(actorW(::,active_tiles.toSeq),Axis._1)
-  }
-
   def startEpisode(): Unit = {
     I = 1f
   }
-
-  def agent_policy(input: OBS): Action = {
-
-    val state_action_preferences: StateType = observation2InputTiles(input)
-    val softmax_prob = SoftmaxTyped.compute_softmax_prob(state_action_preferences)
-
-    SoftmaxTyped.sample(softmax_prob)
-  }
-
 }
+

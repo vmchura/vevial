@@ -1,10 +1,12 @@
-package gym
-import environment.BaseEnvironmentTyped.Reward
+package algorithms
 
-object FantasyParabolicEnvironment extends ProblemDivisbleEnvironment[FantasyParabolicProblem,FantasyParabolicData] {
+import environment.BaseEnvironmentTyped.Reward
+import gym.ProblemDivisbleEnvironment
+
+object AxisFitEnvironment extends ProblemDivisbleEnvironment[AxisFitProblem,DataWithProjectionError]{
   override def numCuts: Int = 3
 
-  override def minLengthDivisible: Double = 20
+  override def minLengthDivisible: Double = 60
 
   override def maxLengthDivisible: Double = 100
 

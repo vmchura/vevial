@@ -5,10 +5,6 @@ import environment.BaseEnvironmentTyped.{EnvironmentError, InvalidAction, Reward
 class FantasyParabolicProblem(val data: List[FantasyParabolicData],val minData: Double, val maxData: Double) extends ProblemDivisible[FantasyParabolicProblem,FantasyParabolicData] {
   val environment: ProblemDivisbleEnvironment[FantasyParabolicProblem, FantasyParabolicData] = FantasyParabolicEnvironment
 
-  override val subDivisionsCutAt: Array[Double] = {
-    val delta = (maxData - minData)/(environment.numCuts+1)
-    Array.range(1,environment.numCuts+1).map{ i =>  i*delta + minData}
-  }
 
 
   override def cutAt(nCut: Int): Either[EnvironmentError,(Reward,Option[FantasyParabolicProblem])] = {
@@ -46,18 +42,6 @@ class FantasyParabolicProblem(val data: List[FantasyParabolicData],val minData: 
 
   }
 
-  override def calcChunks(): List[List[FantasyParabolicData]] = {
-    val L = environment.lengthChunks
-    val delta = maxData - minData
-    val k = (delta/L).toInt + 1
-
-    (0 until k).map(i => {
-      val ini = i*L + minData
-      val end = if(i == k-1) maxData else ini + L
-      data.filter(d => ini <= d.toCompare && d.toCompare < end)
-    }).toList
-
-  }
 
   override def rewardByCurrentDistribution: Reward = {
       - chunksDontPassLimitCriteria()*1f

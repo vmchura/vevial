@@ -4,10 +4,13 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.PointUnitaryVector
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TDirection.{AnyDirection, Direction}
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{CircleSegment, RectSegment}
 
+import scala.xml.Node
+
 
 case class BasicSectionBuilder(in: PointUnitaryVector,out: PointUnitaryVector,dataToMatch: Seq[ProgPointTangent]) extends BuilderFixedPoints {
 
-  override protected def buildElements: Either[Seq[Exception], TSeqEjeElementsBase] = {
+
+  override protected def buildElements: Either[Exception, TSeqEjeElementsBase] = {
 
     lazy val defaultRect = {
 
@@ -60,7 +63,7 @@ object BasicSectionBuilder{
     }
   }
 
-  def loadBasicSectionBuilderFromNodeXML(elem: Elem): Option[BasicSectionBuilder] = {
+  def loadBasicSectionBuilderFromNodeXML(elem: Node): Option[BasicSectionBuilder] = {
 
       for{
         inNode <- (elem \ "in").headOption
@@ -73,5 +76,19 @@ object BasicSectionBuilder{
       }
 
   }
+  def saveSequenceBasicSectionBuilder(data: Seq[BasicSectionBuilder], path: String): Boolean = {
+    val e = <DataBasicSectionBuilder>
+      {
+        data.map(_.saveToNodeXML())
+      }
+    </DataBasicSectionBuilder>
+    try {
+      scala.xml.XML.save(path,e)
+      true
+    }catch {
+      case _: Throwable => false
+    }
+  }
+
 
 }
