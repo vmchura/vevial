@@ -1,5 +1,6 @@
 ThisBuild / version := "1.13"
 ThisBuild / scalaVersion := "2.13.1"
+ThisBuild / organization := "io.vmchura"
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
   name := "ejevial"
@@ -99,10 +100,10 @@ lazy val windowSettings = Seq (
 
 lazy val javaFXModules = Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
 libraryDependencies ++= javaFXModules.map( m =>
-  "org.openjfx" % s"javafx-$m" % "12.0.2" classifier "linux"
+  "org.openjfx" % s"javafx-$m" % "14.0.1" classifier "linux"
 )},
 //---------------- FIN SCALAFX
-  libraryDependencies += "org.scalafx" %% "scalafx" % "12.0.2-R18",
+  libraryDependencies += "org.scalafx" %% "scalafx" % "14-R19",
   fork := true
 
   // compiles, but does not run
