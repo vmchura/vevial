@@ -1,10 +1,13 @@
 package io.vmchura.vevial.PlanarGeometric.ProgresiveEje
 
+import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicEje.TEfficientSeqEjeElements
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric.areCloseInLinearReference
 import io.vmchura.vevial.PlanarGeometric.EjeElement._
 import io.vmchura.vevial.PlanarGeometric.RestrictiveEje._
+
+import java.io.File
 
 trait WithProgresive extends TEjeElement {
   def calcProgresive(ep: ElementPoint): Double
@@ -135,6 +138,27 @@ trait TFaintSegmentProgresiva extends  TFaintElement with WithDistributionFormul
 }
 trait TEfficientSeqEjeElementsProgresiva extends TEfficientSeqEjeElements with WithProgresive {
   def slice(progIni: Int, progFin: Int): TEfficientSeqEjeElementsProgresiva
+  def exportKML(fileOutputPath: String): Unit = {
+    import com.scalakml.kml.Kml
+    import com.scalakml.kml.LineString
+    import com.scalakml.kml.Coordinate
+    import com.scalakml.kml.FeaturePart
+    import com.scalakml.kml.Placemark
+    import com.scalakml.io.KmlPrintWriter
+    import xml.PrettyPrinter
+    def tpoint2Coordinate(tPoint: TPoint): Coordinate = {
+      val geodesic = Coordinates('L',18,tPoint.x,tPoint.y).toGeodesicCoordinates()
+      new Coordinate(geodesic.longitude,geodesic.latitude,0)
+    }
+    val coordinates = elements.map(_.out.point)
+    val lineString = LineString(coordinates = Option(elements.map(_.in.point).map(tpoint2Coordinate)))
+    // create a Placemark with the point, and a name
+    val placemark = Placemark(Option(lineString), FeaturePart(name = Option("TramoKML")))
+    // create a kml root object with the placemark
+
+    val kml = Kml(feature = Option(placemark))
+    new KmlPrintWriter(fileOutputPath).write(Option(kml), new PrettyPrinter(80, 3))
+  }
 }
 
 case class RectSegmentProgresiva(originPoint: TPoint, endPoint: TPoint, restrictions: List[Restriction])
