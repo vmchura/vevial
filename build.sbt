@@ -1,9 +1,11 @@
 ThisBuild / version := "1.13"
 ThisBuild / scalaVersion := "2.13.1"
 ThisBuild / organization := "io.vmchura"
-
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
-  name := "ejevial"
+  name := "ejevial",
+  libraryDependencies ++= List(
+    "com.github.workingDog" %% "scalakml" % "1.5"
+  )
 )
 
 lazy val ejevialview = (project in file("ejevialview")).settings(commonSettings ++ windowSettings).settings(
@@ -64,6 +66,7 @@ lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).se
 
 lazy val core = (project in file(".")).settings(commonSettings).settings(
   name := "Vevial",
+
   libraryDependencies ++= List()
 ).dependsOn(ejevial,relevamientodata,viricalc).aggregate(ejevial,relevamientodata,viricalc)
 
