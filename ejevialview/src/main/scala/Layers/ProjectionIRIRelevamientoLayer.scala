@@ -9,7 +9,7 @@ import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Circle, Line}
 import UtilTransformers.PointTransformer._
 
-class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: RelevamientoIRI[T], eje: TEfficientSeqEjeElementsProgresiva) extends TLayer[T] {
+class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: RelevamientoIRI[T], eje: TEfficientSeqEjeElementsProgresiva, projectionColor: Color) extends TLayer[T] {
 
   override def conversor(e: T): Seq[Node] = {
     (for{
@@ -24,7 +24,7 @@ class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI:
       }
       eje.projectPoint(p.value).flatMap{ ep=>
 
-          c.fill() = Color.Blue
+          c.fill() = projectionColor
 
           ep.toSource.map{ _ =>
 
@@ -35,7 +35,7 @@ class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI:
               endX <== p.value.x.toView_X()
               endY <== p.value.y.toView_Y()
               strokeWidth = 1
-              stroke = Color.Blue
+              stroke = projectionColor
 
             })
           }
