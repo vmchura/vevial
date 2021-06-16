@@ -1,28 +1,44 @@
 import java.io.File
 
-import AutomaticBuilder.models.{ElementActionToImprove, SetPointAt, SimpleAgentEjeEvaluator}
+import AutomaticBuilder.models.{ElementActionToImprove, SimpleAgentEjeEvaluator}
 import scalafx.Includes._
-import Layers.{GeoNodeLayer, InitialDraftLayer, LinkLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
+import Layers.{
+  GeoNodeLayer,
+  ObservableListDelegate,
+  ProjectionPointLayer,
+  SimpleEjeVialLayer,
+  SimpleIRIRelevamientoLayer
+}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import scalafx.application.{JFXApp, Platform}
+import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
-import scalafx.collections.ObservableBuffer
-import scalafx.scene.{Cursor, Node, Scene}
+import scalafx.scene.{Cursor, Scene}
 import scalafx.scene.control.{Alert, Button}
-import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
+import scalafx.scene.layout.{
+  Background,
+  BackgroundFill,
+  BorderPane,
+  CornerRadii,
+  Pane
+}
 import UtilTransformers.PointTransformer._
-import algorithms.{DiscreteRelevamiento, EjeBuilderDraft, MaximizeEje}
+import algorithms.{DiscreteRelevamiento, MaximizeEje}
 import com.typesafe.scalalogging.Logger
 import io.DraftManager
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
-import io.vmchura.vevial.PlanarGeometric.EjeElement.ElementPoint
-import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import javafx.scene.input
-import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, LinearGraphEditable, MutableEje, ObserverImpl, TEjeElementTemporal, TLinkPoint}
+import models.{
+  EjeEditable,
+  GeoLinkGraph,
+  GeoNode,
+  LinearGraph,
+  ObserverImpl,
+  TEjeElementTemporal,
+  TLinkPoint
+}
 import scalafx.beans.property.ObjectProperty
-import scalafx.event.ActionEvent
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.input.{MouseEvent, TransferMode}
@@ -32,133 +48,161 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, XML}
 
-object EjeBuilder extends JFXApp{
-  val logger = Logger(this.getClass)
-  val relevamientosAdded = ListBuffer.empty[RelevamientoIRI[IRIElementData]]
-  val filedAdded = ListBuffer.empty[java.io.File]
-  val geoNodeLayer = new GeoNodeLayer()
-  val ejeLayer = new SimpleEjeVialLayer()
-  val projectionLayer = new ProjectionPointLayer()
+object EjeBuilder extends JFXApp {
+  private val logger = Logger(this.getClass)
+  private val relevamientosAdded =
+    ListBuffer.empty[RelevamientoIRI[IRIElementData]]
+  private val filedAdded = ListBuffer.empty[java.io.File]
+  private val geoNodeLayer = new GeoNodeLayer()
+  private val ejeLayer = new SimpleEjeVialLayer()
+  private val projectionLayer = new ProjectionPointLayer()
   offsetX() = 0d
   offsetY() = 0d
 
   var ejeEditableOpt = Option.empty[EjeEditable]
 
-
   class LinkSelector
 
-  def showNewRelevamiento(relevamientos: Seq[RelevamientoIRI[IRIElementData]]): Unit = {
-    relevamientos.foreach{ relevamiento =>
+  def showNewRelevamiento(
+      relevamientos: Seq[RelevamientoIRI[IRIElementData]]
+  ): Unit = {
+    relevamientos.foreach { relevamiento =>
       relevamientosAdded.append(relevamiento)
     }
-    val relevamientosSimples = relevamientos.map(x => new SimpleIRIRelevamientoLayer(x))
-    new ObservableListDelegate(relevamientosSimples.toArray.map(_.nodes),panelMapa.children)
+    val relevamientosSimples =
+      relevamientos.map(x => new SimpleIRIRelevamientoLayer(x))
+    new ObservableListDelegate(
+      relevamientosSimples.toArray.map(_.nodes),
+      panelMapa.children
+    )
 
   }
 
-  def generateNewEje(dataEntry: Either[List[RelevamientoIRI[IRIElementData]],TLinkPoint]): Option[EjeEditable] = {
-    ejeEditableOpt.foreach{_.clear()}
+  def generateNewEje(
+      dataEntry: Either[List[RelevamientoIRI[IRIElementData]], TLinkPoint]
+  ): Option[EjeEditable] = {
+    ejeEditableOpt.foreach { _.clear() }
     ejeEditableOpt = None
 
-    val commonData: (GeoNodeLayer,SimpleEjeVialLayer,TPoint => Unit) = (geoNodeLayer,ejeLayer, (p: TPoint) => {
-      offsetX() = p.x - (800/2.0)*factor()
-      offsetY() = p.y + (640/2.0)*factor()
-    })
+    val commonData: (GeoNodeLayer, SimpleEjeVialLayer, TPoint => Unit) = (
+      geoNodeLayer,
+      ejeLayer,
+      (p: TPoint) => {
+        offsetX() = p.x - (800 / 2.0) * factor()
+        offsetY() = p.y + (640 / 2.0) * factor()
+      }
+    )
 
     try {
       val eje = dataEntry match {
         case Left(relevamientos) =>
-          val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento.convertIntoDiscreteRelevamiento[RelevamientoIRI[IRIElementData], IRIElementData, GeoNode](relevamientos)
+          val nodeEje: Seq[LinearGraph[GeoNode]] = DiscreteRelevamiento
+            .convertIntoDiscreteRelevamiento[RelevamientoIRI[
+              IRIElementData
+            ], IRIElementData, GeoNode](relevamientos)
           val singleLinearEje = LinearGraph.mergeLinearGraphs(nodeEje)
-          EjeEditable(singleLinearEje)(commonData._1, commonData._2, commonData._3)
+          EjeEditable(singleLinearEje)(
+            commonData._1,
+            commonData._2,
+            commonData._3
+          )
         case Right(head) =>
           val links = head.untilEnd()
-          EjeEditable(links.flatMap(_.elements), links)(commonData._1, commonData._2, commonData._3)
+          EjeEditable(links.flatMap(_.elements), links)(
+            commonData._1,
+            commonData._2,
+            commonData._3
+          )
 
       }
-      eje.setInitialPointsFree(relevamientosAdded.flatMap(_.elements.flatMap(_.point.map(_.value))))
+      eje.setInitialPointsFree(
+        relevamientosAdded.flatMap(_.elements.flatMap(_.point.map(_.value)))
+      )
       commonData._3(eje.initialEjeElements.head.in.point)
       Some(eje)
-    }catch {
+    } catch {
       case e: Throwable =>
         logger.debug(s"No se pudo crear eje: ${e.toString}")
         None
     }
   }
 
-
   //val relevamientoFile = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h50m20s Survey T1 HIZQ.csv")
   //val relevamientoFile2 = new java.io.File("/home/vmchura/Documents/003.CVSC/IRI/Auomated/2020-02-21 12h13m18s Survey T1 HDER.csv")
 
+  //val relevamientoIRI = RelevamientoIRI(relevamientoFile,cd => IRIElementData(cd))
 
-    //val relevamientoIRI = RelevamientoIRI(relevamientoFile,cd => IRIElementData(cd))
+  private val panelMapa: Pane = new Pane() {
 
-  val panelMapa = new Pane(){
-
-    background = new Background(Array(new BackgroundFill(Color.LightGrey,CornerRadii.Empty, Insets.Empty)))
+    background = new Background(
+      Array(
+        new BackgroundFill(Color.LightGrey, CornerRadii.Empty, Insets.Empty)
+      )
+    )
 
     onDragOver = e => {
 
-      if( e.getDragboard.hasFiles){
+      if (e.getDragboard.hasFiles) {
         val de = new scalafx.scene.input.DragEvent(e)
         val t: Array[input.TransferMode] = TransferMode.CopyOrMove
         de.acceptTransferModes(t: _*)
 
-
       }
     }
 
-    def filesIntoRelevamientos(files: Seq[File]): Seq[RelevamientoIRI[IRIElementData]] = {
+    def filesIntoRelevamientos(
+        files: Seq[File]
+    ): Seq[RelevamientoIRI[IRIElementData]] = {
       files.flatMap { file: File =>
-
         try {
           Some(RelevamientoIRI(file, cd => IRIElementData(cd)))
         } catch {
-          case e: Throwable => {
-
-            val a = new Alert(AlertType.Warning, s"Cant load file ${file} error: ${e.toString}")
+          case e: Throwable =>
+            val a = new Alert(
+              AlertType.Warning,
+              s"Cant load file $file error: ${e.toString}"
+            )
             a.resizable = true
             a.showAndWait()
             None
-          }
         }
       }
     }
     onDragDropped = e => {
 
       val db = e.getDragboard
-      if(db.hasFiles){
+      if (db.hasFiles) {
 
-        val hasXmlExtension: File => Boolean = {_.getAbsolutePath.endsWith(".xml")}
+        val hasXmlExtension: File => Boolean = {
+          _.getAbsolutePath.endsWith(".xml")
+        }
         val files = db.getFiles.asScala.toList
         files.filterNot(hasXmlExtension).foreach(filedAdded.append)
 
-        if(files.exists(hasXmlExtension)){
-            val docFile = files.find(hasXmlExtension).get
-            val doc: Elem = XML.loadFile(docFile)
-            val (linkInitial,seqFiles) = DraftManager.loadProject(doc)
-            MaximizeEje(seqFiles,linkInitial) match {
-              case Left(error) => logger.debug(s"error ${error.mkString("\n")}")
-              case Right(linkInitialImproved) =>
-                val relevamientos = filesIntoRelevamientos(seqFiles)
-                seqFiles.foreach(filedAdded.append)
-                showNewRelevamiento(relevamientos)
+        if (files.exists(hasXmlExtension)) {
+          val docFile = files.find(hasXmlExtension).get
+          val doc: Elem = XML.loadFile(docFile)
+          val (linkInitial, seqFiles) = DraftManager.loadProject(doc)
+          MaximizeEje(seqFiles, linkInitial) match {
+            case Left(error) => logger.debug(s"error ${error.mkString("\n")}")
+            case Right(linkInitialImproved) =>
+              val relevamientos = filesIntoRelevamientos(seqFiles)
+              seqFiles.foreach(filedAdded.append)
+              showNewRelevamiento(relevamientos)
 
-                ejeEditableOpt = generateNewEje(Right(linkInitialImproved))
-            }
+              ejeEditableOpt = generateNewEje(Right(linkInitialImproved))
+          }
 
-
-        }else {
+        } else {
           val relevamientos = filesIntoRelevamientos(db.getFiles.asScala.toList)
           showNewRelevamiento(relevamientos)
           ejeEditableOpt = generateNewEje(Left(relevamientosAdded.toList))
         }
 
-
         e.setDropCompleted(true)
         e.consume()
 
-      }else{
+      } else {
         println("No files")
       }
     }
@@ -166,10 +210,10 @@ object EjeBuilder extends JFXApp{
     minHeight = 450
   }
 
-
-  new ObservableListDelegate(Array(geoNodeLayer,ejeLayer,projectionLayer).map(_.nodes),panelMapa.children)
-
-
+  new ObservableListDelegate(
+    Array(geoNodeLayer, ejeLayer, projectionLayer).map(_.nodes),
+    panelMapa.children
+  )
 
   endX.unbind()
   iniY.unbind()
@@ -178,22 +222,23 @@ object EjeBuilder extends JFXApp{
   iniY <== convertYView2Real(panelMapa.height)
   object MovingState extends Enumeration {
     type MovingState = Value
-    val DragginMap, DragginNode,SelectionSquare, NotMoving = Value
+    val DragginMap, DragginNode, SelectionSquare, NotMoving = Value
   }
   import MovingState._
 
-  var movingState = NotMoving
-  var nodeMoving = Option.empty[GeoNode]
-  val lastPositionX = new ObjectProperty[Option[Double]](this,"lastPositionX",None)
-  val lastPositionY = new ObjectProperty[Option[Double]](this,"lastPositionY",None)
+  private var movingState = NotMoving
+  private var nodeMoving = Option.empty[GeoNode]
+  private val lastPositionX =
+    new ObjectProperty[Option[Double]](this, "lastPositionX", None)
+  private val lastPositionY =
+    new ObjectProperty[Option[Double]](this, "lastPositionY", None)
 
   var startSquare = Option.empty[Point]
   var endSquare = Option.empty[Point]
 
   panelMapa.onMouseDragged = ae => {
 
-    if(movingState == DragginMap) {
-
+    if (movingState == DragginMap) {
 
       for {
         lx <- lastPositionX()
@@ -203,19 +248,12 @@ object EjeBuilder extends JFXApp{
         offsetY() = offsetY() + (ae.getY - ly) * factor()
       }
 
-
       lastPositionX() = Some(ae.getX)
       lastPositionY() = Some(ae.getY)
 
-    }else{
-      if(movingState == DragginNode){
-
-      }else{
-        if(movingState == SelectionSquare){
-
-        }else{
-
-        }
+    } else {
+      if (movingState == DragginNode) {} else {
+        if (movingState == SelectionSquare) {} else {}
       }
     }
 
@@ -224,45 +262,45 @@ object EjeBuilder extends JFXApp{
   def getPointFromActionEvent(ae: MouseEvent): Point = {
     val px = PointTransformer.convertXView2Real(ae.getX)
     val py = PointTransformer.convertYView2Real(ae.getY)
-    Point(px,py)
+    Point(px, py)
   }
 
   panelMapa.onMouseReleased = ae => {
 
     logger.debug(s"MOUSE RELEASED: state: $movingState")
-    if(movingState == DragginNode){
-      for{
+    if (movingState == DragginNode) {
+      for {
         node <- nodeMoving
         lg <- ejeEditableOpt
-      }yield{
+      } yield {
 
         val point = getPointFromActionEvent(ae)
-        lg.moveGeoNodeTo(node,point)
+        lg.moveGeoNodeTo(node, point)
       }
-    }else{
-      if(movingState == SelectionSquare){
+    } else {
+      if (movingState == SelectionSquare) {
         endSquare = Some(getPointFromActionEvent(ae))
-        for{
+        for {
           start <- startSquare
           end <- endSquare
           eje <- ejeEditableOpt
-        }yield {
+        } yield {
           logger.debug(s"start: $start - $end")
 
-          val minX = Math.min(start.x,end.x)
-          val maxX = Math.max(start.x,end.x)
+          val minX = Math.min(start.x, end.x)
+          val maxX = Math.max(start.x, end.x)
 
-          val minY = Math.min(start.y,end.y)
-          val maxY = Math.max(start.y,end.y)
+          val minY = Math.min(start.y, end.y)
+          val maxY = Math.max(start.y, end.y)
 
           logger.debug(f"[$minX%.0f.$maxX%.0f] - [$minY%.0f.$maxY%.0f]")
           logger.debug(s"Length presents: ${eje.geoNodesPresent.length}")
-          eje.geoNodesPresent.filter{ p =>
-            minX <= p.x && p.x <= maxX &&
-            minY <= p.y && p.y <= maxY
-          }.foreach(eje.dropNode)
-
-
+          eje.geoNodesPresent
+            .filter { p =>
+              minX <= p.x && p.x <= maxX &&
+              minY <= p.y && p.y <= maxY
+            }
+            .foreach(eje.dropNode)
 
         }
       }
@@ -279,7 +317,7 @@ object EjeBuilder extends JFXApp{
   }
   var elementToImprove = Option.empty[ElementActionToImprove]
   panelMapa.onMousePressed = ae => {
-    if(ae.isSecondaryButtonDown){
+    if (ae.isSecondaryButtonDown) {
       /*
       if(elementToImprove.isEmpty){
         ejeEditableOpt.foreach(ej => {
@@ -330,121 +368,102 @@ object EjeBuilder extends JFXApp{
       ejeEditableOpt.foreach(lp => {
         lp.elementByPosition(point) match {
 
-          case Some(Right(ejeElement)) => {
-
-
+          case Some(Right(ejeElement)) =>
             ejeElement.ejeElementOwner match {
               case temporal: TEjeElementTemporal =>
-
-
-
                 temporal.ejeSection match {
                   case geoPoint: GeoLinkGraph =>
-
                     projectionLayer.clear()
-
                     for {
                       eje <- ejeEditableOpt
                     } yield {
                       val ep = geoPoint.pointsDataCovering.flatMap { x =>
                         eje.elementByPosition(x) match {
                           case Some(Right(ep)) => Some(ep)
-                          case _ => None
+                          case _               => None
                         }
                       }
                       ep.foreach { e =>
                         projectionLayer.add((e, false))
                       }
-
                       val observer = new ObserverImpl(geoPoint)
-                      geoPoint.pointsDataCovering.foreach(observer.addProjection)
-                      val eat = ElementActionToImprove(geoPoint,SimpleAgentEjeEvaluator.deliberateAnAction(observer))
+                      geoPoint.pointsDataCovering.foreach(
+                        observer.addProjection
+                      )
+                      val eat = ElementActionToImprove(
+                        geoPoint,
+                        SimpleAgentEjeEvaluator.deliberateAnAction(observer)
+                      )
                       logger.debug(s"eat: $eat")
                       eje.applyUpgrade(eat)
                     }
-                  case _ => (println("section no geolinkgraph"))
+                  case _ => println("section no geolinkgraph")
                 }
               case z => println(s"NOT temporal $z")
             }
-
-
             stage.scene.value.cursor = Cursor.Crosshair
-          }
-          case Some(Left(node)) => stage.scene.value.cursor = Cursor.OpenHand
-          case None => stage.scene.value.cursor = Cursor.Move
+          case Some(Left(_)) => stage.scene.value.cursor = Cursor.OpenHand
+          case None          => stage.scene.value.cursor = Cursor.Move
         }
       })
 
-    }else{
-      if(ae.isMiddleButtonDown){
+    } else {
+      if (ae.isMiddleButtonDown) {
 
         val px = PointTransformer.convertXView2Real(ae.getX)
         val py = PointTransformer.convertYView2Real(ae.getY)
-        val point = Point(px,py)
-        val newMovingState = for{
+        val point = Point(px, py)
+        val newMovingState = for {
           lg <- ejeEditableOpt
           res <- lg.elementByPosition(point)
-        }yield{
+        } yield {
           res match {
-            case Right(ep) =>{
+            case Right(ep) =>
               val node = lg.createInnerNode(ep)
               stage.scene().cursor = Cursor.ClosedHand
               nodeMoving = Some(node)
               DragginNode
-            }
-            case Left(node) => {
+            case Left(node) =>
               stage.scene().cursor = Cursor.ClosedHand
               nodeMoving = Some(node)
               DragginNode
-            }
           }
         }
         newMovingState match {
           case Some(ms) => movingState = ms
-          case None => movingState = DragginMap
+          case None     => movingState = DragginMap
         }
-      }else{
+      } else {
 
-        if(ae.isPrimaryButtonDown){
+        if (ae.isPrimaryButtonDown) {
           startSquare = Some(getPointFromActionEvent(ae))
           movingState = SelectionSquare
           logger.debug(s"START: $startSquare")
-        }else{
-
-        }
+        } else {}
       }
 
-
     }
-
 
   }
 
   panelMapa.onMouseMoved = ae => {
 
-    if(movingState == NotMoving) {
-    }
+    if (movingState == NotMoving) {}
   }
-
-
 
   panelMapa.onScroll = ae => {
 
-
-
     val newFactorOpt: Option[Double] = ae.getDeltaY match {
-      case positive: Double if positive > 0.1 => Some(factor()*Math.log(2.0))
-      case negative: Double if negative < -0.1 => Some(factor()/Math.log(2.0))
-      case _ => None
+      case positive: Double if positive > 0.1  => Some(factor() * Math.log(2.0))
+      case negative: Double if negative < -0.1 => Some(factor() / Math.log(2.0))
+      case _                                   => None
     }
 
-    newFactorOpt.foreach{ newFactor =>
+    newFactorOpt.foreach { newFactor =>
       val px = PointTransformer.convertXView2Real(ae.getX)
       val py = PointTransformer.convertYView2Real(ae.getY)
-      PointTransformer.updateOffsetWithPivot(newFactor,px,py)
+      PointTransformer.updateOffsetWithPivot(newFactor, px, py)
     }
-
-
 
   }
 
@@ -455,19 +474,20 @@ object EjeBuilder extends JFXApp{
     scene = new Scene {
 
       content = new BorderPane() {
-        top = new Button("top"){
+        top = new Button("Save") {
           onAction = _ => {
             val urlSave = "/home/vmchura/Documents/testProject.xml"
-            val res = (for{
+            val res = (for {
               eje <- ejeEditableOpt
               head <- eje.headLink()
-            }yield{
-              Right(DraftManager.saveProject(urlSave)(head,filedAdded.toSeq))
+            } yield {
+              Right(DraftManager.saveProject(urlSave)(head, filedAdded.toSeq))
             }).getOrElse(Left("No eje defined"))
 
             val alert = res match {
               case Left(error) => new Alert(AlertType.Error, s"error $error")
-              case Right(true) => new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
+              case Right(true) =>
+                new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
               case Right(false) => new Alert(AlertType.Warning, s"No guardado")
             }
             alert.resizable = true
@@ -475,12 +495,12 @@ object EjeBuilder extends JFXApp{
 
           }
         }
-        left = new Button("left"){
+        left = new Button("left") {
           onAction = _ => {
             println("click on top!!")
           }
         }
-        center =  panelMapa
+        center = panelMapa
       }
     }
   }
