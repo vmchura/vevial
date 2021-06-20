@@ -62,8 +62,8 @@ case class GraphSourceFilesBuilder private (
           for {
             in <- shorter.inOpt
             out <- shorter.outOpt
-            _ <- ejeLarger.flatMap(_.projectPoint(in))
-            _ <- ejeLarger.flatMap(_.projectPoint(out))
+            _ <- ejeLarger.flatMap(_.projectPointWithDistance(in, 400))
+            _ <- ejeLarger.flatMap(_.projectPointWithDistance(out, 400))
           } yield {
             //short is "inside" in Large
             add(shorter.hashID, larger.hashID)
