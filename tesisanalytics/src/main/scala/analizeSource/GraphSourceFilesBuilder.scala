@@ -62,8 +62,8 @@ case class GraphSourceFilesBuilder private (
           for {
             in <- shorter.inOpt
             out <- shorter.outOpt
-            _ <- ejeLarger.projectPoint(in)
-            _ <- ejeLarger.projectPoint(out)
+            _ <- ejeLarger.flatMap(_.projectPoint(in))
+            _ <- ejeLarger.flatMap(_.projectPoint(out))
           } yield {
             //short is "inside" in Large
             add(shorter.hashID, larger.hashID)
@@ -108,7 +108,7 @@ object GraphSourceFilesBuilder {
   def apply(rootDirectory: File): GraphSourceFilesBuilder = {
     require(rootDirectory.isDirectory)
     traverse(rootDirectory)(_.isCSV).foldLeft(
-      new GraphSourceFilesBuilder(Nil, Nil, 20)
+      new GraphSourceFilesBuilder(Nil, Nil, 100)
     ) {
       case (graphBuilder, file) => graphBuilder.add(file)
     }

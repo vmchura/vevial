@@ -20,7 +20,7 @@ case class SourceFile private (
     }
   def relevamiento: RelevamientoIRI[IRIElementData] =
     RelevamientoIRI(inputFile, cd => IRIElementData(cd))
-  def buildEje(): EfficientSeqEjeElements = {
+  def buildEje(): Option[EfficientSeqEjeElements] = {
     val elements =
       relevamiento.elements
         .zip(relevamiento.elements.tail)
@@ -34,9 +34,10 @@ case class SourceFile private (
             }
         }
         .toList
-
-    EfficientSeqEjeElements(elements)
-
+    //500km
+    Option.when(elements.map(_.length).sum < 500e3)(
+      EfficientSeqEjeElements(elements)
+    )
   }
 
   override def toString: String = s"${inputFile.getPath}"
