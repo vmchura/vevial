@@ -48,10 +48,10 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
   private lazy val (fX, fY) =
     List((extractorX, pointsSortedByX), (extractorY, pointsSortedByY)).map {
       case (e, orderedList) =>
-        (d: Double) =>
+        (d: Double, distanceRange: Double) =>
           SubsequenceFinder.find[ElementPoint](
-            distanceToFindProjection,
-            distanceToFindProjection
+            distanceRange,
+            distanceRange
           )(orderedList)(d)(e)
     } match {
       case first :: second :: Nil => (first, second)
@@ -62,11 +62,13 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
   override lazy val in: PointUnitaryVector = elements.head.in
   override lazy val out: PointUnitaryVector = elements.last.out
 
-  override def projectPoint(point: TPoint): Option[ElementPoint] = {
-
+  def projectPointWithDistance(
+      point: TPoint,
+      distanceRange: Double = distanceToFindProjection
+  ): Option[ElementPoint] = {
     (for {
-      (xIni, xEnd) <- fX(point.x)
-      (yIni, yEnd) <- fY(point.y)
+      (xIni, xEnd) <- fX(point.x, distanceRange)
+      (yIni, yEnd) <- fY(point.y, distanceRange)
     } yield {
 
       val closeByX = (xIni to xEnd)
@@ -86,8 +88,10 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
       EfficientSeqEjeElements.bruteForceCalculation(elementsAround, point)
 
     }).flatten
-
   }
+
+  override def projectPoint(point: TPoint): Option[ElementPoint] =
+    projectPointWithDistance(point)
 
   override def pointIsInsideElement(point: TPoint): Boolean =
     projectPoint(point).exists(ep => ep.toSource.isEmpty)
