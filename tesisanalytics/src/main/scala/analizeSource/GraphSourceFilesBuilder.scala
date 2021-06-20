@@ -1,5 +1,4 @@
 package analizeSource
-
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
@@ -20,10 +19,20 @@ case class GraphSourceFilesBuilder private (
 
     } else {
       try {
-        val interval =
-          RelevamientoIRI(sf.inputFile, cd => IRIElementData(cd)).interval
+        val relevamiento =
+          RelevamientoIRI(sf.inputFile, cd => IRIElementData(cd))
+        val interval = relevamiento.interval
         if (Math.abs(interval - validInterval) < 5) {
-          copy(files = sf :: files)
+          try {
+            sf.buildEje()
+            copy(files = sf :: files)
+          } catch {
+            case e: Throwable =>
+              copy(errors =
+                s"file ${file.getPath} can not build eje, ${e.getMessage}" :: errors
+              )
+          }
+
         } else {
           copy(errors =
             s"file ${file.getPath} has not a valid interval, validInterval: $validInterval, file's interval: $interval}" :: errors
@@ -37,7 +46,39 @@ case class GraphSourceFilesBuilder private (
       }
     }
   }
+  def build(): GraphSourceFiles = {
 
+    val nodes = files.map(f => f.hashID -> f).toMap
+    val edges = collection.mutable.Map[String, List[String]]()
+    def add(from: String, to: String): Unit = {
+      val current: List[String] = edges.getOrElse(from, Nil)
+      edges += from -> (to :: current)
+    }
+    files.foreach { larger =>
+      val ejeLarger = larger.buildEje()
+      println(larger.inputFile.getName)
+      files.foreach { shorter =>
+        if (!shorter.equals(larger)) {
+          for {
+            in <- shorter.inOpt
+            out <- shorter.outOpt
+            _ <- ejeLarger.projectPoint(in)
+            _ <- ejeLarger.projectPoint(out)
+          } yield {
+            //short is "inside" in Large
+            add(shorter.hashID, larger.hashID)
+          }
+        }
+
+      }
+    }
+
+    GraphSourceFiles(
+      nodes,
+      edges.toList.toMap
+    )
+
+  }
 }
 object GraphSourceFilesBuilder {
   implicit class FileOps(file: File) {
