@@ -1,17 +1,55 @@
 package analizeSource
 
-import java.io.{File, FileInputStream}
+import io.vmchura.vevial.PlanarGeometric.BasicEje.EfficientSeqEjeElements
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
+import io.vmchura.vevial.PlanarGeometric.EjeElement.RectSegment
+import io.vmchura.vevial.elementdata.IRIElementData
+import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
-case class SourceFile private (inputFile: File, hashID: String) {
+import java.io.{File, FileInputStream}
+case class SourceFile private (
+    inputFile: File,
+    hashID: String,
+    inOpt: Option[TPoint],
+    outOpt: Option[TPoint]
+) {
   override def equals(obj: Any): Boolean =
     obj match {
-      case SourceFile(_, hashOther) => hashOther.equals(hashID)
-      case _                        => false
+      case SourceFile(_, hashOther, _, _) => hashOther.equals(hashID)
+      case _                              => false
     }
+  def relevamiento: RelevamientoIRI[IRIElementData] =
+    RelevamientoIRI(inputFile, cd => IRIElementData(cd))
+  def buildEje(): EfficientSeqEjeElements = {
+    val elements =
+      relevamiento.elements
+        .zip(relevamiento.elements.tail)
+        .flatMap {
+          case (i, j) =>
+            for {
+              pi <- i.point
+              pj <- j.point
+            } yield {
+              RectSegment(pi.value, pj.value)
+            }
+        }
+        .toList
+
+    EfficientSeqEjeElements(elements)
+
+  }
 }
 
 object SourceFile {
-  def apply(file: File): SourceFile = new SourceFile(file, md5HashString(file))
+  def apply(file: File): SourceFile = {
+    val rel = RelevamientoIRI(file, cd => IRIElementData(cd))
+    new SourceFile(
+      file,
+      md5HashString(file),
+      rel.elements.find(_.point.isDefined).flatMap(_.point.map(_.value)),
+      rel.elements.findLast(_.point.isDefined).flatMap(_.point.map(_.value))
+    )
+  }
   def md5HashString(file: File): String = {
     import java.security.MessageDigest
     import java.math.BigInteger
