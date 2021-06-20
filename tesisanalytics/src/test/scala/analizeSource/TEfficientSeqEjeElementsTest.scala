@@ -1,0 +1,30 @@
+package analizeSource
+
+import org.scalatest.flatspec.AnyFlatSpec
+
+import java.io.File
+import java.nio.file.Path
+
+class TEfficientSeqEjeElementsTest extends AnyFlatSpec {
+  behavior of "TEfficientSeqEjeElements"
+  it should "export KML from relevamiento" in {
+    def buildKmlFromCSV(originPath: String, destinationPath: String): Unit =
+      SourceFile(new File(originPath)).buildEje().exportKML(destinationPath)
+
+    buildKmlFromCSV(
+      "/home/vmchura/Documents/003.Tesis/DataSource/100m/E/2018-10-29 16h07m16s Survey.csv",
+      "/home/vmchura/Documents/003.Tesis/DataSource/2018-10-29 16h07m16s Survey.kml"
+    )
+    buildKmlFromCSV(
+      "/home/vmchura/Documents/003.Tesis/DataSource/100m/E/2019-06-27 09h33m55s Survey.csv",
+      "/home/vmchura/Documents/003.Tesis/DataSource/2019-06-27 09h33m55s Survey.kml"
+    )
+    assert(
+      java.nio.file.Files.exists(
+        Path.of(
+          "/home/vmchura/Documents/003.Tesis/DataSource/2018-10-29 16h07m16s Survey.kml"
+        )
+      )
+    )
+  }
+}
