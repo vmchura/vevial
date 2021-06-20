@@ -38,6 +38,8 @@ case class SourceFile private (
     EfficientSeqEjeElements(elements)
 
   }
+
+  override def toString: String = s"${inputFile.getPath}"
 }
 
 object SourceFile {
