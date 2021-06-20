@@ -8,13 +8,13 @@ class GraphSourceFilesBuilderTest extends AnyFlatSpec {
   behavior of "GraphSourceFilesBuilder"
   it should "search deeper files" in {
     val graphBuilder = GraphSourceFilesBuilder(
-      new File("/home/vmchura/Documents/003.Tesis/DataSource/20m")
+      new File("/home/vmchura/Documents/003.Tesis/DataSource/100m")
     )
     assert(graphBuilder.files.length > 200)
   }
   it should "build graph" in {
     val graphBuilder = GraphSourceFilesBuilder(
-      new File("/home/vmchura/Documents/003.Tesis/DataSource/20m")
+      new File("/home/vmchura/Documents/003.Tesis/DataSource/100m")
     )
     val graph = graphBuilder.build()
     println(graph)
