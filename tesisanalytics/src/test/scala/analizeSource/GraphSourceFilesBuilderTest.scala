@@ -10,8 +10,14 @@ class GraphSourceFilesBuilderTest extends AnyFlatSpec {
     val graphBuilder = GraphSourceFilesBuilder(
       new File("/home/vmchura/Documents/003.Tesis/DataSource/20m")
     )
-    assertResult(249)(graphBuilder.files.length)
-    assert(graphBuilder.errors.isEmpty)
+    assert(graphBuilder.files.length > 200)
+  }
+  it should "build graph" in {
+    val graphBuilder = GraphSourceFilesBuilder(
+      new File("/home/vmchura/Documents/003.Tesis/DataSource/20m")
+    )
+    val graph = graphBuilder.build()
+    println(graph)
   }
   it should "traverse and copy all .rgd" in {
     val rootDirectory = new File("/home/vmchura/Documents/003.Tesis/DataSource")
