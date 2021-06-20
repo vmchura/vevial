@@ -1,5 +1,6 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
+import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{
   PointUnitaryVector,
   TPoint
@@ -111,6 +112,31 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
 
   override lazy val lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 
+  def exportKML(fileOutputPath: String): Unit = {
+    import com.scalakml.kml.Kml
+    import com.scalakml.kml.LineString
+    import com.scalakml.kml.Coordinate
+    import com.scalakml.kml.FeaturePart
+    import com.scalakml.kml.Placemark
+    import com.scalakml.io.KmlPrintWriter
+    import xml.PrettyPrinter
+    def tpoint2Coordinate(tPoint: TPoint): Coordinate = {
+      val geodesic =
+        Coordinates('L', 18, tPoint.x, tPoint.y).toGeodesicCoordinates()
+      new Coordinate(geodesic.longitude, geodesic.latitude, 0)
+    }
+    val lineString = LineString(coordinates =
+      Option(elements.map(_.in.point).map(tpoint2Coordinate))
+    )
+    // create a Placemark with the point, and a name
+    val placemark =
+      Placemark(Option(lineString), FeaturePart(name = Option("TramoKML")))
+    // create a kml root object with the placemark
+
+    val kml = Kml(feature = Option(placemark))
+    new KmlPrintWriter(fileOutputPath)
+      .write(Option(kml), new PrettyPrinter(80, 3))
+  }
 }
 
 case class EfficientSeqEjeElements(elements: List[TSimpleEjeElement])
