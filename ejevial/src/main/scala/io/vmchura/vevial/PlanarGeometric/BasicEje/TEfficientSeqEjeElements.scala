@@ -1,5 +1,6 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
+import com.scalakml.io.KmlFromXml
 import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{
   PointUnitaryVector,
@@ -11,6 +12,8 @@ import io.vmchura.vevial.PlanarGeometric.EjeElement.{
   TSimpleEjeElement
 }
 import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
+
+import java.io.File
 
 trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
   val elements: List[TEjeElement]
@@ -116,7 +119,7 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
 
   override lazy val lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 
-  def exportKML(fileOutputPath: String): Unit = {
+  def exportKML(fileOutput: File, name: Option[String] = None): Unit = {
     import com.scalakml.kml.Kml
     import com.scalakml.kml.LineString
     import com.scalakml.kml.Coordinate
@@ -133,12 +136,28 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
       Option(elements.map(_.in.point).map(tpoint2Coordinate))
     )
     // create a Placemark with the point, and a name
+    val styleSelectorParam =
+      KmlFromXml.makeStyleSet(<hola>
+        <Style id="street_sidewalk">
+      <LineStyle>
+        <color>ffffffff</color>
+        <colorMode>random</colorMode>
+        <width>4</width>
+      </LineStyle>
+    </Style>
+        </hola>)
     val placemark =
-      Placemark(Option(lineString), FeaturePart(name = Option("TramoKML")))
+      Placemark(
+        Option(lineString),
+        FeaturePart(
+          name = Option(name.getOrElse(fileOutput.getName)),
+          styleSelector = styleSelectorParam
+        )
+      )
     // create a kml root object with the placemark
 
     val kml = Kml(feature = Option(placemark))
-    new KmlPrintWriter(fileOutputPath)
+    new KmlPrintWriter(fileOutput.getPath)
       .write(Option(kml), new PrettyPrinter(80, 3))
   }
 }
