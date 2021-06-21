@@ -17,7 +17,9 @@ class GraphSourceFilesBuilderTest extends AnyFlatSpec {
       new File("/home/vmchura/Documents/003.Tesis/DataSource/100m")
     )
     val graph = graphBuilder.build()
-    println(graph)
+    graph.copyLargeNodesAsKml(
+      "/home/vmchura/Documents/003.Tesis/DataSource/PrincipalEjesKML"
+    )
   }
   it should "traverse and copy all .rgd" in {
     val rootDirectory = new File("/home/vmchura/Documents/003.Tesis/DataSource")
