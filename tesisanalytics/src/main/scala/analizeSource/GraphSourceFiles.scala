@@ -1,12 +1,20 @@
 package analizeSource
 
+import com.scalakml.kml.HexColor
+
+import java.awt.Color
 import java.io.File
+import scala.util.Random
 
 case class GraphSourceFiles(
     nodes: Map[String, SourceFile],
     edges: Map[String, List[String]]
 ) {
   //Segments or tramos where more than 1 point it, but he does not point anything
+
+  val stronglyConnectedComponents: List[List[SourceFile]] =
+    StronglyConnectedComponents.buildSCC(nodes, edges)
+
   val largerNodes: List[SourceFile] = {
     val nodesInArray = Array.fill(nodes.size)(false)
     val nodesIndex = nodes.zipWithIndex.map {
@@ -25,20 +33,29 @@ case class GraphSourceFiles(
       .toList
   }
   //tramos which points each other
-  val duplexTramo: List[(SourceFile, SourceFile)] = {
-    nodes.toList.flatMap {
-      case (k, v) =>
-        edges
-          .getOrElse(k, Nil)
-          .filter { e =>
-            edges.getOrElse(e, Nil).contains(k)
-          }
-          .map { o =>
-            (v, nodes(o))
-          }
 
+  val ejeSourceFiles: List[EjeSourceFiles] = stronglyConnectedComponents
+    .filter { principales =>
+      principales.forall { singlePrincipal =>
+        edges
+          .getOrElse(singlePrincipal.hashID, Nil)
+          .forall(principales.map(_.hashID).contains)
+      }
     }
-  }
+    .map { principales =>
+      {
+        val smallerComponents = nodes.flatMap {
+          case (k, v) =>
+            Option.when(
+              edges
+                .getOrElse(k, Nil)
+                .exists(eOut => principales.map(_.hashID).contains(eOut))
+            )(v)
+        }
+
+        EjeSourceFiles(principales, smallerComponents.toList)
+      }
+    }
 
   def copyLargeNodes(destination: String): Unit = {
     copyFilesWithProcess(
@@ -53,7 +70,8 @@ case class GraphSourceFiles(
           ).toPath
         )
 
-      }
+      },
+      largerNodes
     )
   }
   def copyLargeNodesAsKml(destination: String): Unit = {
@@ -68,14 +86,46 @@ case class GraphSourceFiles(
           eje.exportKML(fileResult)
         }
 
-      }
+      },
+      largerNodes
     )
   }
+  def exportPrincipalEjes(destination: String): Unit = {
+    prepareDestination(destination)
 
-  def copyFilesWithProcess(
-      destination: String,
-      process: (SourceFile, File) => Unit
-  ): Unit = {
+    def randomColor(): Color = {
+      val r: Int = Random.nextInt(255)
+      val g: Int = Random.nextInt(255)
+      val b: Int = Random.nextInt(255)
+      new Color(r, g, b, 255)
+    }
+
+    ejeSourceFiles.map(_.ejeSourceFiles).foreach { ejeSource =>
+      {
+        val hexColor = HexColor(HexColor.colorToHex(randomColor()))
+        copyFilesWithProcess(
+          destination,
+          (sf, parentDirectory) => {
+            sf.buildEje().map { eje =>
+              val fileResult = new File(
+                parentDirectory,
+                sf.inputFile.getName.replace(".csv", ".kml")
+              )
+              eje.exportKML(
+                fileResult,
+                color = hexColor
+              )
+            }
+
+          },
+          ejeSource
+        )
+      }
+    }
+
+  }
+
+  private def prepareDestination(destination: String): Unit = {
     val directoryResult = new File(destination)
 
     require(
@@ -92,8 +142,14 @@ case class GraphSourceFiles(
         java.nio.file.Files.delete(f.toPath)
       }
     }
-
-    largerNodes.foreach { sf =>
+  }
+  def copyFilesWithProcess(
+      destination: String,
+      process: (SourceFile, File) => Unit,
+      files: List[SourceFile]
+  ): Unit = {
+    val directoryResult = new File(destination)
+    files.foreach { sf =>
       println(sf.inputFile.getName)
       process(sf, directoryResult)
 
@@ -101,5 +157,5 @@ case class GraphSourceFiles(
   }
 
   override def toString: String =
-    s"Larger: ${largerNodes.mkString("\n")} \n\nDuplex: ${duplexTramo.mkString("\n")}"
+    s"Larger: ${largerNodes.mkString("\n")} \n"
 }
