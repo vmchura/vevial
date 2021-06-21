@@ -17,7 +17,7 @@ class GraphSourceFilesBuilderTest extends AnyFlatSpec {
       new File("/home/vmchura/Documents/003.Tesis/DataSource/100m")
     )
     val graph = graphBuilder.build()
-    graph.copyLargeNodesAsKml(
+    graph.exportPrincipalEjes(
       "/home/vmchura/Documents/003.Tesis/DataSource/PrincipalEjesKML"
     )
   }
