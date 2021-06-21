@@ -11,7 +11,7 @@ class TEfficientSeqEjeElementsTest extends AnyFlatSpec {
     def buildKmlFromCSV(originPath: String, destinationPath: String): Unit =
       SourceFile(new File(originPath))
         .buildEje()
-        .foreach(_.exportKML(destinationPath))
+        .foreach(_.exportKML(new File(destinationPath)))
 
     buildKmlFromCSV(
       "/home/vmchura/Documents/003.Tesis/DataSource/20m/E/2020-02-20 16h17m08s Survey T5 HIZQ.csv",
