@@ -1,4 +1,5 @@
 package analizeSource
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 
@@ -56,17 +57,22 @@ case class GraphSourceFilesBuilder private (
     }
     files.foreach { larger =>
       val ejeLarger = larger.buildEje()
-      println(larger.inputFile.getName)
       files.foreach { shorter =>
         if (!shorter.equals(larger)) {
           for {
+            inLarge <- larger.inOpt
+            outLarge <- larger.outOpt
             in <- shorter.inOpt
             out <- shorter.outOpt
-            _ <- ejeLarger.flatMap(_.projectPointWithDistance(in, 400))
-            _ <- ejeLarger.flatMap(_.projectPointWithDistance(out, 400))
           } yield {
             //short is "inside" in Large
-            add(shorter.hashID, larger.hashID)
+            def pointInsideLarger(p: TPoint): Boolean =
+              ejeLarger
+                .flatMap(_.projectPointWithDistance(p, 400))
+                .isDefined || (p - inLarge).magnitude < 400 || (p - outLarge).magnitude < 400
+
+            if (pointInsideLarger(in) && pointInsideLarger(out))
+              add(shorter.hashID, larger.hashID)
           }
         }
 
