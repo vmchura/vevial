@@ -1,6 +1,7 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
 import com.scalakml.io.KmlFromXml
+import com.scalakml.kml.HexColor
 import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{
   PointUnitaryVector,
@@ -119,7 +120,11 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
 
   override lazy val lowerPoint: TPoint = elements.map(_.lowerPoint).minBy(_.y)
 
-  def exportKML(fileOutput: File, name: Option[String] = None): Unit = {
+  def exportKML(
+      fileOutput: File,
+      name: Option[String] = None,
+      color: HexColor = new HexColor("ffffffff")
+  ): Unit = {
     import com.scalakml.kml.Kml
     import com.scalakml.kml.LineString
     import com.scalakml.kml.Coordinate
@@ -140,8 +145,8 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
       KmlFromXml.makeStyleSet(<hola>
         <Style id="street_sidewalk">
       <LineStyle>
-        <color>ffffffff</color>
-        <colorMode>random</colorMode>
+        <color>{color.hexString}</color>
+        <colorMode>normal</colorMode>
         <width>4</width>
       </LineStyle>
     </Style>
