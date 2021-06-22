@@ -116,8 +116,17 @@ case class GraphSourceFiles(
         Folder(
           features = placeMarks,
           featurePart = FeaturePart(
-            name =
-              Some(('A' + indx % 25).toChar.toString + (indx / 25).toString)
+            name = {
+              (ejeSource.ejeSourceFiles ::: ejeSource.smallerComponents).find(
+                sf =>
+                  GraphSourceFiles.fileNameTramo.contains(sf.inputFile.getName)
+              ) match {
+                case Some(sf) =>
+                  Some(GraphSourceFiles.fileNameTramo(sf.inputFile.getName))
+                case None =>
+                  Some(('A' + indx % 25).toChar.toString + (indx / 25).toString)
+              }
+            }
           )
         )
     }
@@ -166,4 +175,24 @@ case class GraphSourceFiles(
 
   override def toString: String =
     s"Larger: ${largerNodes.mkString("\n")} \n"
+}
+
+object GraphSourceFiles {
+  val fileNameTramo: Map[String, String] = Map(
+    "2019-01-05 14h38m27s Survey.csv" -> "Tramo-I-Aya-Cus-Jun",
+    "2019-03-29 08h14m33s Survey.csv" -> "Tramo-II-Aya-Cus-Jun",
+    "2019-03-29 07h46m18s Survey.csv" -> "Tramo-II-Aya-Cus-Jun",
+    "2019-03-29 10h19m32s Survey.csv" -> "Tramo-II-Aya-Cus-Jun",
+    "2019-03-29 07h15m07s Survey.csv" -> "Tramo-II-Aya-Cus-Jun",
+    "2019-03-29 10h39m43s Survey.csv" -> "Tramo-II-Aya-Cus-Jun",
+    "2018-08-01 13h24m33s Survey.csv" -> "Tramo-III-Aya-Cus-Jun",
+    "2018-10-27 08h40m56s Survey.csv" -> "Tramo-III-Appendix-Aya-Cus-Jun",
+    "2019-01-31 18h50m54s Survey.csv" -> "Tramo-IV-Aya-Cus-Jun",
+    "2019-03-29 15h53m18s Survey.csv" -> "Tramo-V-Aya-Cus-Jun",
+    "2020-02-20 11h03m28s Survey T6 HDER.csv" -> "Tramo-VI-Aya-Cus-Jun",
+    "2019-03-30 13h49m57s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
+    "2019-03-30 13h39m28s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
+    "2019-03-30 13h09m41s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
+    "2019-01-31 12h16m44s Survey.csv" -> "Tramo-VII-Aya-Cus-Jun"
+  )
 }
