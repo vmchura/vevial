@@ -102,34 +102,34 @@ case class GraphSourceFiles(
       new Color(r, g, b, 255)
     }
 
-    val kmlFolders = ejeSourceFiles.zipWithIndex.map {
-      case (ejeSource, indx) =>
-        val hexColor = HexColor(HexColor.colorToHex(randomColor()))
-        val placeMarks =
-          (ejeSource.ejeSourceFiles ::: ejeSource.smallerComponents).flatMap {
-            sf =>
+    val kmlFolders = ejeSourceFiles
+      .filter(_.allSourceFiles.nonEmpty)
+      .groupBy(esf =>
+        esf.allSourceFiles.find(sf =>
+          GraphSourceFiles.fileNameTramo.contains(sf.inputFile.getName)
+        ) match {
+          case Some(sf) => GraphSourceFiles.fileNameTramo(sf.inputFile.getName)
+          case None     => Random.nextString(3)
+        }
+      )
+      .map {
+        case (folderName, ejeSources) =>
+          val hexColor = HexColor(HexColor.colorToHex(randomColor()))
+          val placeMarks =
+            ejeSources.flatMap(_.allSourceFiles).flatMap { sf =>
               sf.buildEje()
                 .map(eje =>
                   eje.extractPlaceMark(Option(sf.inputFile.getName), hexColor)
                 )
-          }
-        Folder(
-          features = placeMarks,
-          featurePart = FeaturePart(
-            name = {
-              (ejeSource.ejeSourceFiles ::: ejeSource.smallerComponents).find(
-                sf =>
-                  GraphSourceFiles.fileNameTramo.contains(sf.inputFile.getName)
-              ) match {
-                case Some(sf) =>
-                  Some(GraphSourceFiles.fileNameTramo(sf.inputFile.getName))
-                case None =>
-                  Some(('A' + indx % 25).toChar.toString + (indx / 25).toString)
-              }
             }
+          Folder(
+            features = placeMarks,
+            featurePart = FeaturePart(
+              name = Some(folderName)
+            )
           )
-        )
-    }
+      }
+      .toList
     val folderTramos = Folder(
       features = kmlFolders,
       featurePart = FeaturePart(name = Some("Relevamientos"))
@@ -193,6 +193,16 @@ object GraphSourceFiles {
     "2019-03-30 13h49m57s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
     "2019-03-30 13h39m28s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
     "2019-03-30 13h09m41s Survey.csv" -> "Tramo-VI-Aya-Cus-Jun",
-    "2019-01-31 12h16m44s Survey.csv" -> "Tramo-VII-Aya-Cus-Jun"
+    "2019-01-31 12h16m44s Survey.csv" -> "Tramo-VII-Aya-Cus-Jun",
+    "2018-08-29 12h34m26s Survey.csv" -> "Oxapampa-Huancabamba",
+    "2019-08-01 11h28m32s Survey.csv" -> "Huancabamba-Pozuzo",
+    "2018-10-01 08h45m24s Survey.csv" -> "Pozuzo-CodoPozuzo",
+    "2019-08-02 13h09m06s Survey.csv" -> "CodoPozuzo[A]-PuertoInca",
+    "2019-04-19 12h59m33s Survey.csv" -> "CodoPozuzo[B]-PuertoInca",
+    "2019-05-28 16h08m22s Survey.csv" -> "Churubamba-Chaglla",
+    "2019-03-01 10h33m28s Survey.csv" -> "Churubamba-Chaglla",
+    "2018-10-29 13h18m39s Survey.csv" -> "Chaglla-Chagroato",
+    "2018-07-31 09h56m22s Survey.csv" -> "Prueba-Ignorar",
+    "2018-12-27 15h24m54s Survey.csv" -> "Prueba-Ignorar"
   )
 }
