@@ -1,7 +1,13 @@
 package io.vmchura.vevial.PlanarGeometric.BasicEje
 
 import com.scalakml.io.KmlFromXml
-import com.scalakml.kml.HexColor
+import com.scalakml.kml.{
+  Coordinate,
+  FeaturePart,
+  HexColor,
+  LineString,
+  Placemark
+}
 import io.vmchura.vevial.EjeVialUtil.Coordinates
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{
   PointUnitaryVector,
@@ -126,12 +132,32 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
       color: HexColor = new HexColor("ffffffff")
   ): Unit = {
     import com.scalakml.kml.Kml
-    import com.scalakml.kml.LineString
-    import com.scalakml.kml.Coordinate
-    import com.scalakml.kml.FeaturePart
-    import com.scalakml.kml.Placemark
     import com.scalakml.io.KmlPrintWriter
     import xml.PrettyPrinter
+
+    // create a Placemark with the point, and a name
+
+    // create a kml root object with the placemark
+
+    val kml = Kml(feature =
+      Option(
+        extractPlaceMark(
+          name match {
+            case Some(n) => Some(n)
+            case None    => Some(fileOutput.getName)
+          },
+          color
+        )
+      )
+    )
+
+    new KmlPrintWriter(fileOutput.getPath)
+      .write(Option(kml), new PrettyPrinter(80, 3))
+  }
+  def extractPlaceMark(
+      nameParam: Option[String],
+      color: HexColor = new HexColor("ffffffff")
+  ): Placemark = {
     def tpoint2Coordinate(tPoint: TPoint): Coordinate = {
       val geodesic =
         Coordinates('L', 18, tPoint.x, tPoint.y).toGeodesicCoordinates()
@@ -140,30 +166,23 @@ trait TEfficientSeqEjeElements extends TSeqEjeElementsBase {
     val lineString = LineString(coordinates =
       Option(elements.map(_.in.point).map(tpoint2Coordinate))
     )
-    // create a Placemark with the point, and a name
     val styleSelectorParam =
       KmlFromXml.makeStyleSet(<hola>
         <Style id="street_sidewalk">
-      <LineStyle>
-        <color>{color.hexString}</color>
-        <colorMode>normal</colorMode>
-        <width>4</width>
-      </LineStyle>
-    </Style>
-        </hola>)
-    val placemark =
-      Placemark(
-        Option(lineString),
-        FeaturePart(
-          name = Option(name.getOrElse(fileOutput.getName)),
-          styleSelector = styleSelectorParam
-        )
+          <LineStyle>
+            <color>{color.hexString}</color>
+            <colorMode>normal</colorMode>
+            <width>4</width>
+          </LineStyle>
+        </Style>
+      </hola>)
+    Placemark(
+      Option(lineString),
+      FeaturePart(
+        name = nameParam,
+        styleSelector = styleSelectorParam
       )
-    // create a kml root object with the placemark
-
-    val kml = Kml(feature = Option(placemark))
-    new KmlPrintWriter(fileOutput.getPath)
-      .write(Option(kml), new PrettyPrinter(80, 3))
+    )
   }
 }
 

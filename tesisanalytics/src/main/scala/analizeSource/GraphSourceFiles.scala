@@ -1,10 +1,12 @@
 package analizeSource
 
-import com.scalakml.kml.HexColor
+import com.scalakml.io.KmlPrintWriter
+import com.scalakml.kml.{FeaturePart, Folder, HexColor, Kml}
 
 import java.awt.Color
 import java.io.File
 import scala.util.Random
+import scala.xml.PrettyPrinter
 
 case class GraphSourceFiles(
     nodes: Map[String, SourceFile],
@@ -47,9 +49,10 @@ case class GraphSourceFiles(
         val smallerComponents = nodes.flatMap {
           case (k, v) =>
             Option.when(
-              edges
-                .getOrElse(k, Nil)
-                .exists(eOut => principales.map(_.hashID).contains(eOut))
+              !principales.contains(v) &&
+                edges
+                  .getOrElse(k, Nil)
+                  .exists(eOut => principales.map(_.hashID).contains(eOut))
             )(v)
         }
 
@@ -91,7 +94,6 @@ case class GraphSourceFiles(
     )
   }
   def exportPrincipalEjes(destination: String): Unit = {
-    prepareDestination(destination)
 
     def randomColor(): Color = {
       val r: Int = Random.nextInt(255)
@@ -100,28 +102,34 @@ case class GraphSourceFiles(
       new Color(r, g, b, 255)
     }
 
-    ejeSourceFiles.map(_.ejeSourceFiles).foreach { ejeSource =>
-      {
+    val kmlFolders = ejeSourceFiles.zipWithIndex.map {
+      case (ejeSource, indx) =>
         val hexColor = HexColor(HexColor.colorToHex(randomColor()))
-        copyFilesWithProcess(
-          destination,
-          (sf, parentDirectory) => {
-            sf.buildEje().map { eje =>
-              val fileResult = new File(
-                parentDirectory,
-                sf.inputFile.getName.replace(".csv", ".kml")
-              )
-              eje.exportKML(
-                fileResult,
-                color = hexColor
-              )
-            }
-
-          },
-          ejeSource
+        val placeMarks =
+          (ejeSource.ejeSourceFiles ::: ejeSource.smallerComponents).flatMap {
+            sf =>
+              sf.buildEje()
+                .map(eje =>
+                  eje.extractPlaceMark(Option(sf.inputFile.getName), hexColor)
+                )
+          }
+        Folder(
+          features = placeMarks,
+          featurePart = FeaturePart(
+            name =
+              Some(('A' + indx % 25).toChar.toString + (indx / 25).toString)
+          )
         )
-      }
     }
+    val folderTramos = Folder(
+      features = kmlFolders,
+      featurePart = FeaturePart(name = Some("Relevamientos"))
+    )
+    val kml = Kml(feature = Option(folderTramos))
+    prepareDestination(destination)
+    new KmlPrintWriter(
+      new File(new File(destination), "relevamientos.kml").getPath
+    ).write(Option(kml), new PrettyPrinter(80, 3))
 
   }
 
