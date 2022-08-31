@@ -1,6 +1,16 @@
 ThisBuild / version := "1.13"
 ThisBuild / scalaVersion := "2.13.1"
 ThisBuild / organization := "io.vmchura"
+lazy val conviasdesktop = (project in file("conviasdesktop")).settings(commonSettings).settings(
+  name := "conviasdesktop",
+  libraryDependencies ++= List(
+    // https://mvnrepository.com/artifact/org.jcodec/jcodec
+    "org.jcodec" % "jcodec" % "0.2.5",
+    // https://mvnrepository.com/artifact/org.jcodec/jcodec-javase
+    "org.jcodec" % "jcodec-javase" % "0.2.5"
+  )
+).dependsOn(ejevial)
+
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
   name := "ejevial",
   libraryDependencies ++= List(
