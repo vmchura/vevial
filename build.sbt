@@ -21,7 +21,7 @@ lazy val relevamientodata = (project in file("relevamientodata")).settings(commo
 lazy val viricalc = (project in file("viricalc")).settings(commonSettings).settings(
   name := "viricalc",
   libraryDependencies ++= List(
-    "com.norbitltd" %% "spoiwo" % "1.6.2-SNAPSHOT",
+    "com.norbitltd" %% "spoiwo" % "2.2.1",
     // https://mvnrepository.com/artifact/net.sf.supercsv/super-csv
     "net.sf.supercsv" % "super-csv" % "2.4.0"
 
