@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import scala.xml.Node
 object GpxParser {
-  def parse(xml: Node): List[Option[RawGeodesicTimeStamp]] = {
+  def parseFromNode(xml: Node): List[Option[RawGeodesicTimeStamp]] = {
     val puntualData = xml \\ "trkpt"
     puntualData.map{ node =>
       for{
@@ -13,12 +13,23 @@ object GpxParser {
         lon <- node.attribute("lon").flatMap(_.headOption).flatMap(_.text.toDoubleOption)
       } yield{
         val zonedDateTime: Option[ZonedDateTime] = (node \ "time").headOption.map(node => ZonedDateTime.parse(node.text))
-        RawGeodesicTimeStamp(Coordinates(lat, lon), zonedDateTime )
+        RawGeodesicTimeStamp(Some(Coordinates(lat, lon)), zonedDateTime )
       }
     }.toList
 
   }
   def completeTimeStamp(initialData: List[Option[ZonedDateTime]]): List[ZonedDateTime] = {
+    val unit = ChronoUnit.MILLIS
+    AlgorithmFill.completeTimeStamp[ZonedDateTime, Long](initialData,
+      lista => lista.map{case (a,b) => unit.between(a,b)}.minOption,
+      (other, deltaLongMillis, delta) => if (delta > 0) {
+        other.plus(deltaLongMillis * delta, unit)
+      } else {
+        other.minus(-deltaLongMillis * delta, unit)
+      }
+    )
+  }
+  /*def completeTimeStamp(initialData: List[Option[ZonedDateTime]]): List[ZonedDateTime] = {
     val unit = ChronoUnit.MILLIS
     val deltaMilliseconds = initialData.zip(initialData.tail).filter {
       case (Some(_), Some(_)) => true
@@ -70,6 +81,16 @@ object GpxParser {
     }else{
       throw new IllegalArgumentException("Impossible to complete deltas")
     }
+  }*/
+
+  def completeTimeStampRecords(initialData: List[Option[RawGeodesicTimeStamp]]): List[GeodesicTimeStamp] = {
+    val initialDataTimeStamp = initialData.map{ _.flatMap(_.timeStamp)}
+    initialData.zip(completeTimeStamp(initialDataTimeStamp)).map{
+      case (rawGeodesicOption, zonedDateTime) => GeodesicTimeStamp(rawGeodesicOption.flatMap(_.geodesicCoordinates), zonedDateTime)
+    }
   }
 
+  def parse(xml: Node): List[GeodesicTimeStamp] = {
+    ((parseFromNode _) andThen completeTimeStampRecords)(xml)
+  }
 }
