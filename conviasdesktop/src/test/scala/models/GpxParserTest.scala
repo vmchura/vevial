@@ -26,6 +26,10 @@ class GpxParserTest extends AnyFlatSpec {
         |  <ele>4011.448</ele>
         |  <time>2022-08-28T22:53:04.610Z</time>
         |</trkpt>
+        |<trkpt>
+        |  <ele>4011.448</ele>
+        |  <time>2022-08-28T22:53:05.600Z</time>
+        |</trkpt>
         |</trkseg>
         |</trk>
         |</gpx>
@@ -35,9 +39,10 @@ class GpxParserTest extends AnyFlatSpec {
 
     val listRawGeodesic = GpxParser.parse(node)
     assertResult(List(
-      RawGeodesicTimeStamp(Coordinates(1, 2), None),
-      RawGeodesicTimeStamp(Coordinates(3, 4), Some(ZonedDateTime.parse("2022-08-28T22:53:03.620Z"))),
-      RawGeodesicTimeStamp(Coordinates(5, 6), Some(ZonedDateTime.parse("2022-08-28T22:53:04.610Z"))),
+      Some(RawGeodesicTimeStamp(Coordinates(1, 2), None)),
+      Some(RawGeodesicTimeStamp(Coordinates(3, 4), Some(ZonedDateTime.parse("2022-08-28T22:53:03.620Z")))),
+      Some(RawGeodesicTimeStamp(Coordinates(5, 6), Some(ZonedDateTime.parse("2022-08-28T22:53:04.610Z")))),
+      None
     ))(listRawGeodesic)
   }
   it should "completeTimeStamp beginning" in {
