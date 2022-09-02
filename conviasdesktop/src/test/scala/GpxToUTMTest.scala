@@ -11,6 +11,9 @@ class GpxToUTMTest extends AnyFlatSpec {
     val tramoFile = File(tramoPath)
     val gpxNode = XML.load(gpxSource)
     val res = GpxToUTM.parseFiles(gpxNode, tramoFile)
+    res.map{ x =>
+      x.foreach(println)
+    }
     assert(res.isRight)
   }
   it should "fill progresiva" in {
@@ -25,6 +28,7 @@ class GpxToUTMTest extends AnyFlatSpec {
     val tramoFile = File(tramoPath)
     val gpxNode = XML.load(gpxSource)
     val res = GpxToUTM.parse(gpxNode, tramoFile)
+
     assert(res.isRight)
     res.map(x => println(x.mkString(System.lineSeparator())))
   }

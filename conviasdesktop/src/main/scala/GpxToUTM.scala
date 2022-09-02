@@ -29,9 +29,9 @@ object GpxToUTM {
       val progresivaComplete = completeProgresiva(progresiva)
       val minTime = progresivaTimeStamp.head.timeStamp
       val millis = ChronoUnit.MILLIS
-      val times = progresivaTimeStamp.map(progresivaTime => millis.between(minTime, progresivaTime.timeStamp))
+      val times = progresivaTimeStamp.map(progresivaTime => (millis.between(minTime, progresivaTime.timeStamp), progresivaTime.timeStamp))
       progresivaComplete.zip(times).map{
-        case (progresiva, time) => ProgresivaMilliseconds(progresiva, time)
+        case (progresiva, (time, timeZoned)) => ProgresivaMilliseconds(progresiva, time, timeZoned)
       }
     })
   }

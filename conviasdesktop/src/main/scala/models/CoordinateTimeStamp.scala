@@ -8,7 +8,7 @@ import io.vmchura.vevial.EjeVialUtil.{
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 
 import java.time.ZonedDateTime
-case class ProgresivaMilliseconds(progresiva: Progresiva, millisFromStart: Long)
+case class ProgresivaMilliseconds(progresiva: Progresiva, millisFromStart: Long, timeZoned: ZonedDateTime)
 case class ProgresivaTimeStamp(progresiva: Option[Progresiva], timeStamp: ZonedDateTime)
 case class RawGeodesicTimeStamp(
     geodesicCoordinates: Option[GeodesicCoordinates],
