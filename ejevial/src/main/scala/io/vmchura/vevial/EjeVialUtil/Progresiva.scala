@@ -10,3 +10,16 @@ case class Progresiva(progresiva: Int) {
     s"$km_str+$m_str"
   }
 }
+
+object Progresiva {
+  def apply(progresiva: Int): Progresiva = new Progresiva(progresiva)
+  def apply(progresiva: String): Option[Progresiva] = {
+    Option.when(progresiva.contains('+') && progresiva.replace('+','.').toDoubleOption.isDefined) {
+      val progresivaInt = progresiva.split('+').map(_.trim).reverse.zipWithIndex.map {
+        case (chunk, index) =>
+          Math.pow(1e3, index) * chunk.toInt
+      }.sum.toInt
+      new Progresiva(progresivaInt)
+    }
+  }
+}
