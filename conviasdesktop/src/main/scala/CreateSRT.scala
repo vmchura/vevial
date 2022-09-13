@@ -15,11 +15,12 @@ import java.security.Timestamp
 import java.text.SimpleDateFormat
 import java.time.{LocalDateTime, LocalTime, ZoneOffset, ZonedDateTime}
 import java.util.{Date, TimeZone}
+import scala.Console.println
 import scala.concurrent.Await
 import scala.reflect.io.File
-import scala.xml.Node
+import scala.xml.{Node, XML}
 
-object CreateSRT {
+object CreateSRT extends App {
 
   def calculateProgresiva(prevProgresiva: ProgresivaMilliseconds, currentProgresiva: ProgresivaMilliseconds, time: Long): Progresiva = {
     if (time < prevProgresiva.millisFromStart) {
@@ -62,7 +63,7 @@ object CreateSRT {
     f"$hours%02d:$mm%02d:$ss%02d,$sss%03d"
   }
 
-  def buildSubtitles(pathVideo: String, gpxXML: Node, ejeXMLFile: File): Either[Exception, Seq[String]] = {
+  def buildSubtitles(pathVideo: String, gpxXML: Node, ejeXMLFile: File, tramoName: String): Either[Exception, Seq[String]] = {
     GpxToUTM.parse(gpxXML, ejeXMLFile).map { progresivasTimeStamp =>
       val file = new java.io.File(pathVideo)
       val grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(file))
@@ -81,7 +82,7 @@ object CreateSRT {
 
         s"""|${index+1}
             |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
-            |Tramo 1
+            |${tramoName}
             |Hora aproximada: $utcTime
             |Prog aproximada: ${progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)}""".stripMargin
       }
@@ -98,9 +99,15 @@ object CreateSRT {
       bw.close()
 
   }
-  def execute(pathVideo: String, gpxXML: Node, ejeXMLFile: File,  outputPath: String): Unit = {
-    buildSubtitles(pathVideo, gpxXML, ejeXMLFile).map{ subtitles =>
+  def execute(pathVideo: String, gpxXML: Node, ejeXMLFile: File,  outputPath: String, tramoName: String): Unit = {
+    buildSubtitles(pathVideo, gpxXML, ejeXMLFile, tramoName).map{ subtitles =>
       writeSubtitles(subtitles, outputPath)
     }
   }
+
+  println(args.map(arg => s"[$arg]").mkString(","))
+  val tramoFile = File(args(1))
+  val gpxNode = XML.load(args(2))
+  val pathVideo = args(0)
+  CreateSRT.execute(pathVideo, gpxNode, tramoFile, args(3), args(4))
 }
