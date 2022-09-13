@@ -16,7 +16,10 @@ trait TConvertibleToEje {
 
               sr.addRestriction(pp) match {
                 case Right(value) => Right(value)
-                case Left(_) => Left(new IllegalStateException(s"Cant add $pp to $sr"))
+                case Left(value) =>
+                  println(s"Cant add $pp - ${pp.progresive}")
+                  Right(value)
+
               }
           }
         pointsProgresiveEither.map{ pointsProgresive =>

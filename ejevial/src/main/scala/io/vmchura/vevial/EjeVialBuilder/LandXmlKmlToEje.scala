@@ -13,9 +13,8 @@ import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.ProgresivePoint
 import java.security.InvalidParameterException
 import scala.xml.XML
 
-class KMLToEje(source: InputStreamReader) extends TConvertibleToEje {
-  private val logger = Logger(classOf[LandXMLToEje])
-  private val xml = XML.load(source)
+class LandXmlKmlToEje(source: InputStreamReader, kmlSource: InputStreamReader) extends LandXMLToEje(source) {
+  private val xml = XML.load(kmlSource)
   private val kml = KmlFromXml.makeKml(xml)
 
   private val progressivePoints: Either[Exception, List[ProgresivePoint]] = kml.fold(Left(new InvalidParameterException("Cant parse")): Either[Exception, List[ProgresivePoint]]) {
@@ -49,16 +48,15 @@ class KMLToEje(source: InputStreamReader) extends TConvertibleToEje {
   }
 
 
-  override protected def getSequenceElements: Either[Exception, EfficientSeqEjeElements] = progressivePoints.map{ sequenceProgressivePoints =>
-    val elements = sequenceProgressivePoints.zip(sequenceProgressivePoints.tail).map{
-      case (pinicio, pfin) => RectSegment(pinicio,pfin)
-    }
-    val inefficientEje = elements.foldLeft(EmptySeqEjeElements() :TSeqEjeElementsBase){case (prevSeq,newElement) => prevSeq.append(newElement)}
-    EfficientSeqEjeElements(inefficientEje)
-  }
+  override protected def getSequenceProgresivePoint: Iterable[ProgresivePoint] =
 
-  override protected def getSequenceProgresivePoint: Iterable[ProgresivePoint] = progressivePoints match {
-    case Right(sequenceProgressivePoints) => sequenceProgressivePoints
-    case _ => Nil
-  }
+    (for {
+      sequenceProgressivePoints <- progressivePoints
+      xmlParsing <- resultOfParsing
+    } yield {
+      val (listaXmlParsing, start) = xmlParsing
+      val listaProg = sequenceProgressivePoints.filter(pp => pp.progresive>start && (pp.progresive.toInt%1000==0))
+      (new ProgresivePoint(listaXmlParsing.head.in.point,start) :: listaProg)//.foreach(pp => println(s"$pp ${pp.progresive}"))
+      //List(new ProgresivePoint(listaXmlParsing.head.in.point,start))// :: listaProg
+    }).getOrElse(Nil)
 }

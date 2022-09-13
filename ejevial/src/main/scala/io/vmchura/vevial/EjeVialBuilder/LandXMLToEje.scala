@@ -15,7 +15,7 @@ class LandXMLToEje(source: InputStreamReader) extends TConvertibleToEje {
 
   private val xml = XML.load(source)//XML.loadFile(filename)
   private val alignments = xml \\ "Alignment"
-  private val resultOfParsing: Either[Exception,(Seq[TSimpleEjeElement],Double)] = if(alignments.length == 1){
+  protected val resultOfParsing: Either[Exception,(Seq[TSimpleEjeElement],Double)] = if(alignments.length == 1){
     val aligment = alignments.head
     val attributes = Seq("desc","staStart","length","name")
     val values = attributes.map(k => aligment.attribute(k))

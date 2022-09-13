@@ -117,5 +117,41 @@ class EfficientEjeProgresivaTest extends FlatSpec with Matchers{
     x2 should equal (100.0+ Math.sin(0.5)*100 +- 1e-3)
     y2 should equal (100.0-Math.cos(0.5)*100 +- 1e-3)
   }
+  "Calc of points by progresiva with rect distortion" should " find correctly points " in {
+
+    val pointLargerRestricctions = List(new ProgresivePoint(Point(0,0),0), new ProgresivePoint(Point(50,0),200))
+
+    val r = RectSegment(Point(0,0),Point(100,0))
+    val r2 = RectSegment(Point(100,0),Point(200,0))
+
+
+    val sequence = EfficientSeqEjeElements(TSeqEjeElementsBase().append(r).append(r2))
+
+
+    val sequenceWithRestrictions = EjeEfficientWithRestrictions(sequence)
+
+    val pointsProgresive = pointLargerRestricctions.foldLeft(sequenceWithRestrictions){case (sr, pp) => sr.addRestriction(pp) match {
+      case Right(value) => value
+      case Left(value) => value
+    }}
+
+    assertResult(2)(pointsProgresive.elementsWithRestrictions.length)
+
+
+
+    val eje = EfficientEjeProgresiva(pointsProgresive)
+
+    val unoOpt = eje.findPointByProgresive(100)
+    assert(unoOpt.isDefined)
+    val Point(x1,y1) = unoOpt.get
+    x1 should equal (25.0 +- 1e-3)
+    y1 should equal (0.0 +- 1e-3)
+
+    val dosOpt = eje.findPointByProgresive(200)
+    assert(dosOpt.isDefined)
+    val Point(x2,y2) = dosOpt.get
+    x2 should equal (50.0 +- 1e-3)
+    y2 should equal (0.0 +- 1e-3)
+  }
 
 }
