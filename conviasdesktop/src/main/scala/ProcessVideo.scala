@@ -52,8 +52,8 @@ object ProcessVideo {
   val imageObserver = new ImageObserver {
     override def imageUpdate(img: Image, infoflags: Int, x: Int, y: Int, width: Int, height: Int): Boolean = false
   }
-  def execute(pathVideo: String, gpxXML: Node, ejeXMLFile: File, outPath: String, pathLogo: String): Either[Exception, Boolean] = {
-    GpxToUTM.parse(gpxXML, ejeXMLFile).map{ progresivasTimeStamp =>
+  def execute(pathVideo: String, gpxXML: Node, outPath: String, pathLogo: String): Either[Exception, Boolean] = {
+    GpxToUTM.parse(gpxXML, ???).map{ progresivasTimeStamp =>
       val logoImage = ImageIO.read(new io.File(pathLogo))
       val file = new java.io.File(pathVideo)
       val out = NIOUtils.writableFileChannel(outPath)

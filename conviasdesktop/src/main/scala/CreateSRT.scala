@@ -1,10 +1,12 @@
 import io.vmchura.vevial.EjeVialUtil.Progresiva
+import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXmlKmlToEje}
 import models.ProgresivaMilliseconds
 import org.jcodec.api.{FrameGrab, PictureWithMetadata}
 import org.jcodec.api.awt.AWTSequenceEncoder
 import org.jcodec.common.io.NIOUtils
 import org.jcodec.common.model.{Picture, Rational}
 import org.jcodec.scale.AWTUtil
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 
 import java.awt.image.ImageObserver
 import javax.imageio.ImageIO
@@ -14,9 +16,10 @@ import java.io.{BufferedWriter, FileWriter}
 import java.security.Timestamp
 import java.text.SimpleDateFormat
 import java.time.{LocalDateTime, LocalTime, ZoneOffset, ZonedDateTime}
-import java.util.{Date, TimeZone}
+import java.util.{Date, Scanner, TimeZone}
 import scala.Console.println
 import scala.concurrent.Await
+import scala.io.Codec
 import scala.reflect.io.File
 import scala.xml.{Node, XML}
 
@@ -63,8 +66,8 @@ object CreateSRT extends App {
     f"$hours%02d:$mm%02d:$ss%02d,$sss%03d"
   }
 
-  def buildSubtitles(pathVideo: String, gpxXML: Node, ejeXMLFile: File, tramoName: String): Either[Exception, Seq[String]] = {
-    GpxToUTM.parse(gpxXML, ejeXMLFile).map { progresivasTimeStamp =>
+  def buildSubtitles(pathVideo: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva], tramoName: String): Either[Exception, Seq[String]] = {
+    GpxToUTM.parse(gpxXML, ejeEither).map { progresivasTimeStamp =>
       val file = new java.io.File(pathVideo)
       val grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(file))
       val totalDuration = grab.getVideoTrack.getMeta.getTotalDuration.toInt * 1000
@@ -99,15 +102,28 @@ object CreateSRT extends App {
       bw.close()
 
   }
-  def execute(pathVideo: String, gpxXML: Node, ejeXMLFile: File,  outputPath: String, tramoName: String): Unit = {
-    buildSubtitles(pathVideo, gpxXML, ejeXMLFile, tramoName).map{ subtitles =>
+  def execute(pathVideo: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva],  outputPath: String, tramoName: String): Unit = {
+    buildSubtitles(pathVideo, gpxXML, ejeEither, tramoName).map{ subtitles =>
       writeSubtitles(subtitles, outputPath)
     }
   }
-
   println(args.map(arg => s"[$arg]").mkString(","))
-  val tramoFile = File(args(1))
-  val gpxNode = XML.load(args(2))
-  val pathVideo = args(0)
-  CreateSRT.execute(pathVideo, gpxNode, tramoFile, args(3), args(4))
+  val tramoFile = File(args(0))
+  val kmlFile = File(args(1))
+  val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(tramoFile.reader(Codec("UTF-8"))
+                                                                              //,kmlFile.reader(Codec("UTF-8"))
+                                                                              ).toEje
+
+  val scanner = new Scanner(System.in)
+  while(scanner.hasNextLine){
+    val line = scanner.nextLine()
+    val Array(pathVideo, gpxPath, pathOutput, tramoName) = line.split(";").map(_.trim)
+    println(List(pathVideo, gpxPath, pathOutput, tramoName).mkString(" -- "))
+    val gpxNode = XML.load(gpxPath)
+    CreateSRT.execute(pathVideo, gpxNode, ejeEither, pathOutput, tramoName)
+  }
+  scanner.close()
+
+
+
 }

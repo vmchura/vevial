@@ -1,5 +1,6 @@
-import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
+import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXmlKmlToEje}
 import io.vmchura.vevial.EjeVialUtil.Progresiva
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import models.{AlgorithmFill, GpxParser, ProgresivaMilliseconds, ProgresivaTimeStamp}
 
 import java.time.temporal.ChronoUnit
@@ -8,8 +9,7 @@ import scala.io.Codec
 import scala.xml.Node
 
 object GpxToUTM {
-  def parseFiles(gpxXML: Node, ejeXMLFile: File): Either[Exception, List[ProgresivaTimeStamp]] = {
-    val ejeEither = new LandXMLToEje(ejeXMLFile.reader(Codec("UTF-8"))).toEje
+  def parseFiles(gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva]): Either[Exception, List[ProgresivaTimeStamp]] = {
     ejeEither.map{ eje =>
       GpxParser.parse(gpxXML).map(_.toProgresivaTimeStamp(eje))
     }
@@ -22,8 +22,8 @@ object GpxToUTM {
       }, (other, deltaLongMillis, delta) =>
         Progresiva(other.progresiva + deltaLongMillis * delta))
 
-  def parse(gpxXML: Node, ejeXMLFile: File): Either[Exception, List[ProgresivaMilliseconds]] = {
-    val progresivasError = parseFiles(gpxXML, ejeXMLFile)
+  def parse(gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva]): Either[Exception, List[ProgresivaMilliseconds]] = {
+    val progresivasError = parseFiles(gpxXML, ejeEither)
     progresivasError.map(progresivaTimeStamp => {
       val progresiva = progresivaTimeStamp.map(_.progresiva)
       val progresivaComplete = completeProgresiva(progresiva)
