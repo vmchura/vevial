@@ -1,11 +1,8 @@
-import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXmlKmlToEje}
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import models.{AlgorithmFill, GpxParser, ProgresivaMilliseconds, ProgresivaTimeStamp}
 
 import java.time.temporal.ChronoUnit
-import scala.reflect.io.File
-import scala.io.Codec
 import scala.xml.Node
 
 object GpxToUTM {

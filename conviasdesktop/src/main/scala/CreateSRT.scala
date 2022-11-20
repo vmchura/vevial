@@ -1,24 +1,14 @@
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXmlKmlToEje}
 import models.ProgresivaMilliseconds
-import org.jcodec.api.{FrameGrab, PictureWithMetadata}
-import org.jcodec.api.awt.AWTSequenceEncoder
-import org.jcodec.common.io.NIOUtils
-import org.jcodec.common.model.{Picture, Rational}
-import org.jcodec.scale.AWTUtil
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 
-import java.awt.image.ImageObserver
-import javax.imageio.ImageIO
-import java.awt.{Color, Font, Image}
-import java.io
 import java.io.{BufferedWriter, FileWriter}
-import java.security.Timestamp
 import java.text.SimpleDateFormat
-import java.time.{LocalDateTime, LocalTime, ZoneOffset, ZonedDateTime}
+import java.time.ZonedDateTime
 import java.util.{Date, Scanner, TimeZone}
 import scala.Console.println
-import scala.concurrent.Await
+import scala.annotation.tailrec
 import scala.io.Codec
 import scala.reflect.io.File
 import scala.xml.{Node, XML}
@@ -45,6 +35,7 @@ object CreateSRT extends App {
     }
   }
 
+  @tailrec
   def findProgresiva(progresivas: List[ProgresivaMilliseconds], lastProgresiva: ProgresivaMilliseconds, time: Long): (Progresiva, List[ProgresivaMilliseconds], ProgresivaMilliseconds) = {
     progresivas match {
       case Nil => (lastProgresiva.progresiva, progresivas, lastProgresiva)
@@ -66,11 +57,13 @@ object CreateSRT extends App {
     f"$hours%02d:$mm%02d:$ss%02d,$sss%03d"
   }
 
-  def buildSubtitles(pathVideo: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva], tramoName: String): Either[Exception, Seq[String]] = {
+  def buildSubtitles(durationPath: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva], tramoName: String): Either[Exception, Seq[String]] = {
     GpxToUTM.parse(gpxXML, ejeEither).map { progresivasTimeStamp =>
-      val file = new java.io.File(pathVideo)
-      val grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(file))
-      val totalDuration = grab.getVideoTrack.getMeta.getTotalDuration.toInt * 1000
+      val file = new java.io.File(durationPath)
+      val grab = scala.io.Source.fromFile(file)
+      val totalDuration = (grab.getLines().toList.head.toDouble * 1000).toInt
+      grab.close()
+
       var currentList = progresivasTimeStamp
       var lastProgresiva = ProgresivaMilliseconds(Progresiva(0), -1L, ZonedDateTime.now())
       val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
@@ -85,7 +78,7 @@ object CreateSRT extends App {
 
         s"""|${index+1}
             |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
-            |${tramoName}
+            |$tramoName
             |Hora aproximada: $utcTime
             |Prog aproximada: ${progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)}""".stripMargin
       }
@@ -102,8 +95,8 @@ object CreateSRT extends App {
       bw.close()
 
   }
-  def execute(pathVideo: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva],  outputPath: String, tramoName: String): Unit = {
-    buildSubtitles(pathVideo, gpxXML, ejeEither, tramoName).map{ subtitles =>
+  def execute(durationPath: String, gpxXML: Node, ejeEither: Either[Exception, EfficientEjeProgresiva], outputPath: String, tramoName: String): Unit = {
+    buildSubtitles(durationPath, gpxXML, ejeEither, tramoName).map{ subtitles =>
       writeSubtitles(subtitles, outputPath)
     }
   }
@@ -117,10 +110,10 @@ object CreateSRT extends App {
   val scanner = new Scanner(System.in)
   while(scanner.hasNextLine){
     val line = scanner.nextLine()
-    val Array(pathVideo, gpxPath, pathOutput, tramoName) = line.split(";").map(_.trim)
-    println(List(pathVideo, gpxPath, pathOutput, tramoName).mkString(" -- "))
+    val Array(durationPath, gpxPath, pathOutput, tramoName) = line.split(";").map(_.trim)
+    println(List(durationPath, gpxPath, pathOutput, tramoName).mkString(" -- "))
     val gpxNode = XML.load(gpxPath)
-    CreateSRT.execute(pathVideo, gpxNode, ejeEither, pathOutput, tramoName)
+    CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
   }
   scanner.close()
 
