@@ -5,6 +5,10 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import scala.xml.Node
 object GpxParser {
+  def findInitialTime(xml: Node): Option[ZonedDateTime] = {
+    val s = (xml \ "metadata" \ "time").headOption
+    s.map(node => ZonedDateTime.parse(node.text))
+  }
   def parseFromNode(xml: Node): List[Option[RawGeodesicTimeStamp]] = {
     val puntualData = xml \\ "trkpt"
     puntualData.map{ node =>

@@ -2,7 +2,9 @@ ThisBuild / version := "1.13"
 ThisBuild / scalaVersion := "2.13.1"
 ThisBuild / organization := "io.vmchura"
 lazy val conviasdesktop = (project in file("conviasdesktop")).settings(commonSettings).settings(
-  name := "conviasdesktop"
+  name := "conviasdesktop",
+  assembly / mainClass := Some("CreateSRT"),
+  assembly / assemblyJarName := "createSRT.jar",
 ).dependsOn(ejevial)
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(

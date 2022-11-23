@@ -1,7 +1,10 @@
 import io.vmchura.vevial.EjeVialUtil.Progresiva
-import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXmlKmlToEje}
+import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import models.ProgresivaMilliseconds
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.PlanarGeometric.RestrictiveEje.ProgresivePoint
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 
 import java.io.{BufferedWriter, FileWriter}
 import java.text.SimpleDateFormat
@@ -102,8 +105,13 @@ object CreateSRT extends App {
   }
   println(args.map(arg => s"[$arg]").mkString(","))
   val tramoFile = File(args(0))
-  val kmlFile = File(args(1))
-  val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(tramoFile.reader(Codec("UTF-8"))
+  val restrictionsFile = File(args(1))
+  val restrictions: List[ProgresivePoint] = restrictionsFile.lines().map{ line =>
+    val Array(x,y, prog) = line.split(",").map(_.toDouble)
+    new ProgresivePoint(Point(x,y), prog)
+  }.toList
+
+  val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLWithRestrictionsToEje(tramoFile.reader(Codec("UTF-8")), restrictions
                                                                               //,kmlFile.reader(Codec("UTF-8"))
                                                                               ).toEje
 

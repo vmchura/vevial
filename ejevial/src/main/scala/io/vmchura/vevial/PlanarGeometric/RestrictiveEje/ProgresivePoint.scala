@@ -15,6 +15,7 @@ class ProgresivePoint(p: TPoint,val progresive: Double) extends  Point(p.x,p.y) 
     }
   }
 
+  override def toString: String = s"${super.toString} R[$progresive]"
 
 }
 

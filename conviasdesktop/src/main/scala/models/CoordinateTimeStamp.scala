@@ -1,9 +1,7 @@
 package models
 import io.vmchura.vevial.EjeVialUtil.{
-  Coordinates,
   GeodesicCoordinates,
-  Progresiva,
-  UTMCoordinates
+  Progresiva
 }
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 
@@ -14,10 +12,10 @@ case class RawGeodesicTimeStamp(
     geodesicCoordinates: Option[GeodesicCoordinates],
     timeStamp: Option[ZonedDateTime]
 )
-case class GeodesicTimeStamp(
+case class GeodesicTimeStamp (
     geodesicCoordinatesOption: Option[GeodesicCoordinates],
     timeStamp: ZonedDateTime
-) {
+) extends Ordered[GeodesicTimeStamp] {
   def toProgresivaTimeStamp(
       efficientEjeProgresiva: EfficientEjeProgresiva
   ): ProgresivaTimeStamp = {
@@ -32,4 +30,6 @@ case class GeodesicTimeStamp(
     }
     ProgresivaTimeStamp(progresiva, timeStamp)
   }
+
+  override def compare(that: GeodesicTimeStamp): Int = timeStamp.compareTo(that.timeStamp)
 }
