@@ -75,6 +75,9 @@ object CreateSRT extends App {
      (0 until totalDuration by 100).zipWithIndex.map{ case (milliSecond, index) =>
         val nextMillisecond = milliSecond + 100
         val (progresivaToWrite, newList, newLast) = findProgresiva(currentList, lastProgresiva, milliSecond)
+       val progresivaHitos = Progresiva(progresivaToWrite.progresiva + 219369)
+       val progresivaRealSTR = progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)
+       val progresivaHitosSTR = progresivaHitos.show(withSpaces = true, withKmLeftPadding = 3)
         currentList = newList
         lastProgresiva = newLast
         val utcTime = dateFormatter.format(Date.from(lastProgresiva.timeZoned.toInstant))
@@ -83,7 +86,7 @@ object CreateSRT extends App {
             |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
             |$tramoName
             |Hora aproximada: $utcTime
-            |Prog aproximada: ${progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)}""".stripMargin
+            |Prog aproximada: $progresivaRealSTR ($progresivaHitosSTR)""".stripMargin
       }
     }
   }
@@ -119,9 +122,16 @@ object CreateSRT extends App {
   while(scanner.hasNextLine){
     val line = scanner.nextLine()
     val Array(durationPath, gpxPath, pathOutput, tramoName) = line.split(";").map(_.trim)
-    println(List(durationPath, gpxPath, pathOutput, tramoName).mkString(" -- "))
-    val gpxNode = XML.load(gpxPath)
-    CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
+    try {
+
+      val gpxNode = XML.load(gpxPath)
+      CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
+
+    }catch{
+      case e: Exception =>
+        println(List(durationPath, gpxPath, pathOutput, tramoName).mkString(" -- "))
+        println(e.getMessage)
+    }
   }
   scanner.close()
 
