@@ -123,3 +123,7 @@ for videoNameSRT in *.srt; do
   head -n 5 $videoNameSRT | tail -n 1
 done
 ```
+Run from ec2
+```bash
+aws ec2 run-instances --launch-template LaunchTemplateId=lt-0e977b581b03dd443 --user-data file://D:/extremis/run_extremis_GH120708.sh
+```
