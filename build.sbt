@@ -4,7 +4,7 @@ ThisBuild / organization := "io.vmchura"
 lazy val conviasdesktop = (project in file("conviasdesktop")).settings(commonSettings).settings(
   name := "conviasdesktop",
   assembly / mainClass := Some("CreateSRT"),
-  assembly / assemblyJarName := "createSRT.jar",
+  assembly / assemblyJarName := "createSRT.jar"
 ).dependsOn(ejevial)
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
@@ -38,14 +38,16 @@ lazy val viricalc = (project in file("viricalc")).settings(commonSettings).setti
 
 
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
-  name := "ejebuilder",
+  name := "ejebuilder"
 ).dependsOn(ejevial,relevamientodata,tesis)
 
 lazy val ejebuilderview = (project in file("ejebuilderview")).settings(commonSettings ++ windowSettings).settings(
   name := "ejebuilderview"
 ).dependsOn(ejebuilder, ejevialview)
 
-
+lazy val surveyviewer = (project in file("surveyviewer")).settings(commonSettings ++ windowSettings).settings(
+  name := "surveyviewer"
+).dependsOn(ejebuilder, ejevialview)
 
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
   name := "tesisanalytics",
