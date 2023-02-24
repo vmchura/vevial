@@ -101,25 +101,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val windowSettings = Seq (
-{
-/**
-  * SCALAFX Temporal
-  * USING JAVA 12
-  */
-
-lazy val javaFXModules = Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
-libraryDependencies ++= javaFXModules.map( m =>
-  "org.openjfx" % s"javafx-$m" % "14.0.1" classifier "linux"
-)},
-//---------------- FIN SCALAFX
-  libraryDependencies += "org.scalafx" %% "scalafx" % "14-R19",
+  libraryDependencies += "org.scalafx" %% "scalafx" % "18.0.1-R28",
   fork := true
-
-  // compiles, but does not run
-  // unmanagedJars in Compile += file(Path.userHome+"/Documents/002.DescargasFirefox/arcgis-java-100.6.0.jar")
-
 )
-
-
-//onLoad in Global := (onLoad in Global).value andThen {s: State => "project core" :: s}
 

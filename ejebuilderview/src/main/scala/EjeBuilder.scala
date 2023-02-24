@@ -1,43 +1,22 @@
 import java.io.File
-
 import AutomaticBuilder.models.{ElementActionToImprove, SimpleAgentEjeEvaluator}
 import scalafx.Includes._
-import Layers.{
-  GeoNodeLayer,
-  ObservableListDelegate,
-  ProjectionPointLayer,
-  SimpleEjeVialLayer,
-  SimpleIRIRelevamientoLayer
-}
+import Layers.{GeoNodeLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import scalafx.application.JFXApp
+import scalafx.application.JFXApp3
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.{Cursor, Scene}
 import scalafx.scene.control.{Alert, Button}
-import scalafx.scene.layout.{
-  Background,
-  BackgroundFill,
-  BorderPane,
-  CornerRadii,
-  Pane
-}
+import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
 import UtilTransformers.PointTransformer._
 import algorithms.{DiscreteRelevamiento, MaximizeEje}
 import com.typesafe.scalalogging.Logger
 import io.DraftManager
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import javafx.scene.input
-import models.{
-  EjeEditable,
-  GeoLinkGraph,
-  GeoNode,
-  LinearGraph,
-  ObserverImpl,
-  TEjeElementTemporal,
-  TLinkPoint
-}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, ObserverImpl, TEjeElementTemporal, TLinkPoint}
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
@@ -48,7 +27,9 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, XML}
 
-object EjeBuilder extends JFXApp {
+object EjeBuilder extends JFXApp3 {
+
+
   private val logger = Logger(this.getClass)
   private val relevamientosAdded =
     ListBuffer.empty[RelevamientoIRI[IRIElementData]]
@@ -467,41 +448,44 @@ object EjeBuilder extends JFXApp {
 
   }
 
-  stage = new PrimaryStage {
-    title = "EjeBuilder"
-    width = 600
-    height = 450
-    scene = new Scene {
+  override def start(): Unit = {
+    stage = new JFXApp3.PrimaryStage {
+      title = "EjeBuilder"
+      width = 600
+      height = 450
+      scene = new Scene {
 
-      content = new BorderPane() {
-        top = new Button("Save") {
-          onAction = _ => {
-            val urlSave = "/home/vmchura/Documents/testProject.xml"
-            val res = (for {
-              eje <- ejeEditableOpt
-              head <- eje.headLink()
-            } yield {
-              Right(DraftManager.saveProject(urlSave)(head, filedAdded.toSeq))
-            }).getOrElse(Left("No eje defined"))
+        content = new BorderPane() {
+          top = new Button("Save") {
+            onAction = _ => {
+              val urlSave = "/home/vmchura/Documents/testProject.xml"
+              val res = (for {
+                eje <- ejeEditableOpt
+                head <- eje.headLink()
+              } yield {
+                Right(DraftManager.saveProject(urlSave)(head, filedAdded.toSeq))
+              }).getOrElse(Left("No eje defined"))
 
-            val alert = res match {
-              case Left(error) => new Alert(AlertType.Error, s"error $error")
-              case Right(true) =>
-                new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
-              case Right(false) => new Alert(AlertType.Warning, s"No guardado")
+              val alert = res match {
+                case Left(error) => new Alert(AlertType.Error, s"error $error")
+                case Right(true) =>
+                  new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
+                case Right(false) => new Alert(AlertType.Warning, s"No guardado")
+              }
+              alert.resizable = true
+              alert.showAndWait()
+
             }
-            alert.resizable = true
-            alert.showAndWait()
-
           }
-        }
-        left = new Button("left") {
-          onAction = _ => {
-            println("click on top!!")
+          left = new Button("left") {
+            onAction = _ => {
+              println("click on top!!")
+            }
           }
+          center = panelMapa
         }
-        center = panelMapa
       }
     }
   }
+
 }
