@@ -1,10 +1,13 @@
 package controller
 
+import forms.SurveyViewerForm
 import javafx.scene.{control => jfxsc, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
 import scalafx.Includes._
 import scalafx.scene.control.MenuItem
 import scalafx.scene.layout.VBox
+import scalafx.stage
+import scalafx.stage.FileChooser
 
 import java.net.URL
 import java.util
@@ -37,6 +40,9 @@ import java.util
  */
 class SurveyViewerController extends jfxf.Initializable {
 
+  private val axisFileChooser = new FileChooser()
+  axisFileChooser.extensionFilters += new FileChooser.ExtensionFilter("Land XML", "*.xml")
+
   @jfxf.FXML
   private var addAxisMenuItemDelegate: jfxsc.MenuItem = _
 
@@ -49,7 +55,8 @@ class SurveyViewerController extends jfxf.Initializable {
 
   @jfxf.FXML
   private def onActionAddAxisMenuItem(event: jfxe.ActionEvent): Unit = {
-    println("onActionAddAxisMenuItem")
+    val file = axisFileChooser.showOpenDialog(SurveyViewerForm.stage)
+    println(file.isFile)
   }
 
   @jfxf.FXML

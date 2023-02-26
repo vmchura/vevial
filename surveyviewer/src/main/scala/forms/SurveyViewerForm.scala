@@ -1,3 +1,5 @@
+package forms
+
 import javafx.{fxml => jfxf, scene => jfxs}
 import scalafx.Includes._
 import scalafx.application.JFXApp3
@@ -15,7 +17,8 @@ object SurveyViewerForm extends JFXApp3 {
 
   def start(): Unit = {
 
-    val resource = getClass.getResource("SurveyViewer.fxml")
+    val resource = getClass.getResource("/SurveyViewer.fxml")
+
     if (resource == null) {
       throw new IOException("Cannot load resource: SurveyViewer.fxml")
     }
