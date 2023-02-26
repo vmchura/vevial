@@ -46,7 +46,8 @@ lazy val ejebuilderview = (project in file("ejebuilderview")).settings(commonSet
 ).dependsOn(ejebuilder, ejevialview)
 
 lazy val surveyviewer = (project in file("surveyviewer")).settings(commonSettings ++ windowSettings).settings(
-  name := "surveyviewer"
+  name := "surveyviewer",
+  libraryDependencies += "org.scalafx" %% "scalafx-extras" % "0.7.0"
 ).dependsOn(ejebuilder, ejevialview)
 
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
@@ -103,7 +104,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val windowSettings = Seq (
-  libraryDependencies += "org.scalafx" %% "scalafx" % "18.0.1-R28",
+  libraryDependencies += "org.scalafx" %% "scalafx" % "19.0.0-R30",
   fork := true
 )
 
