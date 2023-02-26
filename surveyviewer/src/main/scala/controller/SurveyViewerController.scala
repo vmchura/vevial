@@ -4,9 +4,7 @@ import forms.SurveyViewerForm
 import javafx.scene.{control => jfxsc, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
 import scalafx.Includes._
-import scalafx.scene.control.MenuItem
 import scalafx.scene.layout.VBox
-import scalafx.stage
 import scalafx.stage.FileChooser
 
 import java.net.URL
