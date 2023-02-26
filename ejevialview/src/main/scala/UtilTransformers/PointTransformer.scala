@@ -5,14 +5,16 @@ import scalafx.beans.binding.NumberBinding
 import scalafx.beans.property.{DoubleProperty, ReadOnlyDoubleProperty}
 import scalafx.Includes._
 
-object PointTransformer {
+class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoubleProperty) {
 
 
 
   val offsetX: DoubleProperty= DoubleProperty(0d)
   val offsetY: DoubleProperty= DoubleProperty(0d)
-  val endX: DoubleProperty= new DoubleProperty()
-  val iniY: DoubleProperty= new DoubleProperty()
+  val endX: DoubleProperty = new DoubleProperty()
+  val iniY: DoubleProperty = new DoubleProperty()
+
+
 
   val factor: DoubleProperty = DoubleProperty(1d)
 
@@ -22,6 +24,7 @@ object PointTransformer {
   implicit class DoubleYView(y: Double){
     def toView_Y(): NumberBinding =convertYReal2View(y)
   }
+
   /**
     *
     * @param x
@@ -36,6 +39,8 @@ object PointTransformer {
     (offsetY-y).divide(factor)
 
   }
+
+
 
   def convertXView2Real(xView: Double): Double = {
     xView*factor()+offsetX()
@@ -61,6 +66,25 @@ object PointTransformer {
     factor() = newFactor
   }
 
+  def zoomPositive(positionXRelative: Double, positionYRelative: Double): Unit = {
+    val newFactor = factor() * Math.log(2.0)
+    zoom(newFactor, positionXRelative: Double, positionYRelative: Double)
+  }
+
+  def zoomNegative(positionXRelative: Double, positionYRelative: Double): Unit = {
+    val newFactor = factor() / Math.log(2.0)
+    zoom(newFactor, positionXRelative: Double, positionYRelative: Double)
+  }
+  private def zoom(newFactor: Double, positionXRelative: Double, positionYRelative: Double): Unit = {
+    val px = convertXView2Real(positionXRelative)
+    val py = convertYView2Real(positionYRelative)
+    updateOffsetWithPivot(newFactor, px, py)
+  }
+
+  endX.unbind()
+  iniY.unbind()
+  endX <== convertXView2Real(mapWidth)
+  iniY <== convertYView2Real(mapHeight)
 
 
 }

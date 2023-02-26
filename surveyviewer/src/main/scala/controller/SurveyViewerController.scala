@@ -1,14 +1,26 @@
 package controller
 
+import Layers.DummyLayer
+import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
+import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje}
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import javafx.collections.ObservableList
 import javafx.scene.{control => jfxsc, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
+import org.scalafx.extras.{offFX, onFX, onFXAndWait}
 import scalafx.Includes._
-import scalafx.scene.layout.VBox
+import scalafx.beans.property.{ObjectProperty, ReadOnlyObjectProperty}
+import scalafx.collections.ObservableBuffer
+import scalafx.scene.control.{Label, ListCell, ListView}
+import scalafx.scene.layout.{HBox, VBox}
 import scalafx.stage.FileChooser
 
+import java.io.FileInputStream
 import java.net.URL
 import java.util
+import scala.io.Codec
+import scala.reflect.io.File
 
 /**
  * Example of a controlled initialized through FXML.
@@ -37,7 +49,9 @@ import java.util
  * @author Jarek Sacha
  */
 class SurveyViewerController extends jfxf.Initializable {
-
+  @jfxf.FXML
+  private var mapPaneDelegate: jfxsl.Pane = _
+  private var mapPane: PanelLayered = _
   private val axisFileChooser = new FileChooser()
   axisFileChooser.extensionFilters += new FileChooser.ExtensionFilter("Land XML", "*.xml")
 
@@ -52,17 +66,39 @@ class SurveyViewerController extends jfxf.Initializable {
   private var mainVBOX: VBox               = _
 
   @jfxf.FXML
+  private var listViewSourcesDelegate: jfxsc.ListView[String] = _
+  private var listViewSources: ListView[String] = _
+  private val listSources = ObservableBuffer[String]()
+  private val listSourcesProperty = new ObjectProperty[ObservableBuffer[String]](null, "", listSources)
+
+  @jfxf.FXML
   private def onActionAddAxisMenuItem(event: jfxe.ActionEvent): Unit = {
-    val file = axisFileChooser.showOpenDialog(SurveyViewerForm.stage)
-    println(file.isFile)
+    val javaFile = axisFileChooser.showOpenDialog(SurveyViewerForm.stage)
+    if(javaFile.isFile) {
+      listSources += s"Source ${listSources.length}"
+      offFX {
+        val file = File(javaFile)
+        val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje
+        println(ejeEither.isRight)
+
+      }
+
+    }else{
+      println("No file was selected")
+    }
   }
 
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
-    println("onActionAddGPXMenuItem")
+    println("gg")
+    mapPane.appendLayer(new DummyLayer())
   }
 
   override def initialize(url: URL, rb: util.ResourceBundle): Unit = {
     mainVBOX = new VBox(mainVBOXDelegate)
+    listViewSources = new ListView(listViewSourcesDelegate)
+    listViewSources.items <==> listSourcesProperty
+    mapPane = new PanelLayered(mapPaneDelegate)
+
   }
 }

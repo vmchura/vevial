@@ -7,7 +7,7 @@ import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.layout.{BorderPane, Pane}
-import UtilTransformers.PointTransformer._
+import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
 import scalafx.scene.paint.Color
@@ -16,7 +16,9 @@ import scalafx.scene.control.Button
 import scala.io.Codec
 import scala.reflect.io.File
 object HelloScalaFX extends JFXApp {
+  val pointTransformer = new PointTransformer(null, null)
 
+  import pointTransformer._
   private val fileXML = File("/home/vmchura/Documents/001.Projects/vevial/ejevialview/src/test/resources/tramo123.xml")
   private val fileCSV1 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 10h02m32s Survey.csv")
   private val fileCSV2 = new java.io.File("/home/vmchura/Documents/My Roughometer/Survey Results/2018-08-01/2018-08-01 13h24m33s Survey.csv")
@@ -93,9 +95,9 @@ object HelloScalaFX extends JFXApp {
     }
 
     newFactorOpt.foreach{ newFactor =>
-      val px = PointTransformer.convertXView2Real(ae.getX)
-      val py = PointTransformer.convertYView2Real(ae.getY)
-      PointTransformer.updateOffsetWithPivot(newFactor,px,py)
+      val px = pointTransformer.convertXView2Real(ae.getX)
+      val py = pointTransformer.convertYView2Real(ae.getY)
+      pointTransformer.updateOffsetWithPivot(newFactor,px,py)
     }
 
 

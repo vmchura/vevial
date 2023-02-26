@@ -17,7 +17,9 @@ class SimpleIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: Rel
   override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 }
 object SimpleIRIRelevamientoLayer{
-  import UtilTransformers.PointTransformer._
+  import UtilTransformers.PointTransformer
+  val pointTransformer = new PointTransformer(null, null)
+  import pointTransformer._
   def convert[T <: TElementWithPoint[T]](e: T): Seq[Node] = {
 
     (for{

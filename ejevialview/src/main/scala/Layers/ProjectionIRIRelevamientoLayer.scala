@@ -7,10 +7,14 @@ import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Circle, Line}
-import UtilTransformers.PointTransformer._
+import UtilTransformers.PointTransformer
 
 class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: RelevamientoIRI[T], eje: TEfficientSeqEjeElementsProgresiva, projectionColor: Color) extends TLayer[T] {
 
+  import UtilTransformers.PointTransformer
+
+  val pointTransformer = new PointTransformer(null, null)
+  import pointTransformer._
   override def conversor(e: T): Seq[Node] = {
     (for{
       p <- e.point

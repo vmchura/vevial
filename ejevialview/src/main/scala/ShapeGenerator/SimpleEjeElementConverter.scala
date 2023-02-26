@@ -2,7 +2,7 @@ package ShapeGenerator
 
 import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.WithProgresive
-import UtilTransformers.PointTransformer._
+import UtilTransformers.PointTransformer
 import scalafx.scene.paint.{Color, Paint}
 import scalafx.scene.shape.{Arc, ArcType, Line, Shape}
 import scalafx.scene.transform.{Scale, Translate}
@@ -11,7 +11,8 @@ import scalafx.beans.property.DoubleProperty
 import scalafx.geometry.Point2D
 
 object SimpleEjeElementConverter {
-
+  val pointTransformer = new PointTransformer(null, null)
+  import pointTransformer._
   trait ConversorToShape[A]{
     def convert(a: A): Shape
   }

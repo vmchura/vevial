@@ -7,7 +7,7 @@ import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Line}
-
+import UtilTransformers.PointTransformer
 class EjeVialLayer() extends TLayer[TEjeElement] {
 
 
@@ -33,7 +33,9 @@ class EjeVialLayer() extends TLayer[TEjeElement] {
 
 
 object EjeVialLayer {
+  val pointTransformer = new PointTransformer(null, null)
 
+  import pointTransformer._
 
 
 
@@ -50,7 +52,7 @@ object EjeVialLayer {
 
   def elementConversor(w: TEjeElement): Seq[Node] = drawableConvert2Nodes(w)
 
-  import UtilTransformers.PointTransformer._
+
   private def rectConversor(rect: TRectSegment): Seq[Node] = {
     List(new Line() {
       startX <== rect.originPoint.x.toView_X()

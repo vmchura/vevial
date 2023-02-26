@@ -5,14 +5,17 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import scalafx.scene.Node
 import scalafx.scene.shape.{Line, Rectangle}
-import UtilTransformers.PointTransformer._
 import scalafx.beans.property.DoubleProperty
 import scalafx.geometry.VPos
 import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, FontSmoothingType, Text, TextAlignment}
-
+import UtilTransformers.PointTransformer
 class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
 
+
+
+  val pointTransformer = new PointTransformer(null, null)
+  import pointTransformer._
 
 
 
@@ -68,13 +71,16 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
   applyFactor(factor.doubleValue(),offsetX(),iniY(),endX(),offsetY())
 }
 object MilestoneLayer {
+  val pointTransformer = new PointTransformer(null, null)
+
+  import pointTransformer._
 
   private val lengthAsta = 15d
   private val heightFlag = 20d
   private val widthFlag = 90d
   private val heightBar = 2d
   case class Hito(pointVector: TPoint, progresiva: Int)
-  import UtilTransformers.PointTransformer._
+
   def convertHitoToSeq(hito: Hito): Seq[Node] = {
     val Hito(Point(xb,yb), prog) = hito
     /**
