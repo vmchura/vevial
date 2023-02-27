@@ -1,6 +1,6 @@
 package controller
 
-import Layers.DummyLayer
+import Layers.{DummyLayer, EjeVialLayer}
 import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje}
@@ -79,7 +79,13 @@ class SurveyViewerController extends jfxf.Initializable {
       offFX {
         val file = File(javaFile)
         val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje
-        println(ejeEither.isRight)
+
+        onFX{
+          ejeEither.foreach { eje =>
+            val ejeLayer = new EjeVialLayer(eje)
+            mapPane.appendLayer(ejeLayer)
+          }
+        }
 
       }
 
@@ -90,7 +96,8 @@ class SurveyViewerController extends jfxf.Initializable {
 
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
-    println("gg")
+
+
     mapPane.appendLayer(new DummyLayer())
   }
 

@@ -24,13 +24,20 @@ class DummyLayer() extends LayerBuilder[((Double, Double), (Double, Double))]{
     }
 
     addAll(List(
-      ((1,2), (100, 200)),
-      ((1,2), (-100, -200)),
-      ((100,200), (500, -200))
+      ((0, 0), (100, 100)),
+      ((0, 0), (-200, -200)),
+      ((0, 0), (300, -300)),
+      ((0, 0), (-400, 400)),
     ))
 
     override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
 }
 
+  override def minimumX: Double = -400.0
 
+  override def minimumY: Double = -400.0
+
+  override def representativeScale(mapWidth: Double, mapHeight: Double): Double = {
+    (700/mapWidth).min(700/mapHeight)
+  }
 }
