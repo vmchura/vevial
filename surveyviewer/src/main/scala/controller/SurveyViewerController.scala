@@ -79,11 +79,12 @@ class SurveyViewerController extends jfxf.Initializable {
       offFX {
         val file = File(javaFile)
         val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje
-
+        println("Eje loaded finished")
         onFX{
           ejeEither.foreach { eje =>
             val ejeLayer = new EjeVialLayer(eje)
             mapPane.appendLayer(ejeLayer)
+            println("Eje appended")
           }
         }
 
@@ -93,12 +94,10 @@ class SurveyViewerController extends jfxf.Initializable {
       println("No file was selected")
     }
   }
-
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
 
-
-    mapPane.appendLayer(new DummyLayer())
+    mapPane.scaleAll()
   }
 
   override def initialize(url: URL, rb: util.ResourceBundle): Unit = {

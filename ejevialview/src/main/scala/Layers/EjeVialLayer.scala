@@ -7,8 +7,12 @@ import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Line}
 import UtilTransformers.PointTransformer
+
+import scala.collection.mutable
 class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder[TEjeElement] {
 
+  val colorStroke: Color = EjeVialLayer.colorsAvailable.removeHead()
+  println(s"Using color $colorStroke")
   override def build(pointTransformer: PointTransformer): TLayer[TEjeElement] = new TLayer[TEjeElement]{
     import pointTransformer.{DoubleXView, DoubleYView}
 
@@ -30,7 +34,7 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
         endX <== rect.endPoint.x.toView_X()
         endY <== rect.endPoint.y.toView_Y()
         strokeWidth = 3
-        stroke = Color.Black
+        stroke = colorStroke
       })
     }
 
@@ -45,7 +49,7 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
 
 
         strokeWidth = 3
-        stroke = Color.Black
+        stroke = colorStroke
         `type` = ArcType.Open
         fill = Color.Transparent
       })
@@ -75,9 +79,12 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
 
   override def minimumY: Double = eje.elements.map(_.in.point.y).min
 
-  override def representativeScale(mapWidth: Double, mapHeight: Double): Double = {
-    val viewWidth = eje.elements.map(_.in.point.x).max - eje.elements.map(_.in.point.x).min
-    val viewHeight= eje.elements.map(_.in.point.y).max - eje.elements.map(_.in.point.y).min
-    (viewWidth/mapWidth) min (viewHeight/mapHeight)
-  }
+  override def maximumX: Double = eje.elements.map(_.in.point.x).max
+
+  override def maximumY: Double = eje.elements.map(_.in.point.y).max
+
+}
+
+object EjeVialLayer {
+  val colorsAvailable: collection.mutable.Queue[Color] = mutable.Queue(Color.AliceBlue, Color.Azure, Color.LemonChiffon, Color.Beige)
 }
