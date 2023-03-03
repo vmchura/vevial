@@ -1,6 +1,6 @@
 package controller
 
-import Layers.{DummyLayer, EjeVialLayer}
+import Layers.{DummyLayer, EjeVialLayer, MilestoneLayer}
 import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje}
@@ -82,8 +82,10 @@ class SurveyViewerController extends jfxf.Initializable {
         println("Eje loaded finished")
         onFX{
           ejeEither.foreach { eje =>
+            val hitoLayer = new MilestoneLayer(eje)
             val ejeLayer = new EjeVialLayer(eje)
             mapPane.appendLayer(ejeLayer)
+            mapPane.appendLayer(hitoLayer)
             println("Eje appended")
           }
         }

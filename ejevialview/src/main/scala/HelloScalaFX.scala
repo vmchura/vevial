@@ -37,7 +37,6 @@ object HelloScalaFX extends JFXApp {
 
         val milestonesLayer = new MilestoneLayer(eje)
         Array(
-          milestonesLayer,
           relevamientoIRI1,
           relevamientoIRI2
         ).map(_.nodes)

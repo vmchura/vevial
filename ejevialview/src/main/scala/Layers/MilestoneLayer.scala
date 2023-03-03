@@ -10,70 +10,74 @@ import scalafx.geometry.VPos
 import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, FontSmoothingType, Text, TextAlignment}
 import UtilTransformers.PointTransformer
-class MilestoneLayer(eje: EfficientEjeProgresiva) extends TLayer[Hito] {
+class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
+
+  override def build(pointTransformer: PointTransformer): TLayer[Hito] = new TLayer[Hito]{
 
 
 
-  val pointTransformer = new PointTransformer(null, null)
-  import pointTransformer._
+    /**
+     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
+     *
+     */
+    override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+
+    override def conversor(e: Hito): Seq[Node] = MilestoneLayer.convertHitoToSeq(e)(pointTransformer)
+
+    val fromProg: Int = (eje.minProg.toInt / 50) * 50
+    val toProg: Int = ((eje.maxProg.toInt + 49) / 50) * 50
+    private val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point, prog)))
 
 
+    /**
+     *
+     * all changes are 1*log(2) to n = f
+     */
+    private def applyFactor(f: Double, x0Real: Double, y0Real: Double, xnReal: Double, ynReal: Double): Unit = {
+      val n = Math.round(Math.log(f) / Math.log(Math.log(2)))
+      val m = n match {
+        case _ if n <= -7 => 100000
+        case _ if n <= -6 => 50000
+        case _ if n <= -5 => 20000
+        case _ if n <= -4 => 10000
+        case _ if n <= -3 => 5000
+        case _ if n <= -2 => 2000
+        case _ if n <= -1 => 1000
+        case _ if n <= 0 => 500
+        case _ if n <= 1 => 200
+        case _ if n <= 2 => 100
+        case _ => 50
 
-  /**
-    * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
+      }
+      val hitosShouldBeShow = hitosBy50.filter(hito => hito.progresiva % m == 0 && {
 
-    */
-  override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
-
-  override def conversor(e: Hito): Seq[Node] = MilestoneLayer.convertHitoToSeq(e)
-
-  val fromProg: Int = (eje.minProg.toInt/50)*50
-  val toProg: Int = ((eje.maxProg.toInt+49)/50)*50
-  private val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point,prog)))
-
-
-  /**
-    *
-    * all changes are 1*log(2) to n = f
-    * @param f
-    */
-  private def applyFactor(f: Double,x0Real: Double, y0Real: Double, xnReal: Double, ynReal: Double): Unit = {
-    //println(s"$factor  ${xnReal-x0Real}, ${ynReal-y0Real}")
-    val n = Math.round(Math.log(f)/Math.log(Math.log(2)))
-    // m: module to use to filter
-    val m = n match {
-      case _ if n <= -7 =>100000
-      case _ if n <= -6 =>50000
-      case _ if n <= -5 =>20000
-      case _ if n <= -4 =>10000
-      case _ if n <= -3 => 5000
-      case _ if n <= -2 => 2000
-      case _ if n <= -1 => 1000
-      case _ if n <= 0 => 500
-      case _ if n <= 1 => 200
-      case _ if n <= 2 => 100
-      case _  => 50
-
+        val Point(x, y) = hito.pointVector
+        x0Real <= x && x <= xnReal && y0Real <= y && y <= ynReal
+      }).toSet
+      val hitosShouldBeDeleted = elementsDrawn().diff(hitosShouldBeShow)
+      val hitosShouldBeAdded = hitosShouldBeShow.diff(elementsDrawn())
+      removeAll(hitosShouldBeDeleted)
+      addAll(hitosShouldBeAdded)
     }
-    val hitosShouldBeShow = hitosBy50.filter(hito => hito.progresiva % m == 0 && {
+    pointTransformer.offsetX.onChange((_, _, noffset) => applyFactor(pointTransformer.factor(),
+      noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY()))
 
-      val Point(x,y) = hito.pointVector
-      x0Real <= x && x <= xnReal && y0Real <= y && y <= ynReal
-    }).toSet
-    val hitosShouldBeDeleted = elementsDrawn().diff(hitosShouldBeShow)
-    val hitosShouldBeAdded = hitosShouldBeShow.diff(elementsDrawn())
-    removeAll(hitosShouldBeDeleted)
-    addAll(hitosShouldBeAdded)
+    applyFactor(pointTransformer.factor.doubleValue(),
+      pointTransformer.offsetX(),
+      pointTransformer.iniY(),
+      pointTransformer.endX(),
+      pointTransformer.offsetY())
   }
-  //factor.onChange((_,_,nf) =>applyFactor(nf.doubleValue(),offsetX(),iniY(),endX(),offsetY()))
-  offsetX.onChange((_,_,noffset) =>applyFactor(factor(),noffset.doubleValue(),iniY(),endX(),offsetY()))
 
-  applyFactor(factor.doubleValue(),offsetX(),iniY(),endX(),offsetY())
+  override def minimumX: Double = eje.elements.map(_.in.point.x).min
+
+  override def minimumY: Double = eje.elements.map(_.in.point.y).min
+
+  override def maximumX: Double = eje.elements.map(_.in.point.x).max
+
+  override def maximumY: Double = eje.elements.map(_.in.point.y).max
 }
 object MilestoneLayer {
-  val pointTransformer = new PointTransformer(null, null)
-
-  import pointTransformer._
 
   private val lengthAsta = 15d
   private val heightFlag = 20d
@@ -81,7 +85,8 @@ object MilestoneLayer {
   private val heightBar = 2d
   case class Hito(pointVector: TPoint, progresiva: Int)
 
-  def convertHitoToSeq(hito: Hito): Seq[Node] = {
+  private def convertHitoToSeq(hito: Hito)(pointTransformer: PointTransformer): Seq[Node] = {
+    import pointTransformer.{DoubleXView, DoubleYView}
     val Hito(Point(xb,yb), prog) = hito
     /**
       * |============|
