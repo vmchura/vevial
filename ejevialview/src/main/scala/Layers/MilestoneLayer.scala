@@ -26,25 +26,25 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
 
     val fromProg: Int = (eje.minProg.toInt / 50) * 50
     val toProg: Int = ((eje.maxProg.toInt + 49) / 50) * 50
+
     private val hitosBy50 = (fromProg to toProg by 50).flatMap(prog => eje.findPointByProgresive(prog).map(point => Hito(point, prog)))
-
-
     /**
      *
      * all changes are 1*log(2) to n = f
      */
     private def applyFactor(f: Double, x0Real: Double, y0Real: Double, xnReal: Double, ynReal: Double): Unit = {
+      println(s"f: $f, x:[$x0Real, $xnReal], y:[$y0Real, $ynReal]")
       val n = Math.round(Math.log(f) / Math.log(Math.log(2)))
       val m = n match {
-        case _ if n <= -7 => 100000
-        case _ if n <= -6 => 50000
-        case _ if n <= -5 => 20000
-        case _ if n <= -4 => 10000
-        case _ if n <= -3 => 5000
+        case _ if n <= -7 => 20000
+        case _ if n <= -6 => 15000
+        case _ if n <= -5 => 10000
+        case _ if n <= -4 => 8000
+        case _ if n <= -3 => 4000
         case _ if n <= -2 => 2000
         case _ if n <= -1 => 1000
         case _ if n <= 0 => 500
-        case _ if n <= 1 => 200
+        case _ if n <= 1 => 250
         case _ if n <= 2 => 100
         case _ => 50
 
@@ -59,8 +59,10 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
       removeAll(hitosShouldBeDeleted)
       addAll(hitosShouldBeAdded)
     }
-    pointTransformer.offsetX.onChange((_, _, noffset) => applyFactor(pointTransformer.factor(),
-      noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY()))
+    pointTransformer.offsetX.onChange((_, _, noffset) => {
+      applyFactor(pointTransformer.factor(),
+        noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY())
+    })
 
     applyFactor(pointTransformer.factor.doubleValue(),
       pointTransformer.offsetX(),
@@ -110,7 +112,7 @@ object MilestoneLayer {
       endX <== startX
       endY <== startY-lengthAsta
       strokeWidth = 2
-
+      stroke = Color.Magenta
     }
     /*
     val rectangleTop = new Rectangle(){
@@ -145,7 +147,7 @@ object MilestoneLayer {
       height = heightFlag
       fill = Color.Transparent
       strokeWidth = 2
-      stroke = Color.Black
+      stroke = Color.Magenta
     }
 
     val mensaje: Text = new Text(){
@@ -153,8 +155,8 @@ object MilestoneLayer {
       y <== yb.toView_Y() - ( + lengthAsta + heightFlag-heightBar)
       text = UtilFunctions.convertIntToProgresivaString(prog)
 
-      fill = Color.Black
-      stroke = Color.Black
+      fill = Color.Magenta
+      stroke = Color.Magenta
       textAlignment = TextAlignment.Center
       wrappingWidth = widthFlag
       textOrigin = VPos.Top

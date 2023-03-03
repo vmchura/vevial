@@ -84,8 +84,9 @@ class SurveyViewerController extends jfxf.Initializable {
           ejeEither.foreach { eje =>
             val hitoLayer = new MilestoneLayer(eje)
             val ejeLayer = new EjeVialLayer(eje)
-            mapPane.appendLayer(ejeLayer)
             mapPane.appendLayer(hitoLayer)
+            mapPane.appendLayer(ejeLayer)
+
             println("Eje appended")
           }
         }
