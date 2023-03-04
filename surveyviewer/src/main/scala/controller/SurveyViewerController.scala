@@ -56,12 +56,6 @@ class SurveyViewerController extends jfxf.Initializable {
   axisFileChooser.extensionFilters += new FileChooser.ExtensionFilter("Land XML", "*.xml")
 
   @jfxf.FXML
-  private var addAxisMenuItemDelegate: jfxsc.MenuItem = _
-
-  @jfxf.FXML
-  private var addGPXMenuItemDelegate: jfxsc.MenuItem = _
-
-  @jfxf.FXML
   private var mainVBOXDelegate: jfxsl.VBox = _
   private var mainVBOX: VBox               = _
 
@@ -99,6 +93,12 @@ class SurveyViewerController extends jfxf.Initializable {
   }
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
+
+
+  }
+
+  @jfxf.FXML
+  private def onActionScaleAll(event: jfxe.ActionEvent): Unit = {
 
     mapPane.scaleAll()
   }
