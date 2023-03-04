@@ -40,19 +40,18 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBOXDelegate" prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/19"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.SurveyViewerController">
+<VBox fx:id="mainVBOXDelegate" prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.SurveyViewerController">
     <MenuBar VBox.vgrow="NEVER">
         <Menu mnemonicParsing="false" text="Archivo">
-            <MenuItem mnemonicParsing="false" onAction="#onActionAddAxisMenuItem" text="Agregar Eje"/>
-            <MenuItem mnemonicParsing="false" onAction="#onActionAddGPXMenuItem" text="Agregar GPX"/>
+            <MenuItem mnemonicParsing="false" onAction="#onActionAddAxisMenuItem" text="Agregar Eje" />
+            <MenuItem mnemonicParsing="false" onAction="#onActionAddGPXMenuItem" text="Agregar GPX" />
         </Menu>
         <Menu mnemonicParsing="false" text="View">
-            <MenuItem mnemonicParsing="false" onAction="#onActionScaleAll" text="Scale all"/>
+            <MenuItem mnemonicParsing="false" onAction="#onActionScaleAll" text="Scale all" />
         </Menu>
     </MenuBar>
     <SplitPane dividerPositions="0.12539184952978055" prefHeight="373.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
-        <ListView fx:id="listViewSourcesDelegate" prefHeight="200.0" prefWidth="200.0"/>
-        <Pane fx:id="mapPaneDelegate" SplitPane.resizableWithParent="false"/>
+        <ListView fx:id="listViewSourcesDelegate" prefHeight="200.0" prefWidth="200.0" />
+        <Pane fx:id="mapPaneDelegate" SplitPane.resizableWithParent="false" />
     </SplitPane>
 </VBox>
