@@ -2,9 +2,8 @@ package io.vmchura.vevial.relevamiento
 import io.vmchura.vevial.elementdata.GPXElementData
 import scala.xml.XML
 
-case class SurveyGPX(elements: Seq[GPXElementData]) extends TSimpleRelevamiento[GPXElementData] {
+case class SurveyGPX(surveyInformation: List[GPXElementData]) extends Survey[GPXElementData] {
 
-  override def sliceBy(minX: Double, maxX: Double, minY: Double, maxY: Double): TSimpleRelevamiento[GPXElementData] = this
 }
 
 object SurveyGPX {

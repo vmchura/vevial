@@ -1,10 +1,11 @@
 package controller
 
-import Layers.{DummyLayer, EjeVialLayer, MilestoneLayer}
+import Layers.{DummyLayer, EjeVialLayer, MilestoneLayer, ProjectionSurveyLayer}
 import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje}
-import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
+import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
+import io.vmchura.vevial.relevamiento.SurveyGPX
 import javafx.collections.ObservableList
 import javafx.scene.{control => jfxsc, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
@@ -54,7 +55,8 @@ class SurveyViewerController extends jfxf.Initializable {
   private var mapPane: PanelLayered = _
   private val axisFileChooser = new FileChooser()
   axisFileChooser.extensionFilters += new FileChooser.ExtensionFilter("Land XML", "*.xml")
-
+  private val gpxFileChooser = new FileChooser()
+  gpxFileChooser.extensionFilters += new FileChooser.ExtensionFilter("GPX", "*.gpx")
   @jfxf.FXML
   private var mainVBOXDelegate: jfxsl.VBox = _
   private var mainVBOX: VBox               = _
@@ -65,17 +67,20 @@ class SurveyViewerController extends jfxf.Initializable {
   private val listSources = ObservableBuffer[String]()
   private val listSourcesProperty = new ObjectProperty[ObservableBuffer[String]](null, "", listSources)
 
+  var lastRoadAxisBuilt: Option[TEfficientSeqEjeElementsProgresiva] = None
+
   @jfxf.FXML
   private def onActionAddAxisMenuItem(event: jfxe.ActionEvent): Unit = {
     val javaFile = axisFileChooser.showOpenDialog(SurveyViewerForm.stage)
     if(javaFile.isFile) {
-      listSources += s"Source ${listSources.length}"
+      listSources += s"RoadAxis ${listSources.length}"
       offFX {
         val file = File(javaFile)
         val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLToEje(file.reader(Codec("UTF-8"))).toEje
         println("Eje loaded finished")
         onFX{
           ejeEither.foreach { eje =>
+            lastRoadAxisBuilt = Some(eje)
             val hitoLayer = new MilestoneLayer(eje)
             val ejeLayer = new EjeVialLayer(eje)
             mapPane.appendLayer(hitoLayer)
@@ -93,7 +98,22 @@ class SurveyViewerController extends jfxf.Initializable {
   }
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
+    val javaFile = gpxFileChooser.showOpenDialog(SurveyViewerForm.stage)
+    if (javaFile.isFile && lastRoadAxisBuilt.nonEmpty) {
+      listSources += s"GPX ${listSources.length}"
+      lastRoadAxisBuilt.foreach{ roadAxis =>
+        println("Loading survey")
+        SurveyGPX(javaFile.getPath) match {
+          case Left(errors) => errors.foreach(println)
+          case Right(survey) =>
+            println("Adding survey layer")
+            val projectionLayer = new ProjectionSurveyLayer(survey, roadAxis)
+            mapPane.appendLayer(projectionLayer)
+            println("Eje appended")
+        }
 
+      }
+    }
 
   }
 
