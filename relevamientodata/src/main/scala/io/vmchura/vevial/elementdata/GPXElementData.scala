@@ -10,7 +10,8 @@ case class GPXElementData(override val point: Option[UPoint],
                           speed: Option[UDouble],
                           vectorToNext: Option[UPlanarVector],
                           vectorToPrev: Option[UPlanarVector],
-                          zonedTime: Option[ZonedDateTime]) extends TElementWithPoint[GPXElementData] {
+                          zonedTime: Option[ZonedDateTime],
+                          originalData: Node) extends TElementWithPoint[GPXElementData] {
   override def withNextElement(a: GPXElementData): GPXElementData = copy(vectorToNext = a - this)
 
   override def withPrevElement(a: GPXElementData): GPXElementData = copy(vectorToNext = a - this)
@@ -42,6 +43,6 @@ object GPXElementData {
     val vectorToNext: Option[UPlanarVector] = None
     val vectorToPrev: Option[UPlanarVector] = None
 
-    new GPXElementData(point, speed, vectorToNext, vectorToPrev, zonedDateTime)
+    new GPXElementData(point, speed, vectorToNext, vectorToPrev, zonedDateTime, node)
   }
 }
