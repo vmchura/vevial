@@ -1,7 +1,8 @@
+import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.reflect.io.File
 import scala.xml.XML
 class GpxToUTMTest extends AnyFlatSpec {
@@ -10,10 +11,8 @@ class GpxToUTMTest extends AnyFlatSpec {
     val tramoPath = getClass.getClassLoader.getResource("tramo1.xml").getPath
     val tramoFile = File(tramoPath)
     val gpxNode = XML.load(gpxSource)
-    val res = GpxToUTM.parseFiles(gpxNode, tramoFile)
-    res.map{ x =>
-      x.foreach(println)
-    }
+    val tramoEither = new LandXMLToEje(tramoFile.reader(Codec("UTF-8"))).toEje
+    val res = GpxToUTM.parseFiles(gpxNode, tramoEither)
     assert(res.isRight)
   }
   it should "fill progresiva" in {
@@ -26,10 +25,10 @@ class GpxToUTMTest extends AnyFlatSpec {
     val gpxSource = getClass.getClassLoader.getResource("001.gpx").getPath
     val tramoPath = getClass.getClassLoader.getResource("tramo1.xml").getPath
     val tramoFile = File(tramoPath)
+    val tramoEither = new LandXMLToEje(tramoFile.reader(Codec("UTF-8"))).toEje
     val gpxNode = XML.load(gpxSource)
-    val res = GpxToUTM.parse(gpxNode, tramoFile)
+    val res = GpxToUTM.parse(gpxNode, tramoEither)
 
     assert(res.isRight)
-    res.map(x => println(x.mkString(System.lineSeparator())))
   }
 }
