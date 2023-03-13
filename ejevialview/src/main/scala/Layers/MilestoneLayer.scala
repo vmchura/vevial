@@ -20,7 +20,13 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
      * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
      *
      */
-    override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+    override def update(): Unit = {
+      applyFactor(pointTransformer.factor.doubleValue(),
+        pointTransformer.offsetX(),
+        pointTransformer.iniY(),
+        pointTransformer.endX(),
+        pointTransformer.offsetY())
+    }
 
     override def conversor(e: Hito): Seq[Node] = MilestoneLayer.convertHitoToSeq(e)(pointTransformer)
 
@@ -60,15 +66,12 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
       addAll(hitosShouldBeAdded)
     }
     pointTransformer.offsetX.onChange((_, _, noffset) => {
-      applyFactor(pointTransformer.factor(),
-        noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY())
+      update()
+//      applyFactor(pointTransformer.factor(),
+//        noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY())
     })
+    update()
 
-    applyFactor(pointTransformer.factor.doubleValue(),
-      pointTransformer.offsetX(),
-      pointTransformer.iniY(),
-      pointTransformer.endX(),
-      pointTransformer.offsetY())
   }
 
   override def minimumX: Double = eje.elements.map(_.in.point.x).min
@@ -102,13 +105,13 @@ object MilestoneLayer {
 
     // x de hasta
     val xp = new DoubleProperty()
-    xp <== xb.toView_X()
+    xp <== xb.toView_X
 
 
 
     val asta = new Line(){
       startX <== xp
-      startY <== yb.toView_Y()
+      startY <== yb.toView_Y
       endX <== startX
       endY <== startY-lengthAsta
       strokeWidth = 2
@@ -140,7 +143,7 @@ object MilestoneLayer {
 
     val rectangleFlag = new Rectangle(){
       x <== xp
-      y <== yb.toView_Y() - (+lengthAsta+heightFlag)
+      y <== yb.toView_Y - (+lengthAsta+heightFlag)
       arcHeight = 5
       arcWidth = 5
       width = widthFlag
@@ -152,7 +155,7 @@ object MilestoneLayer {
 
     val mensaje: Text = new Text(){
       x <== xp
-      y <== yb.toView_Y() - ( + lengthAsta + heightFlag-heightBar)
+      y <== yb.toView_Y - ( + lengthAsta + heightFlag-heightBar)
       text = UtilFunctions.convertIntToProgresivaString(prog)
 
       fill = Color.Magenta

@@ -19,10 +19,10 @@ class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoub
   val factor: DoubleProperty = DoubleProperty(1d)
 
   implicit class DoubleXView(x: Double){
-    def toView_X(): NumberBinding =convertXReal2View(x)
+    def toView_X: NumberBinding =convertXReal2View(x)
   }
   implicit class DoubleYView(y: Double){
-    def toView_Y(): NumberBinding =convertYReal2View(y)
+    def toView_Y: NumberBinding =convertYReal2View(y)
   }
 
   def convertXReal2View(x: Double): NumberBinding = {
@@ -80,9 +80,6 @@ class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoub
   iniY.unbind()
   endX <== convertXView2Real(mapWidth)
   iniY <== convertYView2Real(mapHeight)
-
-  endX.onChange((_, ov, nv) => println(s"endX changed form $ov to $nv"))
-  iniY.onChange((_, ov, nv) => println(s"iniY changed form $ov to $nv"))
 
 
 }

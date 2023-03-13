@@ -18,8 +18,8 @@ class ProjectionSurveyLayer[T <: TElementData[T]](survey: Survey[T], roadAxis: T
       val projectionPoint: Option[TPoint] = e.point.flatMap(originPoint => roadAxis.projectPoint(originPoint.value).map(_.point))
       val origin = e.point.map{ originPoint =>
         new Circle() {
-          centerX <== originPoint.value.x.toView_X()
-          centerY <== originPoint.value.y.toView_Y()
+          centerX <== originPoint.value.x.toView_X
+          centerY <== originPoint.value.y.toView_Y
           radius = 3
           fill = projectionPoint.map(_ => Color.Blue).getOrElse(Color.Red)
         }
@@ -30,10 +30,10 @@ class ProjectionSurveyLayer[T <: TElementData[T]](survey: Survey[T], roadAxis: T
         projection <- projectionPoint
       }yield {
         new Line() {
-          startX <== projection.x.toView_X()
-          startY <== projection.y.toView_Y()
-          endX <== originPoint.value.x.toView_X()
-          endY <== originPoint.value.y.toView_Y()
+          startX <== projection.x.toView_X
+          startY <== projection.y.toView_Y
+          endX <== originPoint.value.x.toView_X
+          endY <== originPoint.value.y.toView_Y
           strokeWidth = 1
           stroke = Color.Blue
 
@@ -45,7 +45,7 @@ class ProjectionSurveyLayer[T <: TElementData[T]](survey: Survey[T], roadAxis: T
 
     addAll(survey.surveyInformation)
 
-    override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+    override def update(): Unit = ()
 }
 
   override def minimumX: Double = survey.surveyInformation.flatMap(_.point.map(_.value.x)).min

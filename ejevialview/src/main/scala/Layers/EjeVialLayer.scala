@@ -29,10 +29,10 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
 
     private def rectConversor(rect: TRectSegment): Seq[Node] = {
       List(new Line() {
-        startX <== rect.originPoint.x.toView_X()
-        startY <== rect.originPoint.y.toView_Y()
-        endX <== rect.endPoint.x.toView_X()
-        endY <== rect.endPoint.y.toView_Y()
+        startX <== rect.originPoint.x.toView_X
+        startY <== rect.originPoint.y.toView_Y
+        endX <== rect.endPoint.x.toView_X
+        endY <== rect.endPoint.y.toView_Y
         strokeWidth = 3
         stroke = colorStroke
       })
@@ -40,8 +40,8 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
 
     private def arcCircConversor(circ: TCircleSegment): Seq[Node] = {
       List(new Arc() {
-        centerX <== circ.centerPoint.x.toView_X()
-        centerY <== circ.centerPoint.y.toView_Y()
+        centerX <== circ.centerPoint.x.toView_X
+        centerY <== circ.centerPoint.y.toView_Y
         radiusX <== DoubleProperty(circ.radius) / pointTransformer.factor
         radiusY <== DoubleProperty(circ.radius) / pointTransformer.factor
         startAngle = circ.initialAngle * 180 / Math.PI
@@ -57,17 +57,17 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
 
     private def faintElementConversor(faintElement: TFaintElement): Seq[Node] = {
       List(new Line() {
-        startX <== faintElement.from.x.toView_X()
-        startY <== faintElement.from.y.toView_Y()
-        endX <== faintElement.end.x.toView_X()
-        endY <== faintElement.end.y.toView_Y()
+        startX <== faintElement.from.x.toView_X
+        startY <== faintElement.from.y.toView_Y
+        endX <== faintElement.end.x.toView_X
+        endY <== faintElement.end.y.toView_Y
         strokeWidth = 2
         stroke = Color.Red
         strokeDashArray = List(25d, 20d, 5d, 20d)
       })
     }
 
-    override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+    override def update(): Unit = ()
 
     override def conversor(e: TEjeElement): Seq[Node] = elementConversor(e)
 

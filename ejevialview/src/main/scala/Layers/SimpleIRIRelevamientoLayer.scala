@@ -14,7 +14,7 @@ class SimpleIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI: Rel
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
     *
     */
-  override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+  override def update(): Unit = ()
 }
 object SimpleIRIRelevamientoLayer{
   import UtilTransformers.PointTransformer
@@ -26,8 +26,8 @@ object SimpleIRIRelevamientoLayer{
       p <- e.point
     }yield{
       List(new Circle(){
-        centerX <== p.value.x.toView_X()
-        centerY <== p.value.y.toView_Y()
+        centerX <== p.value.x.toView_X
+        centerY <== p.value.y.toView_Y
         radius = 3
         fill = Color.Blue
       })

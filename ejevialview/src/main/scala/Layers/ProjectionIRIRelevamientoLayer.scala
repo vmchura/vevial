@@ -21,8 +21,8 @@ class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI:
     }yield{
 
       val c = new Circle() {
-        centerX <== p.value.x.toView_X()
-        centerY <== p.value.y.toView_Y()
+        centerX <== p.value.x.toView_X
+        centerY <== p.value.y.toView_Y
         radius = 3
         fill = Color.Red
       }
@@ -34,10 +34,10 @@ class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI:
 
             List(c,
             new Line(){
-              startX <== ep.x.toView_X()
-              startY <== ep.y.toView_Y()
-              endX <== p.value.x.toView_X()
-              endY <== p.value.y.toView_Y()
+              startX <== ep.x.toView_X
+              startY <== ep.y.toView_Y
+              endX <== p.value.x.toView_X
+              endY <== p.value.y.toView_Y
               strokeWidth = 1
               stroke = projectionColor
 
@@ -58,7 +58,7 @@ class ProjectionIRIRelevamientoLayer[T <: TElementWithPoint[T]](relevamientoIRI:
   /**
     * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
     */
-  override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+  override def update(): Unit = ()
 
 
 }

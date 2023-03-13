@@ -1,7 +1,5 @@
 package Layers
 
-import scalafx.beans.property.DoubleProperty
-import scalafx.collections.ObservableBuffer
 import scalafx.scene.Node
 
 import scala.collection.mutable
@@ -36,13 +34,6 @@ trait TLayer[E] extends ObservableNodes{
   def clear(): Unit = {
     removeAll(elementsDrawn())
   }
-  /**
-    * update nodes drawn, (x,y) top left corner (u,v) bottom right corner
-    * @param x
-    * @param y
-    * @param u
-    * @param v
-    */
-  def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty)
+  def update(): Unit
 
 }

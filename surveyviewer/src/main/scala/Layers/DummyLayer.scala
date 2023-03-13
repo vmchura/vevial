@@ -11,10 +11,10 @@ class DummyLayer(elements: List[((Double, Double), (Double, Double))]) extends L
     override def conversor(e: ((Double, Double), (Double, Double))): Seq[Node] = {
       e match {
         case ((a, b), (x, y)) => new Line {
-          startX <== a.toView_X()
-          startY <== b.toView_Y()
-          endX <== x.toView_X()
-          endY <== y.toView_Y()
+          startX <== a.toView_X
+          startY <== b.toView_Y
+          endX <== x.toView_X
+          endY <== y.toView_Y
           strokeWidth = 4
           fill = Color.White
           stroke = Color.White
@@ -25,7 +25,7 @@ class DummyLayer(elements: List[((Double, Double), (Double, Double))]) extends L
 
     addAll(elements)
 
-    override def setListenerPanelUpdate(x: DoubleProperty, y: DoubleProperty, u: DoubleProperty, v: DoubleProperty): Unit = ()
+    override def update(): Unit = ()
 }
 
   override def minimumX: Double = elements.flatMap(x => x._1._1 :: x._2._1 :: Nil).min
