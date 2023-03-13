@@ -1,8 +1,9 @@
 package UtilTransformers
 
 
+import UtilTransformers.PointTransformer.ViewFactor
 import scalafx.beans.binding.NumberBinding
-import scalafx.beans.property.{DoubleProperty, ReadOnlyDoubleProperty}
+import scalafx.beans.property.{DoubleProperty, ReadOnlyDoubleProperty, ReadOnlyStringProperty, StringProperty}
 import scalafx.Includes._
 
 class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoubleProperty) {
@@ -17,6 +18,10 @@ class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoub
 
 
   val factor: DoubleProperty = DoubleProperty(1d)
+  val viewTextProperty: StringProperty = new StringProperty(this, "viewLabel", "Unknown")
+  factor.onChange((_, _, newFactor) => {
+    viewTextProperty.value = s"${ViewFactor(newFactor.doubleValue()).toString} // ${newFactor.toString}"
+  })
 
   implicit class DoubleXView(x: Double){
     def toView_X: NumberBinding =convertXReal2View(x)
@@ -81,5 +86,31 @@ class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoub
   endX <== convertXView2Real(mapWidth)
   iniY <== convertYView2Real(mapHeight)
 
+
+}
+
+object PointTransformer {
+  sealed trait ViewFactor
+
+  case object GlobalView extends ViewFactor
+
+  case object MediumView extends ViewFactor
+
+  case object LocalView extends ViewFactor
+
+  object ViewFactor {
+    def apply(factor: Double): ViewFactor = {
+      val scale = math.log(factor)
+      if (scale > 5) {
+        GlobalView
+      }else{
+        if(scale > 4){
+          MediumView
+        }else{
+          LocalView
+        }
+      }
+    }
+  }
 
 }

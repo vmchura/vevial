@@ -39,7 +39,6 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
      * all changes are 1*log(2) to n = f
      */
     private def applyFactor(f: Double, x0Real: Double, y0Real: Double, xnReal: Double, ynReal: Double): Unit = {
-      println(s"f: $f, x:[$x0Real, $xnReal], y:[$y0Real, $ynReal]")
       val n = Math.round(Math.log(f) / Math.log(Math.log(2)))
       val m = n match {
         case _ if n <= -7 => 20000
@@ -55,23 +54,16 @@ class MilestoneLayer(eje: EfficientEjeProgresiva) extends LayerBuilder[Hito] {
         case _ => 50
 
       }
+      println("Hitos Here")
       val hitosShouldBeShow = hitosBy50.filter(hito => hito.progresiva % m == 0 && {
 
         val Point(x, y) = hito.pointVector
         x0Real <= x && x <= xnReal && y0Real <= y && y <= ynReal
       }).toSet
-      val hitosShouldBeDeleted = elementsDrawn().diff(hitosShouldBeShow)
-      val hitosShouldBeAdded = hitosShouldBeShow.diff(elementsDrawn())
-      removeAll(hitosShouldBeDeleted)
-      addAll(hitosShouldBeAdded)
+      draw(hitosShouldBeShow)
     }
-    pointTransformer.offsetX.onChange((_, _, noffset) => {
-      update()
-//      applyFactor(pointTransformer.factor(),
-//        noffset.doubleValue(), pointTransformer.iniY(), pointTransformer.endX(), pointTransformer.offsetY())
-    })
+    pointTransformer.offsetX.onChange((_, _, _) => update())
     update()
-
   }
 
   override def minimumX: Double = eje.elements.map(_.in.point.x).min

@@ -64,9 +64,16 @@ class PanelLayered(override val delegate: jfxsl.Pane = new jfxsl.Pane) extends P
   }
 
 
-  delegate.onMouseDragged = ae => {
+  delegate.onMouseDragged = _ => {
     if (movingState == MovingState.DraggingMap) {
-
+    } else {
+      if (movingState == MovingState.DraggingNode) {} else {
+        if (movingState == MovingState.SelectionSquare) {} else {}
+      }
+    }
+  }
+  delegate.onMouseReleased = ae => {
+    if(movingState == MovingState.DraggingMap){
       for {
         lx <- lastPositionX()
         ly <- lastPositionY()
@@ -74,20 +81,9 @@ class PanelLayered(override val delegate: jfxsl.Pane = new jfxsl.Pane) extends P
         pointTransformer.offsetX() = pointTransformer.offsetX() - (ae.getX - lx) * pointTransformer.factor()
         pointTransformer.offsetY() = pointTransformer.offsetY() + (ae.getY - ly) * pointTransformer.factor()
       }
-
-      lastPositionX() = Some(ae.getX)
-      lastPositionY() = Some(ae.getY)
-
-    } else {
-      if (movingState == MovingState.DraggingNode) {} else {
-        if (movingState == MovingState.SelectionSquare) {} else {}
-      }
     }
-  }
-  delegate.onMouseReleased = _ => {
-
     movingState = MovingState.NotMoving
-    delegate.getScene.cursor = Cursor.None
+    delegate.getScene.cursor = Cursor.Default
     lastPositionX() = None
     lastPositionY() = None
   }
@@ -95,9 +91,11 @@ class PanelLayered(override val delegate: jfxsl.Pane = new jfxsl.Pane) extends P
   delegate.onMousePressed = ae => {
     if (ae.isMiddleButtonDown) {
       movingState = MovingState.DraggingMap
+      lastPositionX() = Some(ae.getX)
+      lastPositionY() = Some(ae.getY)
       delegate.getScene.cursor = Cursor.Move
     }else{
-      delegate.getScene.cursor = Cursor.None
+      delegate.getScene.cursor = Cursor.Default
     }
   }
 

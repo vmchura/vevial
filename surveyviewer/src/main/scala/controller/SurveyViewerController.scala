@@ -70,6 +70,9 @@ class SurveyViewerController extends jfxf.Initializable {
   var lastRoadAxisBuilt: Option[TEfficientSeqEjeElementsProgresiva] = None
 
   @jfxf.FXML
+  private var viewLabelDelegate: jfxsc.Label = _
+  private var viewLabel: Label = _
+  @jfxf.FXML
   private def onActionAddAxisMenuItem(event: jfxe.ActionEvent): Unit = {
     val javaFile = axisFileChooser.showOpenDialog(SurveyViewerForm.stage)
     if(javaFile.isFile) {
@@ -128,6 +131,7 @@ class SurveyViewerController extends jfxf.Initializable {
     listViewSources = new ListView(listViewSourcesDelegate)
     listViewSources.items <==> listSourcesProperty
     mapPane = new PanelLayered(mapPaneDelegate)
-
+    viewLabel = new Label(viewLabelDelegate)
+    viewLabel.text <==> mapPane.pointTransformer.viewTextProperty
   }
 }

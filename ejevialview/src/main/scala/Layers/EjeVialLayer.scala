@@ -1,12 +1,13 @@
 package Layers
 
-import io.vmchura.vevial.PlanarGeometric.EjeElement.{TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
+import io.vmchura.vevial.PlanarGeometric.EjeElement.{RectSegment, TCircleSegment, TEjeElement, TFaintElement, TRectSegment}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.TEfficientSeqEjeElementsProgresiva
 import scalafx.beans.property.DoubleProperty
 import scalafx.scene.Node
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Arc, ArcType, Line}
 import UtilTransformers.PointTransformer
+import UtilTransformers.PointTransformer.{GlobalView, LocalView, MediumView}
 
 import scala.collection.mutable
 class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder[TEjeElement] {
@@ -67,12 +68,44 @@ class EjeVialLayer(eje: TEfficientSeqEjeElementsProgresiva) extends LayerBuilder
       })
     }
 
-    override def update(): Unit = ()
+    override def update(): Unit = {
+      val view = PointTransformer.ViewFactor(pointTransformer.factor())
+      val module = view match {
+        case GlobalView => 100
+        case MediumView => 25
+        case LocalView => 1
+      }
+      val minimumX = pointTransformer.offsetX()
+      val minimumY = pointTransformer.iniY()
+      val maximumX = pointTransformer.endX()
+      val maximumY = pointTransformer.offsetY()
+      println("Eje vial Here")
+      val elementsToPlot = eje.elements.zipWithIndex.filter {
+        case (element, index) =>
+          val byZoom = index % module == 0
+          val p = element.in.point
+          val byMinimumMaximumView =  minimumX <= p.x && p.x <= maximumX && minimumY <= p.y && p.y <= maximumY
+          byZoom && byMinimumMaximumView
+      }.map(_._1)
+
+      if(view == LocalView){
+        println("Eje vial Here 2")
+        draw(elementsToPlot.toSet)
+      }else{
+        val elementsInterpolation = elementsToPlot.zip(elementsToPlot.tail).map{
+          case (i, j) => RectSegment(i.in.point, j.in.point): TEjeElement
+        }.toSet
+        println("Eje vial Here 3")
+        draw(elementsInterpolation)
+      }
+
+
+    }
 
     override def conversor(e: TEjeElement): Seq[Node] = elementConversor(e)
 
-    clear()
-    addAll(eje.elements)
+    pointTransformer.offsetX.onChange((_, _, _) => update())
+    update()
   }
 
   override def minimumX: Double = eje.elements.map(_.in.point.x).min

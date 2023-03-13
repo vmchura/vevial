@@ -36,4 +36,14 @@ trait TLayer[E] extends ObservableNodes{
   }
   def update(): Unit
 
+  def draw(elementsToPlot: Set[E]): Unit = {
+    val elementsShouldBeDeleted = elementsDrawn().diff(elementsToPlot)
+    val elementsShouldBeAdded = elementsToPlot.diff(elementsDrawn())
+    println("data ready")
+    removeAll(elementsShouldBeDeleted)
+    println("removing")
+    addAll(elementsShouldBeAdded)
+    println("added")
+  }
+
 }
