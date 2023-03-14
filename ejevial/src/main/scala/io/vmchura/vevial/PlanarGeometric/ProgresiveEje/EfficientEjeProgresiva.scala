@@ -40,7 +40,7 @@ case class EfficientEjeProgresiva(elements: List[WithProgresive])
   }
 
   override def findPointByProgresive(progresive: Int): Option[TPoint] = {
-    val eOpt = elements.find(wp =>wp.minProg <= progresive && progresive <= wp.maxProg)
+    val eOpt = elements.find(wp => !wp.isInstanceOf[FaintSegmentProgresiva] && wp.minProg <= progresive && progresive <= wp.maxProg)
     eOpt.flatMap{ e =>
       e.findPointByProgresive(progresive)
     }

@@ -1,10 +1,10 @@
 ThisBuild / version := "1.13"
 ThisBuild / scalaVersion := "2.13.1"
 ThisBuild / organization := "io.vmchura"
-lazy val conviasdesktop = (project in file("conviasdesktop")).settings(commonSettings).settings(
-  name := "conviasdesktop",
+lazy val surveyProcessor = (project in file("surveyProcessor")).settings(commonSettings).settings(
+  name := "surveyProcessor",
   assembly / mainClass := Some("CreateSRT"),
-  assembly / assemblyJarName := "createSRT.jar",
+  assembly / assemblyJarName := "createSRT.jar"
 ).dependsOn(ejevial)
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
@@ -38,14 +38,17 @@ lazy val viricalc = (project in file("viricalc")).settings(commonSettings).setti
 
 
 lazy val ejebuilder = (project in file("ejebuilder")).settings(commonSettings).settings(
-  name := "ejebuilder",
+  name := "ejebuilder"
 ).dependsOn(ejevial,relevamientodata,tesis)
 
 lazy val ejebuilderview = (project in file("ejebuilderview")).settings(commonSettings ++ windowSettings).settings(
   name := "ejebuilderview"
 ).dependsOn(ejebuilder, ejevialview)
 
-
+lazy val surveyviewer = (project in file("surveyviewer")).settings(commonSettings ++ windowSettings).settings(
+  name := "surveyviewer",
+  libraryDependencies += "org.scalafx" %% "scalafx-extras" % "0.7.0"
+).dependsOn(ejevialview, surveyProcessor)
 
 lazy val tesis = (project in file("tesisanalytics")).settings(commonSettings).settings(
   name := "tesisanalytics",
@@ -101,25 +104,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val windowSettings = Seq (
-{
-/**
-  * SCALAFX Temporal
-  * USING JAVA 12
-  */
-
-lazy val javaFXModules = Seq("base", "controls", "fxml", "graphics", "media", "swing", "web")
-libraryDependencies ++= javaFXModules.map( m =>
-  "org.openjfx" % s"javafx-$m" % "14.0.1" classifier "linux"
-)},
-//---------------- FIN SCALAFX
-  libraryDependencies += "org.scalafx" %% "scalafx" % "14-R19",
+  libraryDependencies += "org.scalafx" %% "scalafx" % "19.0.0-R30",
   fork := true
-
-  // compiles, but does not run
-  // unmanagedJars in Compile += file(Path.userHome+"/Documents/002.DescargasFirefox/arcgis-java-100.6.0.jar")
-
 )
-
-
-//onLoad in Global := (onLoad in Global).value andThen {s: State => "project core" :: s}
 

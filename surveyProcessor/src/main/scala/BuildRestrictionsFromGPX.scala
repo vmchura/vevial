@@ -21,19 +21,12 @@ object BuildRestrictionsFromGPX  extends App{
   }
 
   val restrictions: List[ProgresivePoint] = restrictionsRaw.flatMap{ case (keyFileName, restrictionsByTimeList) =>
-    println("----------")
-    println(keyFileName)
     gpxDirectory.files.find(_.name.equals(keyFileName)).map{ gpxFile =>
       val gpxXML = XML.load(gpxFile.path)
 
       val result = GpxParser.findInitialTime(gpxXML).map{ initialTimeStamp => {
         val gpxGeodesics = GpxParser.parse(gpxXML)
         val geodesicOrdered = gpxGeodesics.distinctBy(_.timeStamp).toArray
-        println("-----------")
-        println(gpxFile.name)
-        println(initialTimeStamp)
-        println(geodesicOrdered.head)
-        println(geodesicOrdered.last)
         restrictionsByTimeList.flatMap { restrictionByTime =>
           val newTime = initialTimeStamp.plusNanos(restrictionByTime.timeVideo)
           val ip = geodesicOrdered.search(GeodesicTimeStamp(None, newTime)).insertionPoint

@@ -57,7 +57,6 @@ object CreateRunners extends App{
 
   }
 
-  println(f"Tiempo para procesar ${timeToHours(processes)}%.1f horas")
   val grouProcesses: List[List[Process]] = processes.foldLeft(List.empty[List[Process]]){
     case (Nil, process) => List(List(process))
     case (previous :: rest, process) => if(timeToHours(process :: previous) < 10f) {

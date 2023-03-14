@@ -106,7 +106,6 @@ object CreateSRT extends App {
       writeSubtitles(subtitles, outputPath)
     }
   }
-  println(args.map(arg => s"[$arg]").mkString(","))
   val tramoFile = File(args(0))
   val restrictionsFile = File(args(1))
   val restrictions: List[ProgresivePoint] = restrictionsFile.lines().map{ line =>
@@ -129,8 +128,6 @@ object CreateSRT extends App {
 
     }catch{
       case e: Exception =>
-        println(List(durationPath, gpxPath, pathOutput, tramoName).mkString(" -- "))
-        println(e.getMessage)
     }
   }
   scanner.close()

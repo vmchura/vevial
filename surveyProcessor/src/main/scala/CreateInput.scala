@@ -39,7 +39,6 @@ object CreateInput extends App {
       }yield{
         InputSRT(fileDuration, fileGPX, srtOutput.path, tramoName)
       }
-      println(s"$baseName -> $res")
       res
     }
   }
@@ -55,5 +54,4 @@ object CreateInput extends App {
     untilGPXParent(root)
   }.toList
 
-  inputs.foreach(println)
 }

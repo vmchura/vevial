@@ -1,43 +1,22 @@
 import java.io.File
-
 import AutomaticBuilder.models.{ElementActionToImprove, SimpleAgentEjeEvaluator}
 import scalafx.Includes._
-import Layers.{
-  GeoNodeLayer,
-  ObservableListDelegate,
-  ProjectionPointLayer,
-  SimpleEjeVialLayer,
-  SimpleIRIRelevamientoLayer
-}
+import Layers.{GeoNodeLayer, ObservableListDelegate, ProjectionPointLayer, SimpleEjeVialLayer, SimpleIRIRelevamientoLayer}
 import UtilTransformers.PointTransformer
 import io.vmchura.vevial.elementdata.IRIElementData
 import io.vmchura.vevial.relevamiento.RelevamientoIRI
-import scalafx.application.JFXApp
+import scalafx.application.JFXApp3
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.{Cursor, Scene}
 import scalafx.scene.control.{Alert, Button}
-import scalafx.scene.layout.{
-  Background,
-  BackgroundFill,
-  BorderPane,
-  CornerRadii,
-  Pane
-}
-import UtilTransformers.PointTransformer._
+import scalafx.scene.layout.{Background, BackgroundFill, BorderPane, CornerRadii, Pane}
+import UtilTransformers.PointTransformer
 import algorithms.{DiscreteRelevamiento, MaximizeEje}
 import com.typesafe.scalalogging.Logger
 import io.DraftManager
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{Point, TPoint}
 import javafx.scene.input
-import models.{
-  EjeEditable,
-  GeoLinkGraph,
-  GeoNode,
-  LinearGraph,
-  ObserverImpl,
-  TEjeElementTemporal,
-  TLinkPoint
-}
+import models.{EjeEditable, GeoLinkGraph, GeoNode, LinearGraph, ObserverImpl, TEjeElementTemporal, TLinkPoint}
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
 import scalafx.scene.control.Alert.AlertType
@@ -48,7 +27,9 @@ import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, XML}
 
-object EjeBuilder extends JFXApp {
+object EjeBuilder extends JFXApp3 {
+  val pointTransformer = new PointTransformer()
+
   private val logger = Logger(this.getClass)
   private val relevamientosAdded =
     ListBuffer.empty[RelevamientoIRI[IRIElementData]]
@@ -56,8 +37,8 @@ object EjeBuilder extends JFXApp {
   private val geoNodeLayer = new GeoNodeLayer()
   private val ejeLayer = new SimpleEjeVialLayer()
   private val projectionLayer = new ProjectionPointLayer()
-  offsetX() = 0d
-  offsetY() = 0d
+  pointTransformer.offsetX() = 0d
+  pointTransformer.offsetY() = 0d
 
   var ejeEditableOpt = Option.empty[EjeEditable]
 
@@ -88,8 +69,8 @@ object EjeBuilder extends JFXApp {
       geoNodeLayer,
       ejeLayer,
       (p: TPoint) => {
-        offsetX() = p.x - (800 / 2.0) * factor()
-        offsetY() = p.y + (640 / 2.0) * factor()
+        pointTransformer.offsetX() = p.x - (800 / 2.0) * pointTransformer.factor()
+        pointTransformer.offsetY() = p.y + (640 / 2.0) * pointTransformer.factor()
       }
     )
 
@@ -215,11 +196,11 @@ object EjeBuilder extends JFXApp {
     panelMapa.children
   )
 
-  endX.unbind()
-  iniY.unbind()
+  pointTransformer.endX.unbind()
+  pointTransformer.iniY.unbind()
 
-  endX <== convertXView2Real(panelMapa.width)
-  iniY <== convertYView2Real(panelMapa.height)
+  pointTransformer.endX <== pointTransformer.convertXView2Real(panelMapa.width)
+  pointTransformer.iniY <== pointTransformer.convertYView2Real(panelMapa.height)
   object MovingState extends Enumeration {
     type MovingState = Value
     val DragginMap, DragginNode, SelectionSquare, NotMoving = Value
@@ -244,8 +225,8 @@ object EjeBuilder extends JFXApp {
         lx <- lastPositionX()
         ly <- lastPositionY()
       } yield {
-        offsetX() = offsetX() - (ae.getX - lx) * factor()
-        offsetY() = offsetY() + (ae.getY - ly) * factor()
+        pointTransformer.offsetX() = pointTransformer.offsetX() - (ae.getX - lx) * pointTransformer.factor()
+        pointTransformer.offsetY() = pointTransformer.offsetY() + (ae.getY - ly) * pointTransformer.factor()
       }
 
       lastPositionX() = Some(ae.getX)
@@ -260,8 +241,8 @@ object EjeBuilder extends JFXApp {
   }
 
   def getPointFromActionEvent(ae: MouseEvent): Point = {
-    val px = PointTransformer.convertXView2Real(ae.getX)
-    val py = PointTransformer.convertYView2Real(ae.getY)
+    val px = pointTransformer.convertXView2Real(ae.getX)
+    val py = pointTransformer.convertYView2Real(ae.getY)
     Point(px, py)
   }
 
@@ -410,8 +391,8 @@ object EjeBuilder extends JFXApp {
     } else {
       if (ae.isMiddleButtonDown) {
 
-        val px = PointTransformer.convertXView2Real(ae.getX)
-        val py = PointTransformer.convertYView2Real(ae.getY)
+        val px = pointTransformer.convertXView2Real(ae.getX)
+        val py = pointTransformer.convertYView2Real(ae.getY)
         val point = Point(px, py)
         val newMovingState = for {
           lg <- ejeEditableOpt
@@ -454,54 +435,57 @@ object EjeBuilder extends JFXApp {
   panelMapa.onScroll = ae => {
 
     val newFactorOpt: Option[Double] = ae.getDeltaY match {
-      case positive: Double if positive > 0.1  => Some(factor() * Math.log(2.0))
-      case negative: Double if negative < -0.1 => Some(factor() / Math.log(2.0))
+      case positive: Double if positive > 0.1  => Some(pointTransformer.factor() * Math.log(2.0))
+      case negative: Double if negative < -0.1 => Some(pointTransformer.factor() / Math.log(2.0))
       case _                                   => None
     }
 
     newFactorOpt.foreach { newFactor =>
-      val px = PointTransformer.convertXView2Real(ae.getX)
-      val py = PointTransformer.convertYView2Real(ae.getY)
-      PointTransformer.updateOffsetWithPivot(newFactor, px, py)
+      val px = pointTransformer.convertXView2Real(ae.getX)
+      val py = pointTransformer.convertYView2Real(ae.getY)
+      pointTransformer.updateOffsetWithPivot(newFactor, px, py)
     }
 
   }
 
-  stage = new PrimaryStage {
-    title = "EjeBuilder"
-    width = 600
-    height = 450
-    scene = new Scene {
+  override def start(): Unit = {
+    stage = new JFXApp3.PrimaryStage {
+      title = "EjeBuilder"
+      width = 600
+      height = 450
+      scene = new Scene {
 
-      content = new BorderPane() {
-        top = new Button("Save") {
-          onAction = _ => {
-            val urlSave = "/home/vmchura/Documents/testProject.xml"
-            val res = (for {
-              eje <- ejeEditableOpt
-              head <- eje.headLink()
-            } yield {
-              Right(DraftManager.saveProject(urlSave)(head, filedAdded.toSeq))
-            }).getOrElse(Left("No eje defined"))
+        content = new BorderPane() {
+          top = new Button("Save") {
+            onAction = _ => {
+              val urlSave = "/home/vmchura/Documents/testProject.xml"
+              val res = (for {
+                eje <- ejeEditableOpt
+                head <- eje.headLink()
+              } yield {
+                Right(DraftManager.saveProject(urlSave)(head, filedAdded.toSeq))
+              }).getOrElse(Left("No eje defined"))
 
-            val alert = res match {
-              case Left(error) => new Alert(AlertType.Error, s"error $error")
-              case Right(true) =>
-                new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
-              case Right(false) => new Alert(AlertType.Warning, s"No guardado")
+              val alert = res match {
+                case Left(error) => new Alert(AlertType.Error, s"error $error")
+                case Right(true) =>
+                  new Alert(AlertType.Confirmation, s"Guardado on $urlSave")
+                case Right(false) => new Alert(AlertType.Warning, s"No guardado")
+              }
+              alert.resizable = true
+              alert.showAndWait()
+
             }
-            alert.resizable = true
-            alert.showAndWait()
-
           }
-        }
-        left = new Button("left") {
-          onAction = _ => {
-            println("click on top!!")
+          left = new Button("left") {
+            onAction = _ => {
+              println("click on top!!")
+            }
           }
+          center = panelMapa
         }
-        center = panelMapa
       }
     }
   }
+
 }
