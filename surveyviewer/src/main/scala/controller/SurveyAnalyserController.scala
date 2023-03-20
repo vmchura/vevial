@@ -5,16 +5,19 @@ import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
 import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
+import io.vmchura.vevial.elementdata.GPXElementData
 import io.vmchura.vevial.relevamiento.SurveyGPX
-import javafx.scene.{control => jfxsc, layout => jfxsl}
+import javafx.scene.{chart => jfxsch, control => jfxsc, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
 import org.scalafx.extras.{offFX, onFX}
 import scalafx.Includes._
 import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
+import scalafx.scene.chart.{LineChart, NumberAxis, ValueAxis, XYChart}
 import scalafx.scene.control.{Label, ListView}
 import scalafx.scene.layout.VBox
 import scalafx.stage.FileChooser
+import scalafx.util.StringConverter
 
 import java.net.URL
 import java.util
@@ -53,8 +56,11 @@ class SurveyAnalyserController extends jfxf.Initializable {
   private val gpxFileChooser = new FileChooser()
   gpxFileChooser.extensionFilters += new FileChooser.ExtensionFilter("GPX", "*.gpx")
   @jfxf.FXML
-  private var mainVBOXDelegate: jfxsl.VBox = _
-  private var mainVBOX: VBox               = _
+  private var lineChartDelegate: jfxsch.LineChart[Number, Number] = _
+  @jfxf.FXML
+  private var axisXDelegate: jfxsch.NumberAxis = _
+  @jfxf.FXML
+  private var axisYDelegate: jfxsch.NumberAxis = _
 
   @jfxf.FXML
   private var listViewSourcesDelegate: jfxsc.ListView[String] = _
@@ -76,7 +82,13 @@ class SurveyAnalyserController extends jfxf.Initializable {
         onFX{
           ejeEither.foreach { eje =>
             lastRoadAxisBuilt = Some(eje)
+            println(s"Setting ${eje.minProg} -> ${eje.maxProg}")
+            axisXDelegate.setLowerBound(eje.minProg)
+            axisXDelegate.setUpperBound(eje.maxProg)
+            axisXDelegate.lowerBound =  eje.minProg
+            axisXDelegate.upperBound =  eje.maxProg
             println("Eje appended")
+
           }
         }
 
@@ -96,6 +108,18 @@ class SurveyAnalyserController extends jfxf.Initializable {
         SurveyGPX(javaFile.getPath) match {
           case Left(errors) => errors.foreach(println)
           case Right(survey) =>
+            def toXYData(gpxData: GPXElementData): Option[jfxsch.XYChart.Data[Number, Number]] = {
+              for {
+                originPoint <- gpxData.point
+                time <- gpxData.zonedTime
+                prog <- roadAxis.projectPoint(originPoint.value).map(pp => roadAxis.calcProgresive(pp))
+              }yield {
+                val z = time.getMinute
+                XYChart.Data(prog: Number, z: Number).delegate
+              }
+            }
+            val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](survey.surveyInformation.flatMap(toXYData):_*)
+            lineChartDelegate.data.value.add(XYChart.Series(javaFile.getName, data))
         }
 
       }
@@ -105,8 +129,15 @@ class SurveyAnalyserController extends jfxf.Initializable {
 
 
   override def initialize(url: URL, rb: util.ResourceBundle): Unit = {
-    mainVBOX = new VBox(mainVBOXDelegate)
     listViewSources = new ListView(listViewSourcesDelegate)
     listViewSources.items <==> listSourcesProperty
+
+//    lineChart = new LineChart(lineChartDelegate)
+//    lineChartDelegate.getXAxis.asInstanceOf[jfxsch.ValueAxis[Number]].
+//      setTickLabelFormatter(new StringConverter[Number] {
+//      override def fromString(string: String): Number = string.toLong
+//
+//      override def toString(t: Number): String = t.longValue().toString
+//    })
   }
 }
