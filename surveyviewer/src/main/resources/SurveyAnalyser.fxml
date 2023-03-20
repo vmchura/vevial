@@ -55,7 +55,7 @@
             <NumberAxis fx:id="axisXDelegate" autoRanging="false" label="Progresiva" minorTickVisible="false" side="BOTTOM" tickUnit="1000.0" upperBound="20000.0" />
           </xAxis>
           <yAxis>
-            <NumberAxis fx:id="axisYDelegate" label="Tiempo" side="LEFT" />
+            <NumberAxis fx:id="axisYDelegate" autoRanging="false" label="Tiempo" minorTickVisible="false" side="LEFT" tickUnit="10000.0" />
           </yAxis>
         </LineChart>
 

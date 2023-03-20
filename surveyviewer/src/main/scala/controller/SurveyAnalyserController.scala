@@ -61,6 +61,7 @@ class SurveyAnalyserController extends jfxf.Initializable {
   private var axisXDelegate: jfxsch.NumberAxis = _
   @jfxf.FXML
   private var axisYDelegate: jfxsch.NumberAxis = _
+  private var axisNotAdded = true
 
   @jfxf.FXML
   private var listViewSourcesDelegate: jfxsc.ListView[String] = _
@@ -100,28 +101,42 @@ class SurveyAnalyserController extends jfxf.Initializable {
   }
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
-    val javaFile = gpxFileChooser.showOpenDialog(SurveyViewerForm.stage)
-    if (javaFile.isFile && lastRoadAxisBuilt.nonEmpty) {
-      listSources += s"GPX ${listSources.length}"
-      lastRoadAxisBuilt.foreach{ roadAxis =>
-        println("Loading survey")
-        SurveyGPX(javaFile.getPath) match {
-          case Left(errors) => errors.foreach(println)
-          case Right(survey) =>
-            def toXYData(gpxData: GPXElementData): Option[jfxsch.XYChart.Data[Number, Number]] = {
-              for {
-                originPoint <- gpxData.point
-                time <- gpxData.zonedTime
-                prog <- roadAxis.projectPoint(originPoint.value).map(pp => roadAxis.calcProgresive(pp))
-              }yield {
-                val z = time.getMinute
-                XYChart.Data(prog: Number, z: Number).delegate
+    val listFiles = gpxFileChooser.showOpenMultipleDialog(SurveyViewerForm.stage)
+    if (lastRoadAxisBuilt.nonEmpty) {
+      listFiles.filter(_.isFile).map { javaFile =>
+        listSources += javaFile.getName
+        lastRoadAxisBuilt.foreach { roadAxis =>
+          println("Loading survey")
+          SurveyGPX(javaFile.getPath) match {
+            case Left(errors) => errors.foreach(println)
+            case Right(survey) =>
+              def toXYData(gpxData: GPXElementData): Option[jfxsch.XYChart.Data[Number, Number]] = {
+                for {
+                  originPoint <- gpxData.point
+                  time <- gpxData.zonedTime
+                  prog <- roadAxis.projectPoint(originPoint.value).map(pp => roadAxis.calcProgresive(pp))
+                } yield {
+                  val z = time.toInstant.toEpochMilli
+                  XYChart.Data(prog: Number, z: Number).delegate
+                }
               }
-            }
-            val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](survey.surveyInformation.flatMap(toXYData):_*)
-            lineChartDelegate.data.value.add(XYChart.Series(javaFile.getName, data))
-        }
+              val times = survey.surveyInformation.flatMap(_.zonedTime).map(_.toInstant.toEpochMilli)
+              val minY = times.min
+              val maxY = times.max
+              if(minY < axisYDelegate.getLowerBound | axisNotAdded){
+                axisYDelegate.setLowerBound(minY)
+                axisYDelegate.lowerBound = minY
+              }
+              if(maxY > axisYDelegate.getUpperBound | axisNotAdded){
+                axisYDelegate.setUpperBound(maxY)
+                axisYDelegate.upperBound = maxY
+              }
+              axisNotAdded = false
+              val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](survey.surveyInformation.flatMap(toXYData): _*)
+              lineChartDelegate.data.value.add(XYChart.Series(javaFile.getName, data))
+          }
 
+        }
       }
     }
 
