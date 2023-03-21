@@ -7,14 +7,14 @@ import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
 import io.vmchura.vevial.elementdata.GPXElementData
 import io.vmchura.vevial.relevamiento.SurveyGPX
-import javafx.scene.{chart => jfxsch, control => jfxsc, layout => jfxsl}
+import javafx.scene.{chart => jfxsch, control => jfxsc, input => jfxsi, layout => jfxsl}
 import javafx.{event => jfxe, fxml => jfxf}
 import org.scalafx.extras.{offFX, onFX}
 import scalafx.Includes._
 import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
-import scalafx.scene.chart.{LineChart, NumberAxis, ValueAxis, XYChart}
-import scalafx.scene.control.{Label, ListView}
+import scalafx.scene.control.{Button, Label, ListView}
+import scalafx.scene.input.MouseButton
 import scalafx.scene.layout.VBox
 import scalafx.stage.FileChooser
 import scalafx.util.StringConverter
@@ -99,43 +99,38 @@ class SurveyAnalyserController extends jfxf.Initializable {
       println("No file was selected")
     }
   }
+  val fileNameActionMap = scala.collection.mutable.Map.empty[String, () => Unit]
+  @jfxf.FXML
+  private def onClicklistViewSource(event: jfxsi.MouseEvent): Unit = {
+     if((event.getButton.compareTo(MouseButton.Primary) == 0) && (event.getClickCount == 2)){
+       for {
+         selectedItem <- Option(listViewSources.getSelectionModel.getSelectedItem)
+         method <- fileNameActionMap.get(selectedItem)
+       }yield {
+         method()
+       }
+     }
+  }
+
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
     val listFiles = gpxFileChooser.showOpenMultipleDialog(SurveyViewerForm.stage)
     if (lastRoadAxisBuilt.nonEmpty) {
       listFiles.filter(_.isFile).map { javaFile =>
         listSources += javaFile.getName
+
         lastRoadAxisBuilt.foreach { roadAxis =>
           println("Loading survey")
-          SurveyGPX(javaFile.getPath) match {
-            case Left(errors) => errors.foreach(println)
-            case Right(survey) =>
-              def toXYData(gpxData: GPXElementData): Option[jfxsch.XYChart.Data[Number, Number]] = {
-                for {
-                  originPoint <- gpxData.point
-                  time <- gpxData.zonedTime
-                  prog <- roadAxis.projectPoint(originPoint.value).map(pp => roadAxis.calcProgresive(pp))
-                } yield {
-                  val z = time.toInstant.toEpochMilli
-                  XYChart.Data(prog: Number, z: Number).delegate
-                }
-              }
-              val times = survey.surveyInformation.flatMap(_.zonedTime).map(_.toInstant.toEpochMilli)
-              val minY = times.min
-              val maxY = times.max
-              if(minY < axisYDelegate.getLowerBound | axisNotAdded){
-                axisYDelegate.setLowerBound(minY)
-                axisYDelegate.lowerBound = minY
-              }
-              if(maxY > axisYDelegate.getUpperBound | axisNotAdded){
-                axisYDelegate.setUpperBound(maxY)
-                axisYDelegate.upperBound = maxY
-              }
-              axisNotAdded = false
-              val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](survey.surveyInformation.flatMap(toXYData): _*)
-              lineChartDelegate.data.value.add(XYChart.Series(javaFile.getName, data))
+          offFX {
+            SurveyGPX(javaFile.getPath) match {
+              case Left(errors) => errors.foreach(println)
+              case Right(survey) =>
+                fileNameActionMap += javaFile.getName -> SurveyControllersOps.analyzeSingleSurvey()
+                SurveyControllersOps.addToAllSurveys(roadAxis, survey, lineChartDelegate, axisYDelegate,
+                  javaFile.getName, axisNotAdded)
+                axisNotAdded = false
+            }
           }
-
         }
       }
     }
@@ -146,6 +141,7 @@ class SurveyAnalyserController extends jfxf.Initializable {
   override def initialize(url: URL, rb: util.ResourceBundle): Unit = {
     listViewSources = new ListView(listViewSourcesDelegate)
     listViewSources.items <==> listSourcesProperty
+
 
 //    lineChart = new LineChart(lineChartDelegate)
 //    lineChartDelegate.getXAxis.asInstanceOf[jfxsch.ValueAxis[Number]].

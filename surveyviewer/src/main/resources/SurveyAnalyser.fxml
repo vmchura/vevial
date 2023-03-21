@@ -39,6 +39,9 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.SurveyAnalyserController">
@@ -49,15 +52,33 @@
       </Menu>
     </MenuBar>
       <SplitPane dividerPositions="0.5" prefHeight="200.0" prefWidth="221.0" VBox.vgrow="ALWAYS">
-       <ListView fx:id="listViewSourcesDelegate" maxWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" />
-        <LineChart fx:id="lineChartDelegate">
-          <xAxis>
-            <NumberAxis fx:id="axisXDelegate" autoRanging="false" label="Progresiva" minorTickVisible="false" side="BOTTOM" tickUnit="1000.0" upperBound="20000.0" />
-          </xAxis>
-          <yAxis>
-            <NumberAxis fx:id="axisYDelegate" autoRanging="false" label="Tiempo" minorTickVisible="false" side="LEFT" tickUnit="10000.0" />
-          </yAxis>
-        </LineChart>
+       <ListView fx:id="listViewSourcesDelegate" onMouseClicked="#onClicklistViewSource" maxWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" />
+      <TabPane>
+         <Tab text="Todos">
+             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <LineChart fx:id="lineChartDelegate" prefHeight="900.0" prefWidth="1072.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                         <xAxis>
+                             <NumberAxis fx:id="axisXDelegate" autoRanging="false" label="Progresiva" minorTickVisible="false" side="BOTTOM" tickUnit="1000.0" upperBound="20000.0" />
+                         </xAxis>
+                         <yAxis>
+                             <NumberAxis fx:id="axisYDelegate" autoRanging="false" label="Tiempo" minorTickVisible="false" side="LEFT" tickUnit="10000.0" />
+                         </yAxis>
+                     </LineChart>
+               </AnchorPane>
+         </Tab>
+         <Tab text="Single">
+             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                    <LineChart fx:id="lineChartCompletedDelegate" prefHeight="900.0" prefWidth="1072.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <xAxis>
+                          <NumberAxis fx:id="axisXCompletedDelegate" autoRanging="false" label="Progresiva" minorTickVisible="false" side="BOTTOM" tickUnit="1000.0" upperBound="20000.0" />
+                      </xAxis>
+                      <yAxis>
+                          <NumberAxis fx:id="axisYCompletedDelegate" autoRanging="false" label="Proyectada" minorTickVisible="false" side="LEFT" tickUnit="10000.0" />
+                      </yAxis>
+                    </LineChart>
+               </AnchorPane>
+         </Tab>
+      </TabPane>
 
       </SplitPane>
 </VBox>
