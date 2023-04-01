@@ -28,7 +28,7 @@ object SurveyControllersOps {
       prog <- calculateProgresive(originPoint.value)
     } yield {
       val z = time.toInstant.toEpochMilli
-      XYChart.Data(prog: Number, z: Number).delegate
+      XYChart.Data(z: Number, prog: Number).delegate
     }
   }
   def addToAllSurveys(roadAxis: TEfficientSeqEjeElementsProgresiva,
@@ -61,22 +61,27 @@ object SurveyControllersOps {
                           lineChartGlobalTimeDelegate: jfxsch.LineChart[Number, Number],
                           lineChartLocalTimeDelegate: jfxsch.LineChart[Number, Number],
                           seriesName: String): () => Unit = {
+
     () => {
       val listProgressDistanceTimeStamp = survey.fillProgressDistance(roadAxis)
       val progressDistanceTime: List[(Progresiva, Int, ZonedDateTime)] = MarkSequentialByStepTime.
         buildProgresiveByStepTime(listProgressDistanceTimeStamp, survey.duration, 100.millis)
 
+
       val toXYData: GPXElementData => Option[jfxsch.XYChart.Data[Number, Number]] = gpxElementData => toXYDataAxis(gpxElementData)(roadAxis)
+
       def toXYDataLocal(pdt: (Progresiva, Int, ZonedDateTime)): jfxsch.XYChart.Data[Number, Number] = {
         val (progressDistance, timeMillis, _ ) = pdt
-        XYChart.Data(progressDistance.progresiva: Number, timeMillis: Number).delegate
+        XYChart.Data(timeMillis: Number, progressDistance.progresiva: Number).delegate
       }
       onFX {
         val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](survey.surveyInformation.flatMap(toXYData): _*)
+        lineChartGlobalTimeDelegate.data.value.clear()
         lineChartGlobalTimeDelegate.data.value.add(XYChart.Series(seriesName, data))
       }
       onFX {
         val data = ObservableBuffer[jfxsch.XYChart.Data[Number, Number]](progressDistanceTime.map(toXYDataLocal): _*)
+        lineChartLocalTimeDelegate.data.value.clear()
         lineChartLocalTimeDelegate.data.value.add(XYChart.Series(seriesName, data))
       }
 

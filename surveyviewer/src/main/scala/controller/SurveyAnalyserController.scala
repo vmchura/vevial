@@ -61,7 +61,10 @@ class SurveyAnalyserController extends jfxf.Initializable {
   @jfxf.FXML
   private var axisYDelegate: jfxsch.NumberAxis = _
   private var axisNotAdded = true
-
+  @jfxf.FXML
+  private var lineChartGlobalTimeDelegate: jfxsch.LineChart[Number, Number] = _
+  @jfxf.FXML
+  private var lineChartLocalTimeDelegate: jfxsch.LineChart[Number, Number] = _
   @jfxf.FXML
   private var listViewSourcesDelegate: jfxsc.ListView[String] = _
   private var listViewSources: ListView[String] = _
@@ -127,8 +130,8 @@ class SurveyAnalyserController extends jfxf.Initializable {
 
                 fileNameActionMap += javaFile.getName -> SurveyControllersOps.analyzeSingleSurvey(roadAxis=roadAxis,
                   survey=survey,
-                  lineChartGlobalTimeDelegate=lineChartDelegate,
-                  lineChartLocalTimeDelegate=lineChartDelegate,
+                  lineChartGlobalTimeDelegate=lineChartGlobalTimeDelegate,
+                  lineChartLocalTimeDelegate=lineChartLocalTimeDelegate,
                   seriesName=javaFile.getName)
                 SurveyControllersOps.addToAllSurveys(roadAxis, survey, lineChartDelegate, axisYDelegate,
                   javaFile.getName, axisNotAdded)
@@ -147,7 +150,6 @@ class SurveyAnalyserController extends jfxf.Initializable {
   override def initialize(url: URL, rb: util.ResourceBundle): Unit = {
     listViewSources = new ListView(listViewSourcesDelegate)
     listViewSources.items <==> listSourcesProperty
-
 
 //    lineChart = new LineChart(lineChartDelegate)
 //    lineChartDelegate.getXAxis.asInstanceOf[jfxsch.ValueAxis[Number]].
