@@ -75,6 +75,9 @@
                       <yAxis>
                           <NumberAxis fx:id="axisYCompletedDelegate" autoRanging="false" label="Proyectada" minorTickVisible="false" side="LEFT" tickUnit="10000.0" />
                       </yAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="axisYTimedDelegate" autoRanging="false" label="Calculada" minorTickVisible="false" side="RIGHT" tickUnit="10.0" />
+                    </yAxis>
                     </LineChart>
                </AnchorPane>
          </Tab>

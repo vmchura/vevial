@@ -25,6 +25,7 @@ case class GPXElementData(override val point: Option[UPoint],
       UPlanarVector(pv, up.sigma2 + uq.sigma2)
     }
   }
+
 }
 
 object GPXElementData {

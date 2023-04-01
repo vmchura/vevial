@@ -22,17 +22,7 @@ object GpxParser {
     }.toList
 
   }
-  def completeTimeStamp(initialData: List[Option[ZonedDateTime]]): List[ZonedDateTime] = {
-    val unit = ChronoUnit.MILLIS
-    AlgorithmFill.completeTimeStamp[ZonedDateTime, Long](initialData,
-      lista => lista.map{case (a,b) => unit.between(a,b)}.minOption,
-      (other, deltaLongMillis, delta) => if (delta > 0) {
-        other.plus(deltaLongMillis * delta, unit)
-      } else {
-        other.minus(-deltaLongMillis * delta, unit)
-      }
-    )
-  }
+
   /*def completeTimeStamp(initialData: List[Option[ZonedDateTime]]): List[ZonedDateTime] = {
     val unit = ChronoUnit.MILLIS
     val deltaMilliseconds = initialData.zip(initialData.tail).filter {
@@ -89,7 +79,7 @@ object GpxParser {
 
   def completeTimeStampRecords(initialData: List[Option[RawGeodesicTimeStamp]]): List[GeodesicTimeStamp] = {
     val initialDataTimeStamp = initialData.map{ _.flatMap(_.timeStamp)}
-    initialData.zip(completeTimeStamp(initialDataTimeStamp)).map{
+    initialData.zip(AlgorithmFill.completeTimeStamp(initialDataTimeStamp)).map{
       case (rawGeodesicOption, zonedDateTime) => GeodesicTimeStamp(rawGeodesicOption.flatMap(_.geodesicCoordinates), zonedDateTime)
     }
   }

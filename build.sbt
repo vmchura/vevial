@@ -5,7 +5,7 @@ lazy val surveyProcessor = (project in file("surveyProcessor")).settings(commonS
   name := "surveyProcessor",
   assembly / mainClass := Some("CreateSRT"),
   assembly / assemblyJarName := "createSRT.jar"
-).dependsOn(ejevial)
+).dependsOn(relevamientodata)
 
 lazy val ejevial = (project in file("ejevial")).settings(commonSettings).settings(
   name := "ejevial",

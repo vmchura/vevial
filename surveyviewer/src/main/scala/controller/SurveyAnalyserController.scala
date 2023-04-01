@@ -18,7 +18,6 @@ import scalafx.scene.input.MouseButton
 import scalafx.scene.layout.VBox
 import scalafx.stage.FileChooser
 import scalafx.util.StringConverter
-
 import java.net.URL
 import java.util
 import scala.io.Codec
@@ -125,9 +124,16 @@ class SurveyAnalyserController extends jfxf.Initializable {
             SurveyGPX(javaFile.getPath) match {
               case Left(errors) => errors.foreach(println)
               case Right(survey) =>
-                fileNameActionMap += javaFile.getName -> SurveyControllersOps.analyzeSingleSurvey()
+
+                fileNameActionMap += javaFile.getName -> SurveyControllersOps.analyzeSingleSurvey(roadAxis=roadAxis,
+                  survey=survey,
+                  lineChartGlobalTimeDelegate=lineChartDelegate,
+                  lineChartLocalTimeDelegate=lineChartDelegate,
+                  seriesName=javaFile.getName)
                 SurveyControllersOps.addToAllSurveys(roadAxis, survey, lineChartDelegate, axisYDelegate,
                   javaFile.getName, axisNotAdded)
+
+
                 axisNotAdded = false
             }
           }

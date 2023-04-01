@@ -1,5 +1,9 @@
 package models
 
+import io.vmchura.vevial.EjeVialUtil.Progresiva
+
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import scala.reflect.ClassTag
 
 object AlgorithmFill {
@@ -60,4 +64,24 @@ object AlgorithmFill {
       throw new IllegalArgumentException("Impossible to complete deltas")
     }
   }
+
+  def completeTimeStamp(initialData: List[Option[ZonedDateTime]]): List[ZonedDateTime] = {
+    val unit = ChronoUnit.MILLIS
+    AlgorithmFill.completeTimeStamp[ZonedDateTime, Long](initialData,
+      lista => lista.map { case (a, b) => unit.between(a, b) }.minOption,
+      (other, deltaLongMillis, delta) => if (delta > 0) {
+        other.plus(deltaLongMillis * delta, unit)
+      } else {
+        other.minus(-deltaLongMillis * delta, unit)
+      }
+    )
+  }
+
+  def completeProgresiva(initialData: List[Option[Progresiva]]): List[Progresiva] =
+    AlgorithmFill.completeTimeStamp[Progresiva, Int](initialData,
+      lista => {
+        val suma = lista.map { case (a, b) => (a.progresiva - b.progresiva).abs }.sum
+        Some(suma / lista.length)
+      }, (other, deltaLongMillis, delta) =>
+        Progresiva(other.progresiva + deltaLongMillis * delta))
 }

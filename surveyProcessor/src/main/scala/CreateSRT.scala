@@ -1,3 +1,4 @@
+import algorithms.MarkSequentialByStepTime
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
@@ -9,46 +10,16 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.Point
 import java.io.{BufferedWriter, FileWriter}
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
+import java.util.concurrent.TimeUnit
 import java.util.{Date, Scanner, TimeZone}
 import scala.Console.println
 import scala.annotation.tailrec
+import scala.concurrent.duration.Duration
 import scala.io.Codec
 import scala.reflect.io.File
 import scala.xml.{Node, XML}
 
 object CreateSRT extends App {
-
-  def calculateProgresiva(prevProgresiva: ProgresivaMilliseconds, currentProgresiva: ProgresivaMilliseconds, time: Long): Progresiva = {
-    if (time < prevProgresiva.millisFromStart) {
-      prevProgresiva.progresiva
-    } else {
-      if (time > currentProgresiva.millisFromStart) {
-        currentProgresiva.progresiva
-      } else {
-        val aTime = time - prevProgresiva.millisFromStart
-        val bProgresiva = currentProgresiva.progresiva.progresiva - prevProgresiva.progresiva.progresiva
-        val bTime = currentProgresiva.millisFromStart - prevProgresiva.millisFromStart
-        if (bTime == 0) {
-          Progresiva(prevProgresiva.progresiva.progresiva)
-        } else {
-          val aProgresiva = aTime * bProgresiva / bTime
-          Progresiva(prevProgresiva.progresiva.progresiva + aProgresiva.toInt)
-        }
-      }
-    }
-  }
-
-  @tailrec
-  def findProgresiva(progresivas: List[ProgresivaMilliseconds], lastProgresiva: ProgresivaMilliseconds, time: Long): (Progresiva, List[ProgresivaMilliseconds], ProgresivaMilliseconds) = {
-    progresivas match {
-      case Nil => (lastProgresiva.progresiva, progresivas, lastProgresiva)
-      case current :: tail => if (time > current.millisFromStart) {
-        findProgresiva(tail, current, time)
-      } else {
-        (calculateProgresiva(lastProgresiva, current, time), progresivas, lastProgresiva)
-      }
-    }
-  }
 
   def millisecondsToHMS(milliseconds: Int): String = {
     val seconds = milliseconds / 1000
@@ -66,22 +37,16 @@ object CreateSRT extends App {
       val grab = scala.io.Source.fromFile(file)
       val totalDuration = (grab.getLines().toList.head.toDouble * 1000).toInt
       grab.close()
-
-      var currentList = progresivasTimeStamp
-      var lastProgresiva = ProgresivaMilliseconds(Progresiva(0), -1L, ZonedDateTime.now())
+      val progresivesToWrite = MarkSequentialByStepTime.buildProgresiveByStepTime(progresivasTimeStamp, Duration(totalDuration, TimeUnit.MILLISECONDS), Duration(100, TimeUnit.MILLISECONDS))
       val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
       dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT-5"))
 
-     (0 until totalDuration by 100).zipWithIndex.map{ case (milliSecond, index) =>
+      progresivesToWrite.zipWithIndex.map{ case ((progresivaToWrite, milliSecond, timeZoned), index) =>
         val nextMillisecond = milliSecond + 100
-        val (progresivaToWrite, newList, newLast) = findProgresiva(currentList, lastProgresiva, milliSecond)
-       val progresivaHitos = Progresiva(progresivaToWrite.progresiva + 219369)
+       val progresivaHitos = Progresiva(progresivaToWrite.progresiva)
        val progresivaRealSTR = progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)
        val progresivaHitosSTR = progresivaHitos.show(withSpaces = true, withKmLeftPadding = 3)
-        currentList = newList
-        lastProgresiva = newLast
-        val utcTime = dateFormatter.format(Date.from(lastProgresiva.timeZoned.toInstant))
-
+        val utcTime = dateFormatter.format(Date.from(timeZoned.toInstant))
         s"""|${index+1}
             |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
             |$tramoName
