@@ -1,5 +1,6 @@
 import io.vmchura.vevial.EjeVialBuilder.LandXMLToEje
 import io.vmchura.vevial.EjeVialUtil.Progresiva
+import models.AlgorithmFill
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.io.{Codec, Source}
@@ -18,7 +19,7 @@ class GpxToUTMTest extends AnyFlatSpec {
   it should "fill progresiva" in {
     val initialData = List(Some(Progresiva(1)), Some(Progresiva(2)), None)
     val expectedresult = List(Progresiva(1), Progresiva(2), Progresiva(3))
-    val actualResult = GpxToUTM.completeProgresiva(initialData)
+    val actualResult = AlgorithmFill.completeProgresiva(initialData)
     assertResult(expectedresult)(actualResult)
   }
   it should "parse with removed mal formation" in {

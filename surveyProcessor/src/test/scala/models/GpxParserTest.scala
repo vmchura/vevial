@@ -4,7 +4,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import java.io.ByteArrayInputStream
 import java.time.ZonedDateTime
-import scala.xml.{Node, XML}
+import java.time.temporal.ChronoUnit
+import scala.xml.XML
 class GpxParserTest extends AnyFlatSpec {
   "GpxParserTest" should "parseFromNode from node" in {
     val initialString =
@@ -56,7 +57,7 @@ class GpxParserTest extends AnyFlatSpec {
       ZonedDateTime.parse("2022-08-28T22:53:03.620Z"),
       ZonedDateTime.parse("2022-08-28T22:53:04.610Z"),
     )
-    val actualResult = GpxParser.completeTimeStamp(input)
+    val actualResult = AlgorithmFill.completeTimeStamp(input)
     assertResult(expectedResult)(actualResult)
   }
   it should "completeTimeStamp end" in {
@@ -70,7 +71,7 @@ class GpxParserTest extends AnyFlatSpec {
       ZonedDateTime.parse("2022-08-28T22:53:04.610Z"),
       ZonedDateTime.parse("2022-08-28T22:53:05.600Z"),
     )
-    val actualResult = GpxParser.completeTimeStamp(input)
+    val actualResult = AlgorithmFill.completeTimeStamp(input)
     assertResult(expectedResult)(actualResult)
   }
   it should "completeTimeStamp middle" in {
@@ -89,8 +90,42 @@ class GpxParserTest extends AnyFlatSpec {
       ZonedDateTime.parse("2022-08-28T22:53:06.660Z"),
       ZonedDateTime.parse("2022-08-28T22:53:07.650Z")
     )
-    val actualResult = GpxParser.completeTimeStamp(input)
+    val actualResult = AlgorithmFill.completeTimeStamp(input)
     assertResult(expectedResult)(actualResult)
+  }
+  it should "completeTimeStamp long middle absence" in {
+    val now = ZonedDateTime.now()
+    val init = List(now.plus(1, ChronoUnit.SECONDS),
+      now.plus(2, ChronoUnit.SECONDS),
+        now.plus(3, ChronoUnit.SECONDS)).map(Some.apply)
+    val middle = List.fill(53)(Option.empty[ZonedDateTime])
+    val end = List(now.plus(57, ChronoUnit.SECONDS),
+      now.plus(58, ChronoUnit.SECONDS),
+      now.plus(59, ChronoUnit.SECONDS)).map(Some.apply)
+
+    val input = init ::: middle ::: end
+
+    val actualResult = AlgorithmFill.completeTimeStamp(input)
+    actualResult.zip(actualResult.tail).foreach{ case (prev, next) =>
+      assertResult(ChronoUnit.SECONDS.between(init.head.get, init.tail.head.get))(ChronoUnit.SECONDS.between(prev, next))
+    }
+  }
+  it should "completeTimeStamp irregularEndings" in {
+    val now = ZonedDateTime.now()
+    val input = List(
+      None,
+      Some(now.plus(1, ChronoUnit.SECONDS)),
+      Some(now.plus(2, ChronoUnit.SECONDS)),
+      None,
+      None,
+      Some(now.plus(6, ChronoUnit.SECONDS)),
+      Some(now.plus(8, ChronoUnit.SECONDS)),
+      None
+    )
+
+
+    val actualResult = AlgorithmFill.completeTimeStamp(input)
+    actualResult.zip(input).foreach(println)
   }
   it should "parse complete from node" in {
     val initialString =
