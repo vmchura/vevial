@@ -57,7 +57,7 @@ object SurveyControllersOps {
     }
   }
   def analyzeSingleSurvey(roadAxis: TEfficientSeqEjeElementsProgresiva,
-                          survey: SurveyGPX,
+                          survey: => SurveyGPX,
                           lineChartGlobalTimeDelegate: jfxsch.LineChart[Number, Number],
                           lineChartLocalTimeDelegate: jfxsch.LineChart[Number, Number],
                           seriesName: String): () => Unit = {

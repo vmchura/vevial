@@ -4,6 +4,7 @@ import Layers.{DummyLayer, EjeVialLayer, MilestoneLayer, ProjectionSurveyLayer, 
 import ScalaFXControllers.PanelLayered
 import forms.SurveyViewerForm
 import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje}
+import io.vmchura.vevial.PlanarGeometric.BasicGeometry.{PlanarVector, Point}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
 import io.vmchura.vevial.elementdata.GPXElementData
 import io.vmchura.vevial.relevamiento.SurveyGPX
@@ -78,8 +79,8 @@ class SurveyModifierController extends jfxf.Initializable {
   private var viewLabelDelegate: jfxsc.Label = _
   private var viewLabel: Label = _
 
-  val correctionX = DoubleProperty(0.0)
-  val correctionY = DoubleProperty(0.0)
+  private val correctionX = DoubleProperty(0.0)
+  private val correctionY = DoubleProperty(0.0)
 
   @jfxf.FXML
   private def onActionAddAxisMenuItem(event: jfxe.ActionEvent): Unit = {
@@ -109,11 +110,14 @@ class SurveyModifierController extends jfxf.Initializable {
     }
   }
   private var lastLayer: Option[TLayer[GPXElementData]] = Option.empty
+  private var analyzeLastSurvey: Option[() => Unit] = Option.empty
   @jfxf.FXML
   private def onActionAddGPXMenuItem(event: jfxe.ActionEvent): Unit = {
     val javaFile = gpxFileChooser.showOpenDialog(SurveyViewerForm.stage)
-    if (javaFile.isFile) {
-      listSources += s"GPX ${listSources.length}"
+    if (javaFile.isFile && lastRoadAxisBuilt.nonEmpty) {
+      listSources += javaFile.getName
+      lastRoadAxisBuilt.foreach { roadAxis =>
+        listSources += s"GPX ${listSources.length}"
         println("Loading survey")
         SurveyGPX(javaFile.getPath) match {
           case Left(errors) => errors.foreach(println)
@@ -123,8 +127,14 @@ class SurveyModifierController extends jfxf.Initializable {
             val projectionLayer = new SurveyAlteredLayer(survey, correctionX, correctionY)
             val layerBuilt = mapPane.appendLayer(projectionLayer)
             lastLayer = Some(layerBuilt)
+            analyzeLastSurvey = Some(SurveyControllersOps.analyzeSingleSurvey(roadAxis = roadAxis,
+              survey = survey.copy(surveyInformation = survey.surveyInformation.map(gpx => gpx.copy(point = gpx.point.map(p => p.copy(value = p.value + (Point(correctionX(), correctionY())-Point(0, 0))))))),
+              lineChartGlobalTimeDelegate = lineChartGlobalTimeDelegate,
+              lineChartLocalTimeDelegate = lineChartLocalTimeDelegate,
+              seriesName = javaFile.getName))
             println("Survey Appended")
         }
+      }
 
     }
 
@@ -159,6 +169,7 @@ class SurveyModifierController extends jfxf.Initializable {
         correctionY() = correctionY() + 0.5
       case KeyCode.DOWN =>
         correctionY() = correctionY() - 0.5
+      case KeyCode.A => analyzeLastSurvey.foreach(_.apply())
       case keyCode =>println(s"Not recognized $keyCode")
     }
   }
