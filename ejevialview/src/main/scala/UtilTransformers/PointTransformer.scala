@@ -40,6 +40,20 @@ class PointTransformer(mapWidth: ReadOnlyDoubleProperty, mapHeight: ReadOnlyDoub
 
   }
 
+  implicit class DoublePropertyXView(x: NumberBinding) {
+    def toView_X: NumberBinding = convertXReal2View(x)
+  }
+
+  implicit class DoublePropertyYView(y: NumberBinding) {
+    def toView_Y: NumberBinding = convertYReal2View(y)
+  }
+  def convertXReal2View(x: NumberBinding): NumberBinding = {
+    (offsetX.multiply(-1d) + x).divide(factor)
+  }
+
+  def convertYReal2View(y: NumberBinding): NumberBinding = {
+    (offsetY - y).divide(factor)
+  }
 
 
   def convertXView2Real(xView: Double): Double = {

@@ -1,5 +1,5 @@
 package ScalaFXControllers
-import Layers.{LayerBuilder, ObservableListDelegate}
+import Layers.{LayerBuilder, ObservableListDelegate, TLayer}
 import UtilTransformers.PointTransformer
 import scalafx.Includes._
 import scalafx.beans.property.ObjectProperty
@@ -33,7 +33,7 @@ class PanelLayered(override val delegate: jfxsl.Pane = new jfxsl.Pane) extends P
       case _ => ()
     }
   }
-  def appendLayer[T](layer: LayerBuilder[T]): Unit = {
+  def appendLayer[T](layer: LayerBuilder[T]): TLayer[T] = {
     val minX = layer.minimumX
     val maxX = layer.maximumX
     val minY = layer.minimumY
@@ -49,10 +49,12 @@ class PanelLayered(override val delegate: jfxsl.Pane = new jfxsl.Pane) extends P
     pointTransformer.factor() = factor
     pointTransformer.offsetX() = (maxX + minX - delegate.getWidth*factor)/2.0
     pointTransformer.offsetY() = (maxY + minY - delegate.getHeight*factor)/2.0+delegate.getHeight*factor
+    val layerBuilt = layer.build(pointTransformer)
     new ObservableListDelegate(
-      Array(layer.build(pointTransformer).nodes),
+      Array(layerBuilt.nodes),
       children
     )
+    layerBuilt
 
   }
 
