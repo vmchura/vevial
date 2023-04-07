@@ -65,7 +65,7 @@ object SurveyControllersOps {
     () => {
       val listProgressDistanceTimeStamp = survey.fillProgressDistance(roadAxis)
       val progressDistanceTime: List[(Progresiva, Int, ZonedDateTime)] = MarkSequentialByStepTime.
-        buildProgresiveByStepTime(listProgressDistanceTimeStamp, survey.duration, 100.millis)
+        buildProgressDistanceByStepTime(listProgressDistanceTimeStamp.toArray, survey.duration, 100.millis)
 
 
       val toXYData: GPXElementData => Option[jfxsch.XYChart.Data[Number, Number]] = gpxElementData => toXYDataAxis(gpxElementData)(roadAxis)

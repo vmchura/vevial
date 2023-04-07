@@ -4,7 +4,9 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.{EfficientEjeProgresiva, TEfficientSeqEjeElementsProgresiva}
 
 import java.time.ZonedDateTime
-case class ProgresivaMilliseconds(progresiva: Progresiva, millisFromStart: Long, timeZoned: ZonedDateTime)
+case class ProgresivaMilliseconds(progresiva: Progresiva, millisFromStart: Long, timeZoned: ZonedDateTime) extends Ordered[ProgresivaMilliseconds] {
+  override def compare(that: ProgresivaMilliseconds): Int = millisFromStart.compareTo(that.millisFromStart)
+}
 case class ProgresivaTimeStamp(progresiva: Option[Progresiva], timeStamp: ZonedDateTime)
 trait ProgressDistanceTimeStampAble[A <: ProgressDistanceTimeStampAble[A]] extends Ordered[A]{ this: A =>
   def timeStamp: ZonedDateTime
