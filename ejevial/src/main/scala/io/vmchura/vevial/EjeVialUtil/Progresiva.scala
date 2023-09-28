@@ -16,7 +16,7 @@ case class Progresiva(progresiva: Int) {
 object Progresiva {
   def apply(progresiva: Int): Progresiva = new Progresiva(progresiva)
   def apply(progresiva: String): Option[Progresiva] = {
-    Option.when(progresiva.contains('+') && progresiva.replace('+','.').toDoubleOption.isDefined) {
+    Option.when(progresiva.contains('+') && progresiva.replace('+','.').trim.toDoubleOption.isDefined) {
       val progresivaInt = progresiva.split('+').map(_.trim).reverse.zipWithIndex.map {
         case (chunk, index) =>
           Math.pow(1e3, index) * chunk.toInt

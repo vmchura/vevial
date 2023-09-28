@@ -40,10 +40,9 @@ object PointsOnElementGenerator {
           case _: TFaintElement => Nil
           case _ =>
             calcPointToDistance(a, 0) ::
-              calcPointToDistance(a, a.length) ::
-              (1 to a.length.toInt by 5)
+              ((1 to a.length.toInt by 5)
                 .map(d => calcPointToDistance(a, d))
-                .toList
+                .toList) ::: calcPointToDistance(a, a.length) :: Nil
         }
 
       }
