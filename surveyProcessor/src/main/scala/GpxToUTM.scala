@@ -1,3 +1,4 @@
+import io.vmchura.vevial.EjeVialBuilder.EfficientEjeByPoints
 import io.vmchura.vevial.EjeVialUtil.Progresiva
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 import models.{AlgorithmFill, GpxParser, ProgresivaMilliseconds, ProgresivaTimeStamp}
@@ -10,6 +11,12 @@ object GpxToUTM {
     ejeEither.map{ eje =>
       GpxParser.parse(gpxXML).map(_.toProgresivaTimeStamp(eje))
     }
+  }
+
+  def parseFilesByEjePoints(gpxXML: Node, eje:EfficientEjeByPoints): Either[Exception, List[ProgresivaTimeStamp]] = {
+
+     Right(GpxParser.parse(gpxXML).map(_.toProgresivaTimeStamp(eje)))
+
   }
   def completeProgresiva(initialData: List[Option[Progresiva]]): List[Progresiva] =
     AlgorithmFill.completeTimeStamp[Progresiva, Int](initialData,
@@ -28,6 +35,20 @@ object GpxToUTM {
       val millis = ChronoUnit.MILLIS
       val times = progresivaTimeStamp.map(progresivaTime => (millis.between(minTime, progresivaTime.timeStamp), progresivaTime.timeStamp))
       progresivaComplete.zip(times).map{
+        case (progresiva, (time, timeZoned)) => ProgresivaMilliseconds(progresiva, time, timeZoned)
+      }
+    })
+  }
+
+  def parse(gpxXML: Node, eje: EfficientEjeByPoints): Either[Exception, List[ProgresivaMilliseconds]] = {
+    val progresivasError = parseFilesByEjePoints(gpxXML, eje)
+    progresivasError.map(progresivaTimeStamp => {
+      val progresiva = progresivaTimeStamp.map(_.progresiva)
+      val progresivaComplete = completeProgresiva(progresiva)
+      val minTime = progresivaTimeStamp.head.timeStamp
+      val millis = ChronoUnit.MILLIS
+      val times = progresivaTimeStamp.map(progresivaTime => (millis.between(minTime, progresivaTime.timeStamp), progresivaTime.timeStamp))
+      progresivaComplete.zip(times).map {
         case (progresiva, (time, timeZoned)) => ProgresivaMilliseconds(progresiva, time, timeZoned)
       }
     })

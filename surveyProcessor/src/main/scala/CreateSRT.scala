@@ -1,5 +1,5 @@
 import io.vmchura.vevial.EjeVialUtil.Progresiva
-import io.vmchura.vevial.EjeVialBuilder.{LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje}
+import io.vmchura.vevial.EjeVialBuilder.{EfficientEjeByPoints, KMLFolderMultiGeometryToEje, LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import models.ProgresivaMilliseconds
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
@@ -90,6 +90,59 @@ object CreateSRT extends App {
       }
     }
   }
+
+  def buildSubtitlesTwoAxis(gpxXML: Node,
+                            ejePGV: EfficientEjeByPoints,
+                            ejeODNA: EfficientEjeByPoints): Either[Exception, Seq[String]] = {
+    val pgvSubtitle = GpxToUTM.parse(gpxXML, ejePGV).map { progresivasTimeStamp =>
+
+      val totalDuration = progresivasTimeStamp.maxBy(_.millisFromStart).millisFromStart.toInt
+
+      var currentList = progresivasTimeStamp
+      var lastProgresiva = ProgresivaMilliseconds(Progresiva(0), -1L, ZonedDateTime.now())
+      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+      dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT-5"))
+
+      (0 until totalDuration by 100).zipWithIndex.map { case (milliSecond, index) =>
+        val nextMillisecond = milliSecond + 100
+        val (progresivaToWrite, newList, newLast) = findProgresiva(currentList, lastProgresiva, milliSecond)
+        val progresivaRealSTR = progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)
+        currentList = newList
+        lastProgresiva = newLast
+        val utcTime = dateFormatter.format(Date.from(lastProgresiva.timeZoned.toInstant))
+
+        s"""|${index + 1}
+            |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
+            |Hora aproximada: $utcTime
+            |Prog aproximada PGV: $progresivaRealSTR (%%REPLACE%%)""".stripMargin
+      }
+    }
+    val odnaReplacement = GpxToUTM.parse(gpxXML, ejeODNA).map { progresivasTimeStamp =>
+      val totalDuration = progresivasTimeStamp.maxBy(_.millisFromStart).millisFromStart.toInt
+
+      var currentList = progresivasTimeStamp
+      var lastProgresiva = ProgresivaMilliseconds(Progresiva(0), -1L, ZonedDateTime.now())
+      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+      dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT-5"))
+
+      (0 until totalDuration by 100).map { case milliSecond =>
+        val (progresivaToWrite, newList, newLast) = findProgresiva(currentList, lastProgresiva, milliSecond)
+        val progresivaRealSTR = progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)
+        currentList = newList
+        lastProgresiva = newLast
+
+        progresivaRealSTR
+      }
+    }
+    for{
+      pgv <- pgvSubtitle
+      odna <- odnaReplacement
+    }yield{
+      pgv.zip(odna).map{
+        case (pgvString, odnaString) => pgvString.replace("%%REPLACE%%", odnaString)
+      }
+    }
+  }
   def writeSubtitles(subtitles: Seq[String], outputPath: String): Unit = {
       val file = new java.io.File(outputPath)
       val bw = new BufferedWriter(new FileWriter(file))
@@ -106,25 +159,30 @@ object CreateSRT extends App {
       writeSubtitles(subtitles, outputPath)
     }
   }
-  val tramoFile = File(args(0))
-  val restrictionsFile = File(args(1))
-  val restrictions: List[ProgresivePoint] = restrictionsFile.lines().map{ line =>
-    val Array(x,y, prog) = line.split(",").map(_.toDouble)
-    new ProgresivePoint(Point(x,y), prog)
-  }.toList
 
-  val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLWithRestrictionsToEje(tramoFile.reader(Codec("UTF-8")), restrictions
-                                                                              //,kmlFile.reader(Codec("UTF-8"))
-                                                                              ).toEje
+  def execute(gpxXML: Node, ejePGV: EfficientEjeByPoints, ejeODNA: EfficientEjeByPoints, outputPath: String): Unit = {
+    buildSubtitlesTwoAxis(gpxXML, ejePGV, ejeODNA).map { subtitles =>
+      writeSubtitles(subtitles, outputPath)
+    }
+  }
+  //val tramoFile = File(args(0))
+  //val restrictionsFile = File(args(1))
+//  val restrictions: List[ProgresivePoint] = restrictionsFile.lines().map{ line =>
+//    val Array(x,y, prog) = line.split(",").map(_.toDouble)
+//    new ProgresivePoint(Point(x,y), prog)
+//  }.toList
 
+  //val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLWithRestrictionsToEje(tramoFile.reader(Codec("UTF-8")), restrictions).toEje
+  val ejeTramo3sBuilder = new KMLFolderMultiGeometryToEje("TRAMO_3S-F_UTM")
   val scanner = new Scanner(System.in)
   while(scanner.hasNextLine){
     val line = scanner.nextLine()
-    val Array(durationPath, gpxPath, pathOutput, tramoName) = line.split(";").map(_.trim)
+    val Array(gpxPath, pathOutput) = line.split(";").map(_.trim)
     try {
 
       val gpxNode = XML.load(gpxPath)
-      CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
+      //CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
+      CreateSRT.execute(gpxNode, ejeTramo3sBuilder, ejeTramo3sBuilder, pathOutput)
 
     }catch{
       case e: Exception =>

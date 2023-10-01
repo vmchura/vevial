@@ -1,8 +1,6 @@
 package models
-import io.vmchura.vevial.EjeVialUtil.{
-  GeodesicCoordinates,
-  Progresiva
-}
+import io.vmchura.vevial.EjeVialBuilder.EfficientEjeByPoints
+import io.vmchura.vevial.EjeVialUtil.{GeodesicCoordinates, Progresiva}
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
 
 import java.time.ZonedDateTime
@@ -27,6 +25,18 @@ case class GeodesicTimeStamp (
       }
     }yield{
       Progresiva(efficientEjeProgresiva.calcProgresive(ep).toInt)
+    }
+    ProgresivaTimeStamp(progresiva, timeStamp)
+  }
+  def toProgresivaTimeStamp(efficientEjeByPoints: EfficientEjeByPoints): ProgresivaTimeStamp = {
+    val progresiva = for {
+      geodesicCoordinates <- geodesicCoordinatesOption
+      ep <- {
+        val point = geodesicCoordinates.toPoint()
+        efficientEjeByPoints.findProgresiva(point)
+      }
+    } yield {
+      Progresiva(ep.toInt)
     }
     ProgresivaTimeStamp(progresiva, timeStamp)
   }
