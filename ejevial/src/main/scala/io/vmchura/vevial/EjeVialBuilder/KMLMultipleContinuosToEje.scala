@@ -1,4 +1,5 @@
 package io.vmchura.vevial.EjeVialBuilder
+
 import com.scalakml.io.KmzFileReader
 import com.scalakml.kml._
 import io.vmchura.vevial.EjeVialUtil._
@@ -12,78 +13,82 @@ import io.vmchura.vevial.PlanarGeometric.ConfigParametersGeometric
 import scala.util.{Failure, Success, Try}
 case class Node(index: Int, next: Int, distanceNext: Double)
 
-class KMLFolderMultiGeometryToEje(label: String)  extends EfficientEjeByPoints {
+class KMLFolderMultiGeometryToEje(label: String, placeMarkNames: List[String])  extends EfficientEjeByPoints {
 
-  val kmlSeq = new KmzFileReader().getKmlFromKmzFile("D:/ProjectAnita/pgv.kmz")
+  val kmlSeq = new KmzFileReader().getKmlFromKmzFile("D:/ProjectAnita/odnas.kmz")
 
   def parseProgresivas(features: Seq[Feature]): Seq[(Progresiva, GeodesicCoordinates)] = {
-    features.flatMap {
-      case f: Folder if f.featurePart.name.get.startsWith("Text") =>
-        f.features.toList match {
-          case (pm: Placemark) :: Nil => pm.geometry.flatMap {
-            case p: Point => for {
-              progresiva <- pm.featurePart.name
-              coordinate <- p.coordinates
-              latitude <- coordinate.latitude
-              longitude <- coordinate.longitude
-              progresivaValue <- Progresiva(progresiva)
-            } yield {
-              (progresivaValue, Coordinates(latitude, longitude))
-            }
-            case _ => Option.empty
-          }
-          case _ => Option.empty
+    features.toList.flatMap {
+      case pm: Placemark => Some(pm)
+      case _ => Option.empty[Placemark]
+    } flatMap { pm: Placemark =>
+      pm.geometry.flatMap {
+        case p: Point => for {
+          progresiva <- pm.featurePart.name
+          coordinate <- p.coordinates
+          latitude <- coordinate.latitude
+          longitude <- coordinate.longitude
+          progresivaValue <- Progresiva(progresiva)
+        } yield {
+          (progresivaValue, Coordinates(latitude, longitude))
         }
-      case f: Folder if f.featurePart.name.get.startsWith("PROG.") =>
-        parseProgresivas(f.features)
-      case _ => Option.empty
+        case _ => None
+      }
     }
   }
 
-  def findProgresivas[M](feature: Feature, label: String)(implicit extractor: Seq[Feature] => Seq[M]): Seq[M] = {
+  def findProgresivas[M](feature: Feature, label: String)(implicit extractorProgresivas: Seq[Feature] => Seq[M]): Seq[M] = {
     feature match {
       case f: Folder =>
         if (f.featurePart.name.contains(label)) {
           println(label)
-          extractor(f.features)
+          extractorProgresivas(f.features)
         } else {
-          f.features.flatMap(singleFeature => findProgresivas(singleFeature, label))
+          Nil
         }
       case _ => Nil
     }
   }
 
-  def parseEje(features: Seq[Feature]): Seq[Seq[Seq[GeodesicCoordinates]]] = {
-    features.flatMap {
-      case f: Folder if f.featurePart.name.get.startsWith("Polyline") =>
-        f.features.map {
-          case pm: Placemark =>
-            pm.geometry.map {
-              case (mg: MultiGeometry) => mg.geometries.map {
-                case ls: LineString => ls.coordinates.map { coordinates =>
-                  coordinates.flatMap { coordinate =>
-                    for {
-                      latitude <- coordinate.latitude
-                      longitude <- coordinate.longitude
-                    } yield {
-                      Coordinates(latitude, longitude)
-                    }
-                  }
-                }.getOrElse(Nil)
-                case _ => Nil
-              }
-              case _ => Nil
-            }.getOrElse(Nil)
-          case _ => Nil
+  def findEje[M](feature: Feature)(implicit extractorEje: Geometry => Seq[M]): Option[(String, Seq[M])] = {
+    feature match {
+      case pm: Placemark =>
+        (for{
+          name <- pm.featurePart.name
+          _ <- Option.when(placeMarkNames.contains(name))(true)
+          geometry <- pm.geometry
+        }yield{
+          (name, extractorEje(geometry))
+        })
+      case _ => None
+    }
+  }
+
+  def parseEje(geometry: Geometry): Seq[GeodesicCoordinates] = {
+
+    geometry match {
+      case (mg: MultiGeometry) => mg.geometries.flatMap {
+        case ls: LineString => ls.coordinates.toList.flatMap {
+          case c :: Nil =>
+
+            for {
+              latitude <- c.latitude
+              longitude <- c.longitude
+            } yield {
+              Coordinates(latitude, longitude)
+            }
+          case _ => None
+
         }
-      case f: Folder if f.featurePart.name.get.startsWith("EJE") =>
-        parseEje(f.features)
-      case _ => Option.empty
+        case _ => Nil
+      }
+      case _ => Nil
+
     }
   }
 
   val progressiveDistanceMap = kmlSeq.flatten.flatMap(_.feature).flatMap(f => findProgresivas(f, label)(parseProgresivas)).toArray
-  val ejeMap = kmlSeq.flatten.flatMap(_.feature).flatMap(f => findProgresivas(f, label)(parseEje)).flatten.toArray.map(_.map(_.toUTMCoordinates()))
+  val ejeMap = kmlSeq.flatten.flatMap(_.feature).map(f => findEje(f)(parseEje))//.flatMap(f => findEje(f)(parseEje)).flatten.toArray.map(_.map(_.toUTMCoordinates()))
 
 
 
@@ -201,13 +206,13 @@ class KMLFolderMultiGeometryToEje(label: String)  extends EfficientEjeByPoints {
     }
   }
 
-  override def findProgresiva(point: TPoint):  Option[(Option[String], Double)] = {
+  override def findProgresiva(point: TPoint): Option[(Option[String], Double)] = {
     (for {
       pointFound <- ejeByPoints.closestPoint(point)
       index <- pointsMap.get(pointFound)
     } yield {
       progArray(index)
-    }).flatten.map(x => (Some(label), x))
+    }).flatten.map(x => (None, x))
   }
 
 }
