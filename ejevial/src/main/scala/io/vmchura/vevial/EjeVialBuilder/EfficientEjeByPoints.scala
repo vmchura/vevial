@@ -31,30 +31,32 @@ object EfficientEjeByPoints{
       val (next, distanceNext) = findClosest(i)
       Node(i, next, distanceNext)
     })
+    def concatenateChain(initial: Int): Seq[(TPoint, Int, Int)] = {
+      val visited = Array.fill(pointsArray.length)(false)
+
+      val (_, result) = nodes.indices.foldLeft((initial, List.empty[Seq[(TPoint, Int, Int)]])) {
+        case ((current, prev), _) =>
+          if (visited(current)) {
+            (current, prev)
+          } else {
+            val currentNode = nodes(current)
+            visited(current) = true
+            (currentNode.next, pointsArray(current).zipWithIndex.map {
+              case (a, b) => (a, b, current)
+            } :: prev)
+          }
+
+      }
+      result.reverse.flatten
+    }
 
     val completeChainTrazabilidad = nodes.foldLeft(Set(pointsArray.indices: _*)) {
       case (prevSet, n) => prevSet.filterNot(_ == n.next)
     }.toList match {
       case initial :: Nil =>
-
-        val visited = Array.fill(pointsArray.length)(false)
-
-        val (_, result) = nodes.indices.foldLeft((initial, List.empty[Seq[(TPoint, Int, Int)]])) {
-          case ((current, prev), _) =>
-            if (visited(current)) {
-              (current, prev)
-            } else {
-              val currentNode = nodes(current)
-              visited(current) = true
-              (currentNode.next, pointsArray(current).zipWithIndex.map {
-                case (a, b) => (a, b, current)
-              } :: prev)
-            }
-
-        }
-        result.reverse.flatten
-      case _ => throw new IllegalStateException("Muchos puntos iniciales?")
-
+        concatenateChain(initial)
+      case initials =>
+        initials.flatMap(concatenateChain)
     }
     completeChainTrazabilidad.map(_._1)
   }
@@ -139,8 +141,10 @@ object EfficientEjeByPoints{
   }
 
   def apply(label: String, ejeMap: Array[Seq[UTMCoordinates]], progressiveDistanceMap: Array[(Progresiva, GeodesicCoordinates)]): EfficientEjeByPoints = new EfficientEjeByPoints {
+    println(s"$label: |ejeMap|: ${ejeMap.length}")
+    println(s"$label: |progressiveDistanceMap|: ${progressiveDistanceMap.length}")
     val completeChain = EfficientEjeByPoints.sortByClosePoints(ejeMap.map(_.map(_.toPoint())))
-
+    println(s"$label: |completeChain|: ${completeChain.length}")
     val (progArray, ejeByPoints, pointsMap) = EfficientEjeByPoints.completePointsWithProgressive(completeChain, progressiveDistanceMap)
 
     override def findProgresiva(point: TPoint): Option[(Option[String], Double, TPoint)] = {

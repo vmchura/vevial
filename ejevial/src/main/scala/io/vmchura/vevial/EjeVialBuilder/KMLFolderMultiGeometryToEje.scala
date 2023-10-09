@@ -18,9 +18,9 @@ class KMLFolderMultiGeometryToEje(label: String)  extends EfficientEjeByPoints {
 
   def parseProgresivas(features: Seq[Feature]): Seq[(Progresiva, GeodesicCoordinates)] = {
     features.flatMap {
-      case f: Folder if f.featurePart.name.get.startsWith("Text") =>
+      case f: Folder if f.featurePart.name.get.startsWith("Text") || f.featurePart.name.get.startsWith("MText")=>
         f.features.toList match {
-          case (pm: Placemark) :: Nil => pm.geometry.flatMap {
+          case (pm: Placemark) :: _ => pm.geometry.flatMap {
             case p: Point => for {
               progresiva <- pm.featurePart.name
               coordinate <- p.coordinates
@@ -83,7 +83,7 @@ class KMLFolderMultiGeometryToEje(label: String)  extends EfficientEjeByPoints {
   }
 
   val progressiveDistanceMap = kmlSeq.flatten.flatMap(_.feature).flatMap(f => findProgresivas(f, label)(parseProgresivas)).toArray
-  val ejeMap = kmlSeq.flatten.flatMap(_.feature).flatMap(f => findProgresivas(f, label)(parseEje)).flatten.toArray.map(_.map(_.toUTMCoordinates()))
+  val ejeMap =                 kmlSeq.flatten.flatMap(_.feature).flatMap(f => findProgresivas(f, label)(parseEje)).flatten.toArray.map(_.map(_.toUTMCoordinates()))
 
   val innerEfficientEjeByPoints = EfficientEjeByPoints(label, ejeMap, progressiveDistanceMap)
 
