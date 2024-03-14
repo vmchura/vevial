@@ -5,7 +5,7 @@ import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 class ODNAMultipleEjeProjectoSingular extends EfficientEjeByPoints {
   val ejes = List(
     new KMLMultipleContinuosToEje("KM 3SF", List("Tramo I", "Tramo II", "Tramo IIIa")),
-    new KMLMultipleContinuosToEje("KM 3SG", List("Tramo IIIb", "Tramo IVa", "Tramo IVb", "Tramo V", "Tramo VI", "Tramo VII", "Tramo VIII", "")),
+    new KMLMultipleContinuosToEje("KM 3SG", List("Tramo IIIb", "Tramo IVa", "Tramo IVb", "Tramo V", "Tramo VI", "Tramo VII", "Tramo VIII", "Tramo IX")),
   )
 
   override def findProgresiva(point: TPoint): Option[(Option[String], Double, TPoint)] = {

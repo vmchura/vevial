@@ -1,5 +1,5 @@
 import io.vmchura.vevial.EjeVialUtil.Progresiva
-import io.vmchura.vevial.EjeVialBuilder.{EfficientEjeByPoints, KMLFolderMultiGeometryToEje, LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje}
+import io.vmchura.vevial.EjeVialBuilder.{EfficientEjeByPoints, KMLFolderMultiGeometryToEje, LandXMLToEje, LandXMLWithRestrictionsToEje, LandXmlKmlToEje, ODNAMultipleEjeProjectoSingular, PGVMultipleEjeProjectoSingular}
 import io.vmchura.vevial.PlanarGeometric.BasicGeometry.TPoint
 import models.ProgresivaMilliseconds
 import io.vmchura.vevial.PlanarGeometric.ProgresiveEje.EfficientEjeProgresiva
@@ -173,20 +173,17 @@ object CreateSRT extends App {
 //  }.toList
 
   //val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLWithRestrictionsToEje(tramoFile.reader(Codec("UTF-8")), restrictions).toEje
-  val ejeTramo3sBuilder = new KMLFolderMultiGeometryToEje("TRAMO_3S-F_UTM")
+  val ejePGV = new PGVMultipleEjeProjectoSingular()
+  val ejeODNA = new ODNAMultipleEjeProjectoSingular()
   val scanner = new Scanner(System.in)
   while(scanner.hasNextLine){
     val line = scanner.nextLine()
     val Array(gpxPath, pathOutput) = line.split(";").map(_.trim)
-    try {
-
+      println(gpxPath)
       val gpxNode = XML.load(gpxPath)
       //CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
-      CreateSRT.execute(gpxNode, ejeTramo3sBuilder, ejeTramo3sBuilder, pathOutput)
-
-    }catch{
-      case e: Exception =>
-    }
+      CreateSRT.execute(gpxNode, ejePGV, ejeODNA, pathOutput)
+      println("Done")
   }
   scanner.close()
 

@@ -18,5 +18,10 @@ class PGVMultipleEjeProjectoSingularTest extends AnyFlatSpec with Matchers{
         println(tramo)
         progresiva >= 73900 && progresiva <= 74000
     })
+    assert(eje.findProgresiva(Coordinates(latitud = -14.874001, longitud = -70.659430).toPoint()).exists {
+      case (tramo, progresiva, _) =>
+        println(tramo)
+        progresiva >= 352800 && progresiva <= 352900
+    })
   }
 }

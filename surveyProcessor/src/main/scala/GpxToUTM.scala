@@ -44,6 +44,8 @@ object GpxToUTM {
     val progresivasError = parseFilesByEjePoints(gpxXML, eje)
     progresivasError.map(progresivaTimeStamp => {
       val progresiva = progresivaTimeStamp.map(_.progresiva)
+      println("|progresiva|")
+      println(progresiva.flatten.length)
       val progresivaComplete = completeProgresiva(progresiva)
       val minTime = progresivaTimeStamp.head.timeStamp
       val millis = ChronoUnit.MILLIS

@@ -44,5 +44,9 @@ object ExpectedPoints {
       Map(
         "PGV" -> (10200, 10300, "TRAMO_3S-G_UTM"),
         "ODNA" -> (10200, 10300, "Tramo IIIb"))),
+    (Coordinates(latitud = -14.874001, longitud = -70.659430),
+      Map(
+        "PGV" -> (352800, 352900, "TRAMO_3S-G_UTM"),
+        "ODNA" -> (352700, 352800, "Tramo IX"))),
   )
 }

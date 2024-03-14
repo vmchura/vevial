@@ -33,7 +33,7 @@ case class GeodesicTimeStamp (
       geodesicCoordinates <- geodesicCoordinatesOption
       ep <- {
         val point = geodesicCoordinates.toPoint()
-        efficientEjeByPoints.findProgresiva(point)
+        efficientEjeByPoints.findProgresiva(point).map(_._2)
       }
     } yield {
       Progresiva(ep.toInt)
