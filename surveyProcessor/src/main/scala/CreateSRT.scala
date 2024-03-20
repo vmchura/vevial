@@ -92,8 +92,7 @@ object CreateSRT extends App {
   }
 
   def buildSubtitlesTwoAxis(gpxXML: Node,
-                            ejePGV: EfficientEjeByPoints,
-                            ejeODNA: EfficientEjeByPoints): Either[Exception, Seq[String]] = {
+                            ejePGV: EfficientEjeByPoints): Either[Exception, Seq[String]] = {
     val pgvSubtitle = GpxToUTM.parse(gpxXML, ejePGV).map { progresivasTimeStamp =>
 
       val totalDuration = progresivasTimeStamp.maxBy(_.millisFromStart).millisFromStart.toInt
@@ -114,34 +113,10 @@ object CreateSRT extends App {
         s"""|${index + 1}
             |${millisecondsToHMS(milliSecond)} --> ${millisecondsToHMS(nextMillisecond)}
             |Hora aproximada: $utcTime
-            |Prog aproximada PGV: $progresivaRealSTR (%%REPLACE%%)""".stripMargin
+            |Prog aproximada PGV: $progresivaRealSTR""".stripMargin
       }
     }
-    val odnaReplacement = GpxToUTM.parse(gpxXML, ejeODNA).map { progresivasTimeStamp =>
-      val totalDuration = progresivasTimeStamp.maxBy(_.millisFromStart).millisFromStart.toInt
-
-      var currentList = progresivasTimeStamp
-      var lastProgresiva = ProgresivaMilliseconds(Progresiva(0), -1L, ZonedDateTime.now())
-      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-      dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT-5"))
-
-      (0 until totalDuration by 100).map { case milliSecond =>
-        val (progresivaToWrite, newList, newLast) = findProgresiva(currentList, lastProgresiva, milliSecond)
-        val progresivaRealSTR = progresivaToWrite.show(withSpaces = true, withKmLeftPadding = 3)
-        currentList = newList
-        lastProgresiva = newLast
-
-        progresivaRealSTR
-      }
-    }
-    for{
-      pgv <- pgvSubtitle
-      odna <- odnaReplacement
-    }yield{
-      pgv.zip(odna).map{
-        case (pgvString, odnaString) => pgvString.replace("%%REPLACE%%", odnaString)
-      }
-    }
+    pgvSubtitle
   }
   def writeSubtitles(subtitles: Seq[String], outputPath: String): Unit = {
       val file = new java.io.File(outputPath)
@@ -160,8 +135,8 @@ object CreateSRT extends App {
     }
   }
 
-  def execute(gpxXML: Node, ejePGV: EfficientEjeByPoints, ejeODNA: EfficientEjeByPoints, outputPath: String): Unit = {
-    buildSubtitlesTwoAxis(gpxXML, ejePGV, ejeODNA).map { subtitles =>
+  def execute(gpxXML: Node, ejePGV: EfficientEjeByPoints, outputPath: String): Unit = {
+    buildSubtitlesTwoAxis(gpxXML, ejePGV).map { subtitles =>
       writeSubtitles(subtitles, outputPath)
     }
   }
@@ -174,7 +149,7 @@ object CreateSRT extends App {
 
   //val ejeEither: Either[Exception, EfficientEjeProgresiva] = new LandXMLWithRestrictionsToEje(tramoFile.reader(Codec("UTF-8")), restrictions).toEje
   val ejePGV = new PGVMultipleEjeProjectoSingular()
-  val ejeODNA = new ODNAMultipleEjeProjectoSingular()
+  //val ejeODNA = new ODNAMultipleEjeProjectoSingular()
   val scanner = new Scanner(System.in)
   while(scanner.hasNextLine){
     val line = scanner.nextLine()
@@ -182,7 +157,7 @@ object CreateSRT extends App {
       println(gpxPath)
       val gpxNode = XML.load(gpxPath)
       //CreateSRT.execute(durationPath, gpxNode, ejeEither, pathOutput, tramoName)
-      CreateSRT.execute(gpxNode, ejePGV, ejeODNA, pathOutput)
+      CreateSRT.execute(gpxNode, ejePGV, pathOutput)
       println("Done")
   }
   scanner.close()
